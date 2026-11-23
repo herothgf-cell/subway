@@ -339,6 +339,7 @@ function depart(){
   g.jolts.push({at:T_RUN-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
   g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다.";
   sfx("close");
+  {const nx=g.route[g.st+1],last=g.st+1>=g.N;g.timers.push({t:1.6,fn:()=>{sfx("chime");g.timers.push({t:.9,fn:()=>announceNext(nx,last)});}});}
 }
 function arrive(){
   const g=G;g.st++;g.phase="dwell";g.t=0;g.doorOpen=true;sfx("chime");
@@ -364,6 +365,7 @@ function arrive(){
 }
 function addPts(n,why){G.pts+=n;if(why)G.fx.push({x:G.pl.x,y:G.pl.y-26,t:0,txt:"+"+n+" "+why});}
 function endLeg(fail){
+  annStop();
   const g=G;mode="result";
   const rows=[];let total=g.pts;
   if(!fail){
@@ -394,6 +396,7 @@ function endLeg(fail){
   $("b1").onclick=showPlatform;$("b2").onclick=()=>finishRun("quit",null,0);
 }
 function finishRun(why,rows,total){
+  annStop();
   mode="over";profile.points+=run.points;saveProfile();
   const msg={exhaust:["체력 방전","다리가 풀려 다음 역 벤치에 주저앉았습니다. 이번 주 통근은 여기까지."],
     nuis:["민폐 승객 등극","주변의 따가운 시선을 견디지 못하고 다음 역에서 내렸습니다."],
@@ -1236,12 +1239,47 @@ function showShop(after){
   $("b1").onclick=startRun;$("b2").onclick=showMenu;
 }
 function setPause(v){
-  if(mode!=="play")return;paused=v;
+  if(mode!=="play")return;paused=v;annPause(v);
   if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}</p>
     <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
     $("b1").onclick=()=>setPause(false);$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
 }
+
+/* ========== 안내방송 (음성) ==========
+   audio/announce/<역명>.mp3 파일이 있으면 그 녹음을 틀고, 없으면 브라우저 음성(TTS)으로 2호선 형식 안내를 읽는다.
+   M 키로 켜고 끈다. */
+const ANN_EN={"신림":"Sillim","봉천":"Bongcheon","서울대입구":"Seoul National University","낙성대":"Nakseongdae","사당":"Sadang","방배":"Bangbae","서초":"Seocho","교대":"Seoul National University of Education","강남":"Gangnam"};
+const ANN_XFER={"신림":"신림선","사당":"4호선","교대":"3호선","강남":"신분당선"};
+const ANN_XFER_EN={"신림":"the Sillim Line","사당":"Line 4","교대":"Line 3","강남":"the Shinbundang Line"};
+let annAudio=null,annVoices=[];
+function annLoadVoices(){try{annVoices=speechSynthesis.getVoices();}catch(e){}}
+if(window.speechSynthesis){annLoadVoices();speechSynthesis.onvoiceschanged=annLoadVoices;}
+function annVoice(lang){
+  const vs=annVoices.filter(v=>v.lang&&v.lang.replace("_","-").toLowerCase().startsWith(lang));
+  const pref=lang==="ko"?/SunHi|Heami|Yuna|Google|Natural/i:/Jenny|Aria|Samantha|Google US|Natural|Zira/i;
+  return vs.find(v=>pref.test(v.name))||vs[0]||null;
+}
+function annSay(text,lang){
+  const v=annVoice(lang);if(!v)return;
+  const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=lang==="ko"?.95:.92;u.pitch=1.05;u.volume=.9;
+  speechSynthesis.speak(u);
+}
+function announceNext(name,last){
+  if(profile.voice===false)return;
+  annStop();
+  annAudio=new Audio("audio/announce/"+encodeURIComponent(name)+".mp3");annAudio.volume=.9;
+  annAudio.play().catch(()=>{annAudio=null;annTTS(name,last);});
+}
+function annTTS(name,last){
+  if(!window.speechSynthesis)return;
+  const x=ANN_XFER[name];
+  annSay("이번 역은 "+name+", "+name+"역입니다. 내리실 문은 오른쪽입니다."+(x?" "+x+"으로 갈아타실 승객께서는 이번 역에서 내리시기 바랍니다.":"")+(last?" 잊으신 물건 없이 안녕히 가십시오.":""),"ko");
+  const en=ANN_EN[name];
+  if(en)annSay("This stop is "+en+". The doors are on your right."+(ANN_XFER_EN[name]?" You can transfer to "+ANN_XFER_EN[name]+".":""),"en");
+}
+function annStop(){try{if(annAudio){annAudio.pause();annAudio=null;}if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+function annPause(v){try{if(annAudio)v?annAudio.pause():annAudio.play().catch(()=>{});if(window.speechSynthesis)v?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}}
 
 /* ========== 소리 (간단한 합성음) ========== */
 let AC=null;
@@ -1276,6 +1314,7 @@ addEventListener("keydown",e=>{
   if(ga!=null&&G&&view!=="q"){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 탑뷰: 짧게 눌러도 바로 돌아보게
   if(e.code==="KeyF"&&focus&&focus.state==="seated")togglePlan(focus.seat);
   if(e.code==="KeyQ")excuse();
+  if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false)annStop();toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
   if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 3D":"시점: 탑뷰");if(view!=="q"&&document.pointerLockElement)document.exitPointerLock();}
 });
 addEventListener("keyup",e=>{keys[e.code]=false;});
