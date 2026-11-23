@@ -1,10 +1,10 @@
 // 3D 그리기: 게임 규칙(3d.html 안의 코드)은 그대로 두고, 화면만 어깨 너머 시점의 3D로 그린다.
-// 게임 좌표(픽셀)를 미터로 바꾼다: 좌석 한 칸 34px = 0.5m
+// 게임 좌표(픽셀)를 미터로 바꾼다: 좌석 한 칸 34px = 0.59m (사람끼리 몸이 겹치지 않을 만큼 넓게)
 "use strict";
 (function(){
 const C=window.Chars;
 if(!window.THREE||!C||typeof CAR==="undefined"){window.draw3D=null;return;}
-const S=1/68,X=x=>(x-640)*S,Z=y=>(y-370)*S,HW=CAR.h/2*S,HL=CAR.w/2*S;
+const S=1/58,X=x=>(x-640)*S,Z=y=>(y-370)*S,HW=CAR.h/2*S,HL=CAR.w/2*S;
 const V=C.V,basic=C.basic,TYPE={};for(const T of C.TYPES)TYPE[T.key]=T;
 const lerp=(a,b,t)=>a+(b-a)*t;
 let R=null;
@@ -19,7 +19,7 @@ function init(){
   const gl=document.getElementById("gl"),renderer=new THREE.WebGLRenderer({canvas:gl,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.setSize(W,H,false);
   const scene=new THREE.Scene();scene.background=new THREE.Color("#161b20");
   scene.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,.4);dl.position.set(1,3,1.5);scene.add(dl);
-  const cam=new THREE.PerspectiveCamera(64,W/H,.08,40);
+  const cam=new THREE.PerspectiveCamera(74,W/H,.14,40);
   const add=(m,x,y,z)=>{m.position.set(x,y,z);scene.add(m);return m;};
   const slab=(w,h,d,mat)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
   const pm=(grid,rx,ry,base)=>new THREE.MeshBasicMaterial({map:paper(grid,rx,ry,base)});
@@ -41,22 +41,22 @@ function init(){
     // 출입문: 아래쪽(+z) 문만 열린다
     for(const d of DOORS){const cx=X(d.cx),dw=DOOR_W*S;add(slab(dw,.38,.1,wallMat),cx,2.21,zw);
       for(const dir of[-1,1]){const pn=C.box(dw/2-.01,2.02,.05,"#e9eef0");const g=slab(dw/2-.14,.8,.06,win);g.position.y=.42;pn.add(g);add(pn,cx+dir*dw/4,1.01,zi+side*.02);if(side>0)doors.push({m:pn,cx,dir,dw});}
-      for(const ex of[d.x,d.x+DOOR_W]){const pole=C.cyl(.022,2.4,"#dfe6ea");add(pole,X(ex),1.2,side*(HW-.62));poles.push(pole);}}
+      for(const ex of[d.x,d.x+DOOR_W]){const pole=C.cyl(.022,2.4,"#dfe6ea");add(pole,X(ex),1.2,side*(HW-.78));poles.push(pole);}}
     // 손잡이 봉과 손잡이
-    const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,HL*2-.4,8),basic("#dfe6ea"));bar.rotation.z=Math.PI/2;add(bar,0,2.08,side*(HW-.9));
+    const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,HL*2-.4,8),basic("#dfe6ea"));bar.rotation.z=Math.PI/2;add(bar,0,2.12,side*(HW-1.05));
     for(let b=0;b<3;b++)for(let k=0;k<BENCH;k++){const x=X(DOORS[b].x+DOOR_W+SEAT_W*(k+.5));
-      add(slab(.03,.2,.012,basic("#f4f1e8")),x,1.97,side*(HW-.9));const ring=new THREE.Mesh(new THREE.TorusGeometry(.055,.012,6,14),basic("#dfe6ea"));add(ring,x,1.82,side*(HW-.9));}
+      add(slab(.03,.2,.012,basic("#f4f1e8")),x,2.01,side*(HW-1.05));const ring=new THREE.Mesh(new THREE.TorusGeometry(.055,.012,6,14),basic("#dfe6ea"));add(ring,x,1.86,side*(HW-1.05));}
   }
   // 좌석
   for(const s of makeSeats()){const dir=s.side==="top"?-1:1,x=X(s.x),z=Z(s.y);
-    add(C.box(.48,.1,.5,s.pink?"#ffb3cf":"#9fcbec"),x,.4,z);add(C.box(.48,.5,.09,s.pink?"#ffd0e2":"#c3e0f5"),x,.74,z+dir*.27);}
-  for(let b=0;b<3;b++)for(const side of[-1,1]){const cx=X(DOORS[b].x+DOOR_W+BW/2),z=side*(HW-.4);add(C.box(BW*S,.34,.46,"#7fb0d6"),cx,.17,z);
-    for(const ex of[-1,1])add(C.box(.04,.72,.56,"#dfe6ea"),cx+ex*(BW*S/2+.02),.62,z);}
+    add(C.box(SEAT_W*S-.04,.1,.56,s.pink?"#ffb3cf":"#9fcbec"),x,.4,z);add(C.box(SEAT_W*S-.04,.5,.09,s.pink?"#ffd0e2":"#c3e0f5"),x,.74,z+dir*.31);}
+  for(let b=0;b<3;b++)for(const side of[-1,1]){const cx=X(DOORS[b].x+DOOR_W+BW/2),z=side*(HW-27*S);add(C.box(BW*S,.34,.52,"#7fb0d6"),cx,.17,z);
+    for(const ex of[-1,1])add(C.box(.04,.72,.62,"#dfe6ea"),cx+ex*(BW*S/2+.02),.62,z);}
   // 나
   const meP=C.person({shirt:"#2fbf71",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",hair:"#1d1b1a",hairStyle:"short",shoe:"#fffdf5",h:1,
     cloth:(x,F)=>{x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);}});
   const meHold=new THREE.Group();meHold.add(meP.root);scene.add(meHold);
-  R={renderer,scene,cam,doors,poles,units:new Map(),pool:{},me:{p3:meP,hold:meHold,walk:0,lx:0,ly:0},camPos:V(0,1.7,0),fp:0,pd:0,g:null,v:new THREE.Vector3()};
+  R={renderer,scene,cam,doors,poles,units:new Map(),pool:{},me:{p3:meP,hold:meHold,walk:0,lx:0,ly:0},camPos:V(0,1.7,0),fp:0,fr:0,pd:0,g:null,v:new THREE.Vector3()};
 }
 /* ---------- 승객 ---------- */
 function unitFor(p){
@@ -64,8 +64,15 @@ function unitFor(p){
   const T=TYPE[p.arch]||TYPE.plain,v=p.id%3,key=T.key+v,pool=R.pool[key]||(R.pool[key]=[]);
   u=pool.pop();
   if(!u){const p3=C.person(Object.assign({},T.o,v?T.vars[v-1]:{}));T.build(p3);const hold=new THREE.Group();hold.add(p3.root);
-    u={T,p3,hold,key,outl:[]};p3.root.traverse(o=>{if(o.isMesh&&(o.material===C.OM||o.material===C.OM2))u.outl.push(o);});}
-  u.k=0;u.walk=0;u.lx=p.x;u.ly=p.y;u.spd=0;u.far=false;R.scene.add(u.hold);R.units.set(p.id,u);return u;
+    u={T,p3,hold,key,outl:[],mats:[],d1:[],d2:[]};p3.root.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2){u.outl.push(o);return;}
+      if(!u.mats.includes(o.material))u.mats.push(o.material);
+      // 멀리서는 안 보이는 작은 부분(눈, 엄지, 단추 등)을 따로 모아 둔다
+      if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();const r=o.geometry.boundingSphere.radius*Math.max(o.scale.x,o.scale.y,o.scale.z);if(r<.045)u.d1.push(o);else if(r<.085)u.d2.push(o);});}
+  u.k=0;u.walk=0;u.lx=p.x;u.ly=p.y;u.spd=0;u.far=false;u.gh=0;u.lod=0;ghost(u,0);for(const o of u.outl)o.visible=true;for(const o of u.d1)o.visible=true;for(const o of u.d2)o.visible=true;R.scene.add(u.hold);R.units.set(p.id,u);return u;
+}
+function ghost(u,g){   // g: 0 또렷함 → 1 거의 투명
+  const on=g>.06;if(on!==u.ghOn){u.ghOn=on;for(const m of u.mats){m.transparent=on;m.depthWrite=!on;m.needsUpdate=true;}}
+  if(on)for(const m of u.mats)m.opacity=1-.86*g;else if(u.ghOp!==1)for(const m of u.mats)m.opacity=1;u.ghOp=on?0:1;
 }
 function release(id,u){R.scene.remove(u.hold);(R.pool[u.key]||(R.pool[u.key]=[])).push(u);R.units.delete(id);}
 function legs(p3,walk,amt){p3.legs[0].th.rotation.x=Math.sin(walk)*.5*amt;p3.legs[1].th.rotation.x=-Math.sin(walk)*.5*amt;
@@ -86,12 +93,13 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
     if(T.key==="sleeper"){if(u.k<.5)p3.eyes("closed");}else p3.eyes(p3.o.eyes||"open");
     if(hn.stage===.5)p3.neck.rotation.y+=Math.sin(time*3+p.ph)*.5;                                            // 고개를 들어 두리번
     if(hn.stage>=2){p3.root.position.y+=.05+Math.sin(time*9)*.008;p3.torso.rotation.x+=.18;}                   // 일어서려고 엉덩이를 든다
-    u.lx=p.x;u.ly=p.y;
+    u.lx=p.x;u.ly=p.y;if(u.gh>0){u.gh=0;ghost(u,0);}
   }else{
     let x=p.x+(p.state==="standing"?(p.sway||0):0),y=p.y,lean=0;
     if(p.contend&&p.ct!=null&&p.ct<.35){lean=1-p.ct/.35;x+=Math.sign(p.contend.fx-p.x)*lean*5;}               // 빈자리 쪽으로 몸을 기울인다
     const dx=X(x)-camX,dz=Z(y)-camZ,along=dx*fx+dz*fz,lat=Math.abs(dx*fz-dz*fx);
-    u.hold.visible=dx*dx+dz*dz>.42&&!(along<R.pd+.2&&lat<.5);                                                    // 카메라 코앞이거나 카메라와 나 사이를 가리면 숨김
+    u.hold.visible=dx*dx+dz*dz>.2;                                                                               // 카메라 코앞이면 숨김
+    const blk=along<R.pd+.25&&lat<.6?1:dx*dx+dz*dz<.9?.8:0;u.gh+=(blk-u.gh)*Math.min(1,dt*9);ghost(u,u.gh);         // 카메라와 나 사이를 가리면 반투명
     u.hold.position.set(X(x),0,Z(y));
     let ry=Math.PI/2-(p.face||0);if(p.state==="leaving"&&p.step===-1)ry=p.exitSeat&&p.exitSeat.side==="top"?0:Math.PI;
     u.hold.rotation.y=ry;
@@ -103,7 +111,11 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
   }
   // 멀리 있는 사람은 외곽선을 끈다 (그리기 부담 줄이기)
   const ddx=u.hold.position.x-camX,ddz=u.hold.position.z-camZ,far=ddx*ddx+ddz*ddz>20;
-  if(far!==u.far){u.far=far;for(const o of u.outl)o.visible=!far;}
+  const d2c=ddx*ddx+ddz*ddz,lod=d2c>72?2:d2c>26?1:0;   // 거리에 따라 작은 부분을 생략
+  if(lod>=1)for(const o of u.d1)o.visible=false;else if(u.lod>=1)for(const o of u.d1)o.visible=true;
+  if(lod>=2)for(const o of u.d2)o.visible=false;else if(u.lod>=2)for(const o of u.d2)o.visible=true;
+  u.lod=lod;
+  const noLine=far||u.gh>.06;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
 }
 function syncMe(g,dt,time){
   const P=g.pl,me=R.me,p3=me.p3;p3.root.rotation.set(0,0,0);p3.torso.rotation.set(0,0,0);
@@ -156,13 +168,14 @@ window.draw3D=function(time){
   const yaw=P.gaze,fx=Math.cos(yaw),fz=Math.sin(yaw),rx=-fz,rz=fx,px=X(P.x),pz=Z(P.y),pt=typeof pitch3==="number"?pitch3:0;
   let cx,cy,cz,tx,ty,tz;
   if(P.seat){cx=X(P.seat.x)+fx*.12;cy=1.2;cz=Z(P.seat.y)+fz*.12;tx=cx+fx*2;ty=1.2-pt*2;tz=cz+fz*2;}
-  else{cx=px-fx*1.15+rx*.36;cy=1.72;cz=pz-fz*1.15+rz*.36;tx=px+fx*1.8+rx*.2;ty=1.15-pt*2.2;tz=pz+fz*1.8+rz*.2;
+  else{const front=Math.abs(pz)>HW-1.3&&fz*pz>0&&Math.abs(fz)>.45;R.fr+=((front?1:0)-R.fr)*.12;   // 좌석 앞에서 좌석을 볼 때는 조금 다가간다
+    const cd=lerp(1.95,1.3,R.fr);cx=px-fx*cd+rx*.42;cy=lerp(2.02,1.84,R.fr);cz=pz-fz*cd+rz*.42;tx=px+fx*1.7+rx*.22;ty=1.05-pt*2.6;tz=pz+fz*1.7+rz*.22;
     // 뒤에 벽이 있어 카메라가 물러날 자리가 없으면 1인칭으로 바꾼다
     const lim=HW-.16;let room=1;if(Math.abs(cz)>lim)room=clamp((lim-Math.abs(pz))/Math.max(.001,Math.abs(cz)-Math.abs(pz)),0,1);
     if(Math.abs(cx)>HL-.2)room=Math.min(room,clamp((HL-.2-Math.abs(px))/Math.max(.001,Math.abs(cx)-Math.abs(px)),0,1));
-    R.fp+=((room<.62?1:0)-R.fp)*.2;
-    if(R.fp>.5){cx=px+fx*.1;cy=1.58;cz=pz+fz*.1;tx=px+fx*2;ty=1.5-pt*2.2;tz=pz+fz*2;}
-    else{cx=px+(cx-px)*room;cz=pz+(cz-pz)*room;}}
+    R.fp+=((room<.42?1:0)-R.fp)*.2;
+    if(R.fp>.5){cx=px+fx*.1;cy=1.6;cz=pz+fz*.1;tx=px+fx*2;ty=1.45-pt*2.4;tz=pz+fz*2;}
+    else{cx=px+(cx-px)*room;cz=pz+(cz-pz)*room;cy=lerp(1.8,cy,room);}}
   R.camPos.lerp(V(cx,cy,cz),P.seat?.35:.3);R.me.hide=!P.seat&&R.fp>.5;
   const sh=g.shake>0?(Math.random()-.5)*g.shake*.12:0;
   R.cam.position.set(R.camPos.x+sh,R.camPos.y,R.camPos.z);R.cam.lookAt(tx,ty,tz);
