@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D 스타일 비교 · 계획대로, 2호선</title>
+<style>
+:root{--line:#00A84D;--ink:#14181c;--paper:#F3F0E8;--card:#fffdf7;--mute:#7b8187;
+  --font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--font);padding:20px 16px 28px}
+h1{font-size:22px;margin:0 0 4px}h1 span{color:var(--line)}
+.sub{color:#b9bcbf;font-size:13.5px;line-height:1.55;margin:0 0 14px;max-width:880px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+button{font-family:inherit;font-weight:800;font-size:13.5px;border:2px solid #3a4148;background:#20262c;color:var(--paper);border-radius:9px;padding:8px 14px;cursor:pointer}
+button.on{background:var(--line);border-color:var(--line);color:#fff}
+#phase{margin-left:auto;font-weight:800;font-size:13.5px;background:#1a1410;color:#ffb22e;border-radius:6px;padding:7px 12px;min-width:150px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);color:var(--ink);border-radius:12px;overflow:hidden;border-top:6px solid var(--line)}
+.cv{position:relative}
+.panel canvas{display:block;width:100%;aspect-ratio:4/3;background:#ddd}
+.tilt:before,.tilt:after{content:"";position:absolute;left:0;right:0;height:24%;pointer-events:none;backdrop-filter:blur(2.5px);-webkit-backdrop-filter:blur(2.5px)}
+.tilt:before{top:0;height:13%;-webkit-mask-image:linear-gradient(#000,transparent);mask-image:linear-gradient(#000,transparent)}
+.tilt:after{bottom:0;height:20%;-webkit-mask-image:linear-gradient(transparent,#000);mask-image:linear-gradient(transparent,#000)}
+.panel h2{font-size:17px;margin:12px 14px 4px}
+.panel p{font-size:13px;line-height:1.5;margin:0 14px 14px;color:#3d444b}
+.who{display:grid;grid-template-columns:repeat(3,1fr);font-size:11.5px;font-weight:700;color:var(--mute);text-align:center;padding:6px 8px 0}
+#err{display:none;background:#E5484D;color:#fff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:700}
+</style>
+</head>
+<body>
+<h1>3D 스타일 비교<span>.</span></h1>
+<p class="sub">같은 장면을 다섯 가지 스타일로 그렸습니다. 좌석 앞에 서서 어깨 너머로 앉은 승객 셋을 보는 시점입니다(디오라마만 위에서 내려다봅니다). 승객은 평소 하던 일을 하다가 내릴 낌새를 보입니다. 어느 스타일에서 몸짓이 가장 잘 읽히는지 비교해 보세요.</p>
+<div id="err">3D 라이브러리(Three.js)를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요.</div>
+<div class="bar">
+  <button id="near" class="on">좌석 바로 앞</button>
+  <button id="far">두 칸 뒤 (게임 중 흔한 거리)</button>
+  <button id="pause">일시정지</button>
+  <div id="phase">평소</div>
+</div>
+<div class="grid">
+  <div class="panel"><div class="cv"><canvas id="c0"></canvas></div>
+    <div class="who"><span>휴대폰 넣기</span><span>가방 끌어안기</span><span>책 덮고 일어설 준비</span></div>
+    <h2>픽토그램</h2><p>표지판 속 사람처럼 몸 전체가 한 가지 색. 얼굴과 옷 디테일이 없어서 팔과 고개의 움직임, 색이 있는 소품만 눈에 들어옵니다.</p></div>
+  <div class="panel"><div class="cv"><canvas id="c1"></canvas></div>
+    <div class="who"><span>휴대폰 넣기</span><span>가방 끌어안기</span><span>책 덮고 일어설 준비</span></div>
+    <h2>툰 셰이딩 + 외곽선</h2><p>만화 같은 단계별 음영과 검은 외곽선. 얼굴과 머리카락이 있어 캐릭터가 구분되고, 외곽선이 손과 소품을 또렷하게 잡아 줍니다.</p></div>
+  <div class="panel"><div class="cv"><canvas id="c2"></canvas></div>
+    <div class="who"><span>휴대폰 넣기</span><span>가방 끌어안기</span><span>책 덮고 일어설 준비</span></div>
+    <h2>로우폴리</h2><p>각진 면이 그대로 보이는 조형. 가볍고 만들기 쉽지만 팔다리가 굵고 각져서 섬세한 손동작은 덜 읽힙니다.</p></div>
+  <div class="panel"><div class="cv"><canvas id="c3"></canvas></div>
+    <div class="who"><span>휴대폰 넣기</span><span>가방 끌어안기</span><span>책 덮고 일어설 준비</span></div>
+    <h2>복셀</h2><p>전부 네모난 블록으로 만든 캐릭터. 큰 머리와 단순한 몸이 귀엽고 가볍습니다. 팔다리가 뭉툭해서 손동작보다 소품의 위치로 읽게 됩니다.</p></div>
+  <div class="panel"><div class="cv tilt"><canvas id="c4"></canvas></div>
+    <div class="who"><span>휴대폰 넣기</span><span>가방 끌어안기</span><span>책 덮고 일어설 준비</span></div>
+    <h2>미니어처 디오라마</h2><p>받침대 위에 올린 모형을 망원 렌즈로 내려다보는 느낌. 광택 나는 장난감 인형, 그림자, 위아래 흐림 효과. 전체가 한눈에 보이지만 승객은 작아집니다.</p></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+if(!window.THREE){document.getElementById("err").style.display="block";}
+else{
+const V=(x,y,z)=>new THREE.Vector3(x,y,z), DOWN=V(0,-1,0);
+const lerp=(a,b,t)=>a+(b-a)*t, sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+const lv=(a,b,t)=>V(lerp(a.x,b.x,t),lerp(a.y,b.y,t),lerp(a.z,b.z,t));
+const SKIN="#f1c9a5",HAIR="#2b211c",GREEN="#00A84D";
+
+/* ---------- 스타일 ---------- */
+const grad=new THREE.DataTexture(new Uint8Array([105,105,105,255, 185,185,185,255, 255,255,255,255]),3,1,THREE.RGBAFormat);
+grad.minFilter=grad.magFilter=THREE.NearestFilter;grad.needsUpdate=true;
+const outlineMat=new THREE.MeshBasicMaterial({color:0x14181c,side:THREE.BackSide});
+outlineMat.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace("#include <begin_vertex>","vec3 transformed = vec3(position) + normalize(normal)*0.012;");};
+const STYLES=[
+ {key:"picto",seg:22,mono:true,face:false,boxy:false,outline:false,
+  mat:c=>new THREE.MeshLambertMaterial({color:c}),
+  env:{wall:"#f4f1e8",seat:"#c9cfcc",back:"#d9dedb",floor:"#e6e2d8",win:"#2a3138",amb:.92,dir:.28}},
+ {key:"toon",seg:22,mono:false,face:true,boxy:false,outline:true,
+  mat:c=>new THREE.MeshToonMaterial({color:c,gradientMap:grad}),
+  env:{wall:"#dfe5e2",seat:"#55789f",back:"#7093ba",floor:"#E9E5DA",win:"#141a20",amb:.6,dir:.75}},
+ {key:"low",seg:5,mono:false,face:false,boxy:true,outline:false,
+  mat:c=>new THREE.MeshPhongMaterial({color:c,flatShading:true,shininess:0}),
+  env:{wall:"#dfe5e2",seat:"#55789f",back:"#7093ba",floor:"#E9E5DA",win:"#141a20",amb:.55,dir:.8}},
+ {key:"voxel",seg:4,mono:false,face:true,boxy:true,vox:true,outline:false,
+  mat:c=>new THREE.MeshLambertMaterial({color:c}),
+  env:{wall:"#e3e8e5",seat:"#4f79ad",back:"#6b95c6",floor:"#ece7da",win:"#141a20",amb:.62,dir:.7}},
+ {key:"mini",seg:26,mono:false,face:true,boxy:false,outline:false,mini:true,fov:21,
+  mat:c=>new THREE.MeshPhongMaterial({color:c,shininess:95,specular:0x666666}),
+  cams:{near:{p:V(2.9,4.3,7.6),t:V(-.1,.42,.5)},far:{p:V(4.1,6.2,10.8),t:V(-.1,.35,.5)}},
+  env:{wall:"#f1ede2",seat:"#3f7fd1",back:"#5d9bea",floor:"#f2e6c8",win:"#1b2733",amb:.58,dir:.85}},
+];
+function mk(st,geo,color,plain){
+  const m=new THREE.Mesh(geo,plain?new THREE.MeshBasicMaterial({color}):st.mat(color));
+  if(st.outline&&!plain)m.add(new THREE.Mesh(geo,outlineMat));
+  return m;
+}
+// 관절에서 아래(-Y)로 뻗는 팔다리
+function limb(st,r,len,color){
+  const g=new THREE.Group();
+  if(st.boxy){const m=mk(st,new THREE.BoxGeometry(r*2,len,r*2),color);m.position.y=-len/2;g.add(m);}
+  else{
+    const m=mk(st,new THREE.CylinderGeometry(r,r*.92,len,st.seg),color);m.position.y=-len/2;g.add(m);
+    g.add(mk(st,new THREE.SphereGeometry(r,st.seg,12),color));
+    const e=mk(st,new THREE.SphereGeometry(r*.92,st.seg,12),color);e.position.y=-len;g.add(e);
+  }
+  return g;
+}
+/* ---------- 사람 ---------- */
+function person(st,shirt,opt){
+  opt=opt||{};
+  const body=shirt,skin=st.mono?shirt:SKIN,pants=st.mono?shirt:new THREE.Color(shirt).multiplyScalar(.5).getStyle();
+  const root=new THREE.Group(),torso=new THREE.Group();root.add(torso);
+  // 몸통
+  if(st.vox){const t=mk(st,new THREE.BoxGeometry(.38,.5,.22),body);t.position.y=.25;torso.add(t);}
+  else if(st.boxy){const t=mk(st,new THREE.CylinderGeometry(.2,.16,.5,6),body);t.position.y=.25;t.scale.z=.62;torso.add(t);}
+  else{const t=mk(st,new THREE.SphereGeometry(.2,st.seg,16),body);t.scale.set(1,1.42,.62);t.position.y=.25;torso.add(t);}
+  // 머리
+  const neck=new THREE.Group();neck.position.set(0,.5,0);torso.add(neck);
+  const hy=st.mono?.18:st.vox?.155:.145;
+  const head=mk(st,st.vox?new THREE.BoxGeometry(.28,.28,.28):st.boxy?new THREE.IcosahedronGeometry(.135,0):new THREE.SphereGeometry(.13,st.seg,16),skin);head.position.y=hy;neck.add(head);
+  if(st.mini)neck.scale.setScalar(1.28);   // 장난감 인형처럼 머리를 크게
+  if(st.vox){
+    const top=mk(st,new THREE.BoxGeometry(.3,.09,.3),opt.hair||HAIR);top.position.y=hy+.135;neck.add(top);
+    const bk=mk(st,new THREE.BoxGeometry(.3,.2,.06),opt.hair||HAIR);bk.position.set(0,hy+.04,-.13);neck.add(bk);
+    for(const sx of[-1,1]){const e=new THREE.Mesh(new THREE.BoxGeometry(.04,.05,.01),new THREE.MeshBasicMaterial({color:0x14181c}));e.position.set(sx*.065,hy+.01,.142);neck.add(e);}
+  }else if(!st.mono){
+    const hair=mk(st,st.boxy?new THREE.CylinderGeometry(.1,.145,.09,6):new THREE.SphereGeometry(.137,st.seg,12,0,Math.PI*2,0,Math.PI*.52),opt.hair||HAIR);
+    hair.position.y=st.boxy?hy+.085:hy+.004;hair.rotation.x=-.28;neck.add(hair);
+  }
+  if(st.face&&!st.vox){for(const sx of[-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.016,8,8),new THREE.MeshBasicMaterial({color:0x14181c}));e.position.set(sx*.048,hy+.012,.122);neck.add(e);}}
+  // 팔 (어깨 → 팔꿈치 → 손)
+  const arms={};
+  for(const sx of[-1,1]){
+    const S=V(sx*.21,.43,0),sh=limb(st,.05,.25,body);sh.position.copy(S);torso.add(sh);
+    const el=limb(st,.045,.23,body);el.position.y=-.25;sh.add(el);
+    const hand=mk(st,st.boxy?new THREE.BoxGeometry(.09,.09,.09):new THREE.SphereGeometry(.055,st.seg,10),skin);hand.position.y=-.24;el.add(hand);
+    arms[sx]={S,sh,el,a:.25,b:.24,side:sx};
+  }
+  // 다리
+  const legs=[];
+  for(const sx of[-1,1]){
+    const th=limb(st,.072,.4,pants);th.position.set(sx*.095,.02,.02);root.add(th);
+    const shn=limb(st,.062,.4,pants);shn.position.y=-.4;th.add(shn);
+    const ft=mk(st,new THREE.BoxGeometry(.12,.07,.22),st.mono?shirt:"#22262b");ft.position.set(0,-.42,.06);shn.add(ft);
+    legs.push({th,shn});
+  }
+  const p={root,torso,neck,arms,legs,st};
+  setLegs(p,opt.standing?0:1);
+  return p;
+}
+function setLegs(p,sit){for(const l of p.legs){l.th.rotation.x=-Math.PI/2*sit;l.shn.rotation.x=Math.PI/2*sit;}}
+// 손이 목표 지점에 닿도록 어깨와 팔꿈치를 꺾는다 (몸통 좌표)
+function reach(arm,T){
+  const v=T.clone().sub(arm.S);let d=Math.min(v.length(),arm.a+arm.b-.004);const dir=v.normalize();
+  const A=Math.acos(Math.max(-1,Math.min(1,(arm.a*arm.a+d*d-arm.b*arm.b)/(2*arm.a*d))));
+  const pole=V(arm.side*.9,-1,-.45).normalize(),n=new THREE.Vector3().crossVectors(dir,pole).normalize();
+  const u=dir.clone().applyAxisAngle(n,A);
+  arm.sh.quaternion.setFromUnitVectors(DOWN,u);
+  const E=arm.S.clone().addScaledVector(u,arm.a),f=T.clone().sub(E).normalize().applyQuaternion(arm.sh.quaternion.clone().invert());
+  arm.el.quaternion.setFromUnitVectors(DOWN,f);
+}
+/* ---------- 소품 ---------- */
+function phone(st){
+  const g=new THREE.Group();g.add(mk(st,new THREE.BoxGeometry(.075,.15,.014),"#15181c"));
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(.06,.125),new THREE.MeshBasicMaterial({color:"#8fd0ff"}));s.position.z=-.008;s.rotation.y=Math.PI;g.add(s);
+  return g;
+}
+function bag(st){
+  const g=new THREE.Group(),c=st.mono?"#F2B705":"#ffffff";
+  g.add(mk(st,new THREE.BoxGeometry(.32,.24,.13),c));
+  const h=mk(st,new THREE.TorusGeometry(.07,.012,8,st.boxy?6:18,Math.PI),st.mono?"#b98a00":"#8a8f98");h.position.y=.12;g.add(h);
+  return g;
+}
+function book(st){
+  const g=new THREE.Group(),c=st.mono?"#E5484D":"#fbfaf4",pages=[];
+  for(const sx of[-1,1]){const piv=new THREE.Group();const pg=mk(st,new THREE.BoxGeometry(.13,.19,.014),c);pg.position.x=sx*.066;piv.add(pg);
+    const cv=mk(st,new THREE.BoxGeometry(.135,.2,.006),st.mono?"#a32f33":"#27408b");cv.position.set(sx*.066,0,-.011);piv.add(cv);g.add(piv);pages.push({piv,sx});}
+  g.userData.pages=pages;return g;
+}
+/* ---------- 장면 ---------- */
+function makeScene(st,canvas){
+  const E=st.env,scene=new THREE.Scene();scene.background=new THREE.Color(E.wall);
+  scene.add(new THREE.AmbientLight(0xffffff,E.amb));
+  const dl=new THREE.DirectionalLight(0xffffff,E.dir);dl.position.set(1.2,3,2.5);scene.add(dl);
+  const flat=c=>st.mini?new THREE.MeshPhongMaterial({color:c,shininess:40,specular:0x333333}):st.boxy?new THREE.MeshPhongMaterial({color:c,flatShading:true,shininess:0}):new THREE.MeshLambertMaterial({color:c});
+  const box=(w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),flat(c));m.position.set(x,y,z);scene.add(m);return m;};
+  if(st.mini){   // 받침대 위의 모형: 잘린 바닥과 낮은 벽
+    scene.background=new THREE.Color("#c9d3d8");
+    box(3.6,.1,2.6,E.floor,0,-.05,.75);box(3.9,.34,2.9,"#7a5a3c",0,-.27,.75);box(3.6,1.9,.1,E.wall,0,.95,-.42);
+    box(30,.02,30,"#b9c4c9",0,-.45,0);
+    for(const x of[-1.25,1.25]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.9,12),flat("#c9ced2"));pole.position.set(x,.95,.3);scene.add(pole);}
+  }else{
+  box(8,.1,6,E.floor,0,-.05,1);                       // 바닥
+  box(8,3,.1,E.wall,0,1.5,-.42);                      // 벽
+  }
+  box(2.3,st.mini?.5:.62,.04,E.win,0,st.mini?1.5:1.62,-.36);   // 창문
+  box(st.mini?3.6:8,.05,.05,GREEN,0,1.2,-.36);        // 2호선 띠
+  for(let i=-1;i<=1;i++){box(.5,.12,.5,E.seat,i*.56,.4,-.02);box(.5,.5,.1,E.back,i*.56,.74,-.3);}
+  box(1.78,.34,.46,st.mono?"#b3bab7":"#48688c",0,.17,-.04);
+  // 앉은 승객 셋
+  const mkSeated=(x,shirt,hair)=>{const p=person(st,shirt,{hair});p.root.position.set(x,.53,.02);scene.add(p.root);return p;};
+  const A=mkSeated(-.56,"#7a4fa3","#1d1b1a"),B=mkSeated(0,"#c9772b","#5a4a3a"),C=mkSeated(.56,"#27408b","#111");
+  const ph=phone(st);A.torso.add(ph);
+  const bg=bag(st);B.root.add(bg);
+  const bk=book(st);C.torso.add(bk);
+  // 나 (어깨 너머 시점의 전경)
+  const me=person(st,GREEN,{standing:true});me.root.position.set(-.6,.86,1.3);me.root.rotation.y=Math.PI;scene.add(me.root);
+  reach(me.arms[-1],V(-.24,-.04,.04));reach(me.arms[1],V(.24,-.04,.04));
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  if(st.mini){   // 모형 느낌을 살리는 그림자
+    renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    dl.position.set(2.5,5,3.5);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);
+    Object.assign(dl.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:.5,far:14});dl.shadow.bias=-.0015;
+    scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  }
+  const cam=new THREE.PerspectiveCamera(st.fov||38,4/3,.1,40);
+  return {st,scene,renderer,cam,A,B,C,ph,bg,bk,me,canvas};
+}
+/* ---------- 몸짓 ---------- */
+// k: 0 평소 → 1 낌새, time: 초
+function animate(S,k,time){
+  const {A,B,C,ph,bg,bk}=S;
+  // A: 휴대폰을 보다가 주머니에 넣고 고개를 든다
+  {
+    const hold=V(.03,.3,.27),pocket=V(.2,.0,.12),r=lv(hold,pocket,k),l=lv(V(-.06,.28,.27),V(-.1,.1,.26),k);
+    reach(A.arms[1],r);reach(A.arms[-1],l);
+    ph.position.set(r.x-.03*(1-k),r.y+.05*(1-k)-.03*k,r.z+.02);ph.rotation.set(-.55*(1-k)-1.5*k,0,0);ph.visible=k<.9;
+    A.neck.rotation.set(lerp(.5,-.05,k),Math.sin(time*1.6)*.35*k,0);
+    A.torso.rotation.x=.06;
+  }
+  // B: 발치의 가방을 무릎 위로 끌어올려 끌어안는다
+  {
+    const floor=V(.31,-.36,.3),lap=V(0,.2,.3),p=lv(floor,lap,sm(k));p.y+=Math.sin(k*Math.PI)*.12;
+    bg.position.copy(p);bg.rotation.y=lerp(.5,0,k);
+    reach(B.arms[1],lv(V(.11,.08,.3),V(.15,.25,.39),k));reach(B.arms[-1],lv(V(-.11,.08,.3),V(-.15,.25,.39),k));
+    B.neck.rotation.set(lerp(.08,.3,Math.sin(k*Math.PI))+k*-.05,Math.sin(time*.7)*.12*(1-k)+Math.sin(time*1.3+1)*.3*k,0);
+    B.torso.rotation.x=lerp(0,.1,k);
+  }
+  // C: 책을 덮고, 전광판을 올려다본 뒤, 무릎을 짚고 엉덩이를 든다
+  {
+    const k1=sm(Math.min(1,k*2)),k2=sm(Math.max(0,k*2-1));
+    const bp=lv(lv(V(0,.29,.3),V(.12,.13,.28),k1),V(.17,.1,.2),k2);
+    bk.position.copy(bp);bk.rotation.set(lerp(-.95,-1.45,k1),0,0);
+    for(const pg of bk.userData.pages)pg.piv.rotation.y=pg.sx*-k1*Math.PI/2*.97;
+    reach(C.arms[1],lv(lv(V(.12,.27,.3),V(.14,.15,.3),k1),V(.12,.07,.4),k2));
+    reach(C.arms[-1],lv(lv(V(-.12,.27,.3),V(-.11,.1,.3),k1),V(-.12,.07,.4),k2));
+    C.neck.rotation.set(lerp(.55,-.22,k1)+.25*k2,Math.sin(time*2.2)*.45*k1*(1-k2*.6),0);
+    C.torso.rotation.x=lerp(.04,.42,k2);C.root.position.y=.53+.05*k2+Math.sin(time*9)*.006*k2;
+  }
+}
+/* ---------- 실행 ---------- */
+const scenes=STYLES.map((st,i)=>makeScene(st,document.getElementById("c"+i)));
+let far=false,paused=false,clock=0,last=performance.now();
+const CAMS={near:{p:V(.32,1.6,2.75),t:V(-.06,.74,0)},far:{p:V(.4,1.7,4.4),t:V(-.06,.72,0)}};
+function fit(S){const w=S.canvas.clientWidth,h=S.canvas.clientHeight;if(!w||!h)return;
+  if(S.canvas.width!==Math.round(w*S.renderer.getPixelRatio())){S.renderer.setSize(w,h,false);S.cam.aspect=w/h;S.cam.updateProjectionMatrix();}}
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused)clock+=dt;
+  // 8초 주기: 평소 2.5초 → 낌새로 1.2초 → 유지 3초 → 돌아옴
+  const t=clock%8,k=t<2.5?0:t<3.7?sm((t-2.5)/1.2):t<6.7?1:1-sm((t-6.7)/1.3);
+  document.getElementById("phase").textContent=k<.05?"평소":k>.95?"내릴 낌새":"…";
+  for(const S of scenes){const c=(S.st.cams||CAMS)[far?"far":"near"];fit(S);animate(S,k,clock);S.cam.position.lerp(c.p,.12);S.cam.lookAt(c.t);S.renderer.render(S.scene,S.cam);}
+  requestAnimationFrame(frame);
+}
+window.__frame=frame;
+const $=id=>document.getElementById(id);
+$("near").onclick=()=>{far=false;$("near").classList.add("on");$("far").classList.remove("on");};
+$("far").onclick=()=>{far=true;$("far").classList.add("on");$("near").classList.remove("on");};
+$("pause").onclick=()=>{paused=!paused;$("pause").classList.toggle("on",paused);$("pause").textContent=paused?"계속":"일시정지";};
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>

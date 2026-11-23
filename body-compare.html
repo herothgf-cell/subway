@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>캐릭터 조형 비교 · 계획대로, 2호선</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f2a44;--paper:#f7f0dc;--hl:#ffe34d;--font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:var(--font);padding:22px 16px 40px;background:var(--paper);
+  background-image:linear-gradient(rgba(90,140,200,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(90,140,200,.22) 1px,transparent 1px);background-size:28px 28px}
+.wrap{max-width:1280px;margin:0 auto}
+h1{font-family:"Gaegu",cursive;font-size:38px;margin:0;line-height:1.1}
+h1 span{background:linear-gradient(transparent 38%,var(--hl) 38% 92%,transparent 92%);padding:0 .2em}
+.sub{font-size:14px;line-height:1.6;margin:8px 0 14px;max-width:880px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;position:sticky;top:0;z-index:5;padding:8px 0;background:rgba(247,240,220,.92)}
+.bar b{font-family:"Gaegu",cursive;font-size:20px;margin-right:2px}.sep{width:14px}
+button{font-family:"Gaegu",cursive;font-weight:700;font-size:19px;border:2.5px solid var(--ink);background:#fffdf2;color:var(--ink);border-radius:8px;padding:3px 13px;cursor:pointer;box-shadow:2px 3px 0 rgba(31,42,68,.25)}
+button.on{background:var(--hl)}#sil.on{background:var(--ink);color:#fffdf2}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
+.card{background:#fffdf2;border:2.5px solid var(--ink);border-radius:6px;box-shadow:3px 4px 0 rgba(31,42,68,.25);padding:0 0 10px}
+.card canvas{display:block;width:100%;aspect-ratio:42/52;border-bottom:2px dashed rgba(31,42,68,.35)}
+.card h3{font-family:"Gaegu",cursive;font-size:24px;margin:6px 12px 0}
+.card h3 small{font-size:16px;font-weight:400;margin-left:6px;opacity:.75}
+.card p{font-size:12.5px;line-height:1.5;margin:3px 12px 0;color:#3d4660}
+.card.now{opacity:.92;border-style:dashed}
+#err{display:none;background:#E5484D;color:#fff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1><span>캐릭터 조형 비교</span></h1>
+<p class="sub">툰 셰이딩과 굵은 외곽선은 그대로 두고, 몸을 만드는 방식만 바꿔 본 시안입니다. 같은 캐릭터 둘(과잠 대학생, 등산복 어르신)을 네 가지 조형으로 그렸습니다. 맨 왼쪽이 지금 버전입니다.</p>
+<div id="err">3D 라이브러리(Three.js)를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요.</div>
+<div class="bar"><b>자세</b>
+  <button data-mode="0" class="on">서 있음</button><button data-mode="1">앉음</button><button data-mode="2">내릴 낌새</button>
+  <span class="sep"></span><button id="sil">실루엣만 보기</button><button id="spin">한 바퀴 돌리기</button>
+</div>
+<div class="grid" id="grid"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+if(!window.THREE){document.getElementById("err").style.display="block";}
+else (async()=>{
+try{await Promise.race([document.fonts.load('700 48px Gaegu'),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
+const V=(x,y,z)=>new THREE.Vector3(x,y,z),DOWN=V(0,-1,0),TAU=Math.PI*2;
+const lerp=(a,b,t)=>a+(b-a)*t,sm=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+const lv=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const INK="#1f2a44",PAPER="#fffdf5",CREAM="#f3ead2";
+/* ---------- 재질 ---------- */
+function grad(rows){const d=new Uint8Array(rows.length*4);rows.forEach((c,i)=>{d[i*4]=c[0];d[i*4+1]=c[1];d[i*4+2]=c[2];d[i*4+3]=255;});
+  const t=new THREE.DataTexture(d,rows.length,1,THREE.RGBAFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t;}
+const GT_OLD=grad([[178,178,178],[255,255,255]]),GT_NEW=grad([[166,170,222],[255,255,255]]);   // 새 조형은 그림자에 푸른빛
+function outline(t,w){const m=new THREE.MeshBasicMaterial({color:INK,side:THREE.BackSide});
+  m.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace("#include <begin_vertex>",`vec3 transformed = vec3(position) + normalize(normal)*(${t.toFixed(4)}+${w.toFixed(4)}*sin(position.y*41.0+position.x*29.0+position.z*33.0));`);};return m;}
+const OM=outline(.0115,.005),OM2=outline(.006,.002);   // 실루엣은 굵게, 작은 부분은 가늘게
+const basic=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c},o||{}));
+function canvasTex(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);return new THREE.CanvasTexture(c);}
+// 몸통에 입히는 옷 그림. 앞 중심 x=128, 뒤 중심 x=384, Y(t): t=0 밑단, t=1 목
+function cloth(base,draw){return canvasTex(512,256,(x)=>{x.fillStyle=base;x.fillRect(0,0,512,256);x.lineCap="round";x.lineJoin="round";x.strokeStyle=INK;draw(x,128,384,t=>(1-t)*256);});}
+const line=(x,pts,w,c)=>{x.strokeStyle=c||INK;x.lineWidth=w||4;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();};
+const dot=(x,cx,cy,r,c)=>{x.fillStyle=c||INK;x.beginPath();x.arc(cx,cy,r,0,TAU);x.fill();};
+
+/* ---------- 조형 네 가지 ---------- */
+// ar: 팔 굵기(어깨, 팔꿈치, 손목), lr: 다리 굵기(골반, 무릎, 발목), prof: 몸통 단면 [높이 비율, 반지름]
+const ST={
+ now:{key:"now",label:"지금 버전",note:"달걀 몸통, 굵기가 일정한 원통 팔다리, 떠 있는 공 머리. 연결부가 없어 막대 인형처럼 보입니다.",
+   simple:true,headR:.182,neck:0,torsoH:.5,shW:.21,hipW:.095,a:.25,b:.24,ar:[.05,.046,.042],th:.4,sh:.4,lr:[.072,.066,.06],hand:.075,depth:.62,k:1},
+ chibi:{key:"chibi",label:"치비",sub:"3등신",note:"큰 머리, 짧고 통통한 몸, 벙어리장갑 손. 팔다리가 굵어져 막대 느낌이 사라지고 시선이 잘 읽힙니다.",
+   headR:.275,neck:0,torsoH:.4,shW:.185,hipW:.1,a:.2,b:.19,ar:[.088,.078,.068],th:.23,sh:.23,lr:[.118,.104,.092],hand:.088,depth:.82,k:1.18,
+   prof:[[0,.2],[.08,.235],[.3,.225],[.6,.205],[.85,.19],[1,.12]]},
+ styl:{key:"styl",label:"스타일라이즈드",sub:"4등신",note:"어깨에서 허리로 좁아지는 몸통, 끝이 가늘어지는 팔다리, 목과 골반. 가장 완성된 캐릭터처럼 보입니다.",
+   headR:.2,neck:.05,torsoH:.5,shW:.225,hipW:.1,a:.27,b:.25,ar:[.07,.056,.044],th:.36,sh:.36,lr:[.098,.076,.058],hand:.066,depth:.68,k:1,
+   prof:[[0,.17],[.06,.2],[.2,.185],[.4,.165],[.65,.195],[.85,.21],[1,.1]]},
+ toy:{key:"toy",label:"아트토이",note:"비닐 피규어 같은 단순하고 통통한 덩어리. 단순함이 의도된 스타일로 보이지만 유형 구분은 색과 소품에 기댑니다.",
+   toy:true,headR:.27,neck:0,torsoH:.42,shW:.16,hipW:.095,a:.17,b:.16,ar:[.078,.078,.078],th:.17,sh:.17,lr:[.108,.108,.108],hand:.082,depth:.9,k:1.15,
+   prof:[[0,.17],[.1,.235],[.35,.235],[.65,.19],[.88,.14],[1,.09]]},
+};
+/* ---------- 캐릭터 두 명 ---------- */
+const CH={
+ student:{name:"과잠 대학생",shirt:"#2f4fa8",sleeve:CREAM,cuff:"#2f4fa8",pants:"#4a5568",shoe:"#fffdf5",sole:"#c9ced6",skin:"#ffe2c4",hair:"#2b2b3a",brow:-.3,
+   cloth:(x,F,B,Y)=>{x.fillStyle=CREAM;x.textAlign="center";x.font="900 60px sans-serif";x.fillText("S",F+40,Y(.6)+20);x.font="900 50px sans-serif";x.fillText("UNIV",B,Y(.55)+18);
+     x.fillRect(0,Y(.13),512,7);x.fillRect(0,Y(.13)+13,512,7);line(x,[[F,Y(.93)],[F,Y(.14)]],4);for(const t of[.8,.62,.44,.26])dot(x,F,Y(t),5,CREAM);},
+   head:(hc,u,S,T)=>{const c=CH.student.hair,cap=T.M(new THREE.SphereGeometry(u*1.055,20,12,0,TAU,0,Math.PI*.52),c);cap.rotation.x=-.3;hc.add(cap);
+     const tuft=(x,y,z,r,sy,rz)=>{const m=T.sph(u*r,c);m.scale.set(.75,sy,.75);m.position.set(x*u,y*u,z*u);m.rotation.z=rz||0;hc.add(m);};
+     for(const [a,b,cz] of[[-.5,.95,.35],[.5,1,.2],[0,1.15,0],[-.3,1.05,-.4],[.35,1,-.5]])tuft(a,b,cz,.36,1.9,-a*.8);
+     if(!S.simple)for(const x of[-.55,-.2,.18,.52]){const m=T.sph(u*.36,c);m.scale.set(1,.75,.5);const y=.52,z=Math.sqrt(1-x*x-y*y);m.position.set(x*u,y*u,z*u*.93);m.rotation.z=x*.9;hc.add(m);}},
+   wear:(p,S,T)=>{const r=S.neck?.085:S.headR*.45,c=T.M(new THREE.TorusGeometry(r,.03,8,20),CREAM,null,true);c.rotation.x=Math.PI/2;c.position.y=S.torsoH-.005;p.torso.add(c);},
+   build:(p,T)=>{const d=p.d,k=d.k;d.packW=d.shW*2.05;d.packH=d.torsoH*.8;d.packD=.15*k;d.bookW=.17*k;d.bookH=.23*k;
+     const g=new THREE.Group();g.add(T.M(new THREE.BoxGeometry(d.packW,d.packH,d.packD),"#1f2a44"));const pk=T.M(new THREE.BoxGeometry(d.packW*.7,d.packH*.4,.04),"#2c3a5e",null,true);pk.position.set(0,-d.packH*.15,-d.packD/2-.015);g.add(pk);
+     p.prop.pack=g;p.torso.add(g);const b=new THREE.Group();b.add(T.M(new THREE.BoxGeometry(d.bookW,d.bookH,.05*k),"#c0392b"));const pg=T.M(new THREE.BoxGeometry(d.bookW*.9,d.bookH*.92,.036*k),PAPER,null,true);pg.position.x=.012;b.add(pg);p.prop.book=b;p.torso.add(b);},
+   stand:(p,t)=>{const d=p.d;put(p.prop.pack,[0,d.torsoH*.52,-(d.front(.5)+d.packD/2-.02)]);const h=hangT(p,-1);R(p,-1,h);p.prop.book.visible=true;put(p.prop.book,[h[0]-.02,h[1]-d.bookH*.42,h[2]+.03],[0,0,.08]);
+     R(p,1,[d.shW*.55,d.torsoH*.72,d.front(.72)+.05]);p.neck.rotation.set(.16+Math.sin(t*1.2)*.05,0,0);p.torso.rotation.x=.07;},
+   sit:(p,k,t)=>{const d=p.d,z=d.th*.52,top=d.lr[0]+d.packH-.03;put(p.prop.pack,[0,d.lr[0]+d.packH/2-.03,z],[0,Math.PI,0]);
+     put(p.prop.book,lv([0,top+d.bookH*.22,z+.06],[0,top-d.bookH*.35,z],k),[-.75*(1-k),0,0]);p.prop.book.visible=k<.85;
+     for(const s of[-1,1])R(p,s,lv([s*d.bookW*.62,top+d.bookH*.08,z+.1],[s*d.packW*.36,top+.02,z+d.packD/2+.03],k));
+     p.neck.rotation.set(lerp(.4+Math.sin(t*1.5)*.1,-.05,k),Math.sin(t*1.8)*.3*k,0);p.torso.rotation.x=.04;}},
+ hiker:{name:"등산복 어르신",shirt:"#e8622c",pants:"#4a4f57",shoe:"#6b4a35",sole:"#3a2a20",hem:"#3b3f46",skin:"#f2c9a0",hair:"#c9c5bd",belly:1.16,smile:true,brow:.1,
+   cloth:(x,F,B,Y)=>{x.fillStyle="#4a4f57";x.fillRect(0,0,512,Y(.72));line(x,[[0,Y(.72)],[512,Y(.72)]],5);line(x,[[F,Y(.95)],[F,0+Y(0)]],5);x.lineWidth=4;x.strokeRect(F+22,Y(.56),44,32);x.strokeRect(F-66,Y(.56),44,32);
+     x.fillStyle="#c8e04a";x.fillRect(0,Y(.17),512,13);line(x,[[0,Y(.17)],[512,Y(.17)]],4);},
+   head:(hc,u,S,T)=>{const hc2="#6b7a3a",g=CH.hiker.hair;
+     if(S.simple){const cap=T.M(new THREE.SphereGeometry(u*1.055,20,12,0,TAU,0,Math.PI*.52),g);cap.rotation.x=-.3;hc.add(cap);}
+     else for(const s of[-1,1]){const m=T.sph(u*.34,g);m.position.set(s*u*.8,-u*.08,-u*.3);hc.add(m);const b=T.sph(u*.6,g);b.scale.set(1.2,.8,.6);b.position.set(0,-u*.1,-u*.62);hc.add(b);}
+     const br=T.M(new THREE.CylinderGeometry(u*1.5,u*1.5,u*.12,24),hc2);br.position.y=u*.55;hc.add(br);const cr=T.M(new THREE.CylinderGeometry(u*.8,u*.96,u*.6,24),hc2);cr.position.y=u*.9;hc.add(cr);
+     if(!S.simple){const bd=T.M(new THREE.CylinderGeometry(u*.97,u*.97,u*.14,24),"#3b3f46",null,true);bd.position.y=u*.68;hc.add(bd);}},
+   wear:(p,S,T)=>{const r=S.neck?.095:S.headR*.5,c=T.M(new THREE.CylinderGeometry(r,r*1.08,.075,18,1,true),"#4a4f57",null,true);c.position.y=S.torsoH+.015;p.torso.add(c);},
+   build:(p,T)=>{const d=p.d,k=d.k;d.packD=.13*k;const g=T.M(new THREE.BoxGeometry(d.shW*1.5,d.torsoH*.62,d.packD),"#3f7a4a");p.prop.pack=g;p.torso.add(g);put(g,[0,d.torsoH*.55,-(d.front(.55)+d.packD/2-.02)]);
+     d.stickL=d.legH+d.torsoH*.55;const s=new THREE.Group();s.add(T.M(new THREE.CylinderGeometry(.015*k,.012*k,d.stickL,10),"#4a4f57",null,true));
+     const gr=T.M(new THREE.CylinderGeometry(.024*k,.024*k,.13,10),"#e5484d",null,true);gr.position.y=d.stickL/2-.07;s.add(gr);p.prop.stick=s;p.torso.add(s);},
+   stand:(p,t)=>{const d=p.d,x=d.shW+.11,z=.17,top=d.torsoH*.55;put(p.prop.stick,[x,top-d.stickL/2,z],[0,0,0]);R(p,1,[x,top-.07,z]);R(p,-1,hangT(p,-1));p.neck.rotation.set(0,Math.sin(t*.7)*.3,0);p.torso.rotation.x=.03;},
+   sit:(p,k,t)=>{const d=p.d,z=d.th*.9,top=d.stickL-(d.sh+.06),hy=Math.min(top-.05,d.torsoH*.78)-.11*k;put(p.prop.stick,[0,top-d.stickL/2,z-.02*k],[-.1*k,0,0]);
+     R(p,1,[.02,hy,z-.01]);R(p,-1,[-.02,hy-d.hand*1.1,z-.01]);p.neck.rotation.set(lerp(0,.12,k),Math.sin(t*.7)*.35*(1-k)+Math.sin(t*1.6)*.25*k,0);p.torso.rotation.x=lerp(.03,.28,k);}},
+};
+/* ---------- 몸 만들기 ---------- */
+function make(S,C){
+  const G=S.simple?GT_OLD:GT_NEW,simple=!!S.simple;
+  const M=(geo,color,map,thin)=>{const m=new THREE.Mesh(geo,new THREE.MeshToonMaterial(map?{map,gradientMap:G}:{color,gradientMap:G}));m.add(new THREE.Mesh(geo,thin?OM2:OM));return m;};
+  const sph=(r,c,thin)=>M(new THREE.SphereGeometry(r,18,14),c,null,thin);
+  const tube=(rt,rb,len,c)=>{const g=new THREE.Group(),m=M(new THREE.CylinderGeometry(rt,rb,len,18),c);m.position.y=-len/2;g.add(m);g.add(sph(rt,c));const e=sph(rb,c);e.position.y=-len;g.add(e);return g;};
+  const T={M,sph},bw=C.belly||1,depth=S.depth*(C.belly?1.12:1);
+  const prof=simple?null:S.prof.map(([t,r])=>[t,r*(t>.1&&t<.75?bw:1)]);
+  const rAt=t=>{if(simple){const y=t*2-1;return .2*Math.sqrt(Math.max(0,1-y*y));}for(let i=1;i<prof.length;i++)if(t<=prof[i][0]){const [t0,r0]=prof[i-1],[t1,r1]=prof[i];return r0+(r1-r0)*(t-t0)/(t1-t0);}return prof[prof.length-1][1];};
+  const root=new THREE.Group(),torso=new THREE.Group();root.add(torso);
+  const tex=cloth(C.shirt,C.cloth);let tm;
+  if(simple){tm=M(new THREE.SphereGeometry(.2,24,16),0,tex);tm.scale.set(bw>1?1.12:1,1.42,.62*(bw>1?1.28:1));tm.position.y=.25;}
+  else{const N=18,pts=[];for(let i=0;i<=N;i++){const t=i/N;pts.push(new THREE.Vector2(i===0?.002:i===N?rAt(1)*.6:rAt(t),t*S.torsoH));}pts.push(new THREE.Vector2(.002,S.torsoH+.02));
+    const geo=new THREE.LatheGeometry(pts,30);geo.rotateY(-Math.PI/2);tm=M(geo,0,tex);tm.scale.z=depth;}
+  torso.add(tm);
+  const d=Object.assign({},S,{front:t=>rAt(t)*depth,legH:S.th+S.sh+.06});
+  // 골반과 다리
+  if(!simple){const pv=sph(S.hipW+S.lr[0]*.92,C.pants);pv.scale.set(1,.72,depth*1.05);root.add(pv);}
+  const legs=[];
+  for(const sx of[-1,1]){
+    const th=tube(S.lr[0],S.lr[1],S.th,C.pants);th.position.set(sx*S.hipW,simple?.02:-.015,simple?.02:0);root.add(th);
+    const sh=tube(S.lr[1],S.lr[2],S.sh,C.pants);sh.position.y=-S.th;th.add(sh);
+    if(simple){const ft=M(new THREE.BoxGeometry(.12,.07,.22),INK);ft.position.set(0,-S.sh-.02,.06);sh.add(ft);}
+    else{const k=Math.min(1.22,S.lr[2]/.06),ft=sph(.072*k,C.shoe);ft.scale.set(1,.64,1.7);ft.position.set(0,-S.sh-.012,.052*k);sh.add(ft);
+      const so=M(new THREE.BoxGeometry(.132*k,.024,.25*k),C.sole,null,true);so.position.set(0,-S.sh-.048,.052*k);sh.add(so);
+      if(C.hem){const h=M(new THREE.CylinderGeometry(S.lr[2]*1.2,S.lr[2]*1.26,.05,18),C.hem,null,true);h.position.y=-S.sh+.04;sh.add(h);}}
+    legs.push({th,sh});
+  }
+  // 팔과 손
+  const arms={};
+  for(const sx of[-1,1]){
+    const Sp=V(sx*S.shW*(bw>1&&!simple?1.05:1),S.torsoH*(simple?.86:.84),0),up=tube(S.ar[0],S.ar[1],S.a,C.sleeve||C.shirt);up.position.copy(Sp);torso.add(up);
+    const fo=tube(S.ar[1],S.ar[2],S.b,C.sleeve||C.shirt);fo.position.y=-S.a;up.add(fo);
+    if(simple){const h=sph(.075,C.skin);h.position.y=-S.b+.01;fo.add(h);}
+    else{const h=sph(S.hand,C.skin);h.scale.set(1,1.2,.82);h.position.y=-S.b-S.hand*.55;fo.add(h);const tb=sph(S.hand*.42,C.skin,true);tb.position.set(-sx*S.hand*.25,-S.b-S.hand*.3,S.hand*.72);fo.add(tb);
+      if(C.cuff){const c=M(new THREE.CylinderGeometry(S.ar[2]*1.24,S.ar[2]*1.24,.05,18),C.cuff,null,true);c.position.y=-S.b+.035;fo.add(c);}}
+    arms[sx]={S:Sp,sh:up,el:fo,a:S.a,b:S.b+(simple?0:S.hand*.45),side:sx};
+  }
+  // 목과 머리
+  const neck=new THREE.Group();neck.position.set(0,S.torsoH-(simple?0:.01),0);torso.add(neck);
+  const u=S.headR;
+  if(S.neck){const n=M(new THREE.CylinderGeometry(.05,.058,S.neck+.08,14),C.skin,null,true);n.position.y=S.neck/2;neck.add(n);}
+  const hc=new THREE.Group();hc.position.y=simple?.196:S.neck+u*.9;neck.add(hc);hc.add(sph(u,C.skin));
+  C.head(hc,u,S,T);face(hc,u,S,C,T);
+  d.Hup=S.torsoH+hc.position.y+u*(C===CH.hiker?1.35:1.75);
+  const p={root,torso,neck,arms,legs,d,prop:{}};
+  if(!simple&&C.wear)C.wear(p,S,T);
+  if(S.toy){for(const [par,x,y,z,r] of[[hc,-.42,.5,.72,.2],[torso,-.09,S.torsoH*.62,rAt(.62)*depth+.004,.045/u]]){const hl=new THREE.Mesh(new THREE.SphereGeometry(u*r,10,10),basic("#ffffff",{transparent:true,opacity:.75}));
+      hl.scale.set(1,.6,.15);if(par===hc)hl.position.set(x*u,y*u,z*u*1.02);else hl.position.set(x,y,z);hl.rotation.set(-.5,par===hc?-.5:0,.5);par.add(hl);}}
+  C.build(p,T);return p;
+}
+function face(hc,u,S,C,T){
+  const ink=basic("#14181c"),on=(x,y)=>Math.sqrt(Math.max(.01,1-x*x-y*y)),ex=S.toy?.43:.37,ey=S.simple?.07:S.toy?-.04:0;
+  for(const sx of[-1,1]){
+    if(S.simple||S.toy){const e=new THREE.Mesh(new THREE.SphereGeometry(u*(S.simple?.12:.08),10,10),ink);e.position.set(sx*ex*u,ey*u,on(ex,ey)*u*.97);hc.add(e);}
+    else{const e=new THREE.Mesh(new THREE.SphereGeometry(u*.14,12,12),ink);e.scale.set(1,1.5,.45);e.position.set(sx*ex*u,ey*u,on(ex,ey)*u*.97);hc.add(e);
+      const hl=new THREE.Mesh(new THREE.SphereGeometry(u*.048,8,8),basic("#fff"));hl.position.set(sx*ex*u+u*.045,ey*u+u*.1,on(ex,ey)*u*1.03);hc.add(hl);
+      const ear=T.sph(u*.17,C.skin,true);ear.scale.set(.6,1,.8);ear.position.set(sx*u*.97,-u*.05,0);hc.add(ear);}
+    if(!S.toy){const by=ey+(S.simple?.3:.37),br=new THREE.Mesh(new THREE.BoxGeometry(u*.3,u*.065,u*.03),ink);br.position.set(sx*ex*u,by*u,on(ex,by)*u*.99);br.rotation.set(-by*.7,sx*.35,sx*(C.brow||0));hc.add(br);}
+    if(S.toy){const bx=.6,by=ey-.26,bl=new THREE.Mesh(new THREE.CircleGeometry(u*.14,14),basic("#ff9db5",{transparent:true,opacity:.65}));bl.position.set(sx*bx*u,by*u,on(bx,by)*u*1.01);bl.rotation.set(.25,sx*.68,0);hc.add(bl);}
+  }
+  const my=ey-(S.simple?.45:.42);
+  if(C.smile&&!S.simple){const m=new THREE.Mesh(new THREE.TorusGeometry(u*.12,u*.024,6,12,Math.PI),ink);m.position.set(0,(my+.08)*u,on(0,my)*u*.99);m.rotation.z=Math.PI;hc.add(m);}
+  else{const m=new THREE.Mesh(new THREE.BoxGeometry(u*(S.toy?.12:.2),u*.05,u*.03),ink);m.position.set(0,my*u,on(0,my)*u*.985);hc.add(m);}
+  if(S.key==="styl"){const n=T.sph(u*.065,new THREE.Color(C.skin).multiplyScalar(.9).getStyle(),true);n.position.set(0,(ey-.2)*u,on(0,ey-.2)*u*1.0);hc.add(n);}
+}
+function setSit(p,s){for(const l of p.legs){l.th.rotation.x=s?-Math.PI/2:0;l.sh.rotation.x=s?Math.PI/2:0;}}
+function reach(arm,T){
+  const v=T.clone().sub(arm.S);let d=Math.min(v.length(),arm.a+arm.b-.004);const dir=v.normalize();
+  const A=Math.acos(Math.max(-1,Math.min(1,(arm.a*arm.a+d*d-arm.b*arm.b)/(2*arm.a*d))));
+  const pole=V(arm.side*.9,-1,-.45).normalize(),n=new THREE.Vector3().crossVectors(dir,pole).normalize();
+  const u=dir.clone().applyAxisAngle(n,A);
+  arm.sh.quaternion.setFromUnitVectors(DOWN,u);
+  const E=arm.S.clone().addScaledVector(u,arm.a),f=T.clone().sub(E).normalize().applyQuaternion(arm.sh.quaternion.clone().invert());
+  arm.el.quaternion.setFromUnitVectors(DOWN,f);
+}
+const R=(p,s,a)=>reach(p.arms[s],V(a[0],a[1],a[2]));
+const hangT=(p,s)=>{const A=p.arms[s];return [A.S.x+s*.045,A.S.y-(A.a+A.b)*.97,.035];};
+const put=(m,a,r)=>{m.position.set(a[0],a[1],a[2]);if(r)m.rotation.set(r[0],r[1],r[2]);};
+
+/* ---------- 장면 ---------- */
+const scene=new THREE.Scene();scene.background=new THREE.Color("#fffdf2");
+scene.add(new THREE.AmbientLight(0xffffff,.8));const dl=new THREE.DirectionalLight(0xffffff,.42);dl.position.set(1.2,3,2.5);scene.add(dl);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,12),basic("#f3ead2"));floor.rotation.x=-Math.PI/2;floor.position.set(8,0,0);scene.add(floor);
+const hide=[floor],cells=[],grid=document.getElementById("grid");
+const GAP=2.4;
+for(const ck of["student","hiker"])for(const sk of["now","chibi","styl","toy"]){
+  const S=ST[sk],C=CH[ck],p=make(S,C),i=cells.length,hold=new THREE.Group();hold.position.x=i*GAP;scene.add(hold);hold.add(p.root);
+  const seatY=S.sh+.06-(S.simple?.05:S.lr[0])*.95,seat=new THREE.Group();
+  const mkBox=(w,h,dd,c)=>{const geo=new THREE.BoxGeometry(w,h,dd),m=new THREE.Mesh(geo,new THREE.MeshToonMaterial({color:c,gradientMap:GT_NEW}));m.add(new THREE.Mesh(geo,OM));return m;};
+  const s1=mkBox(.62,.1,.5,"#9fcbec");s1.position.set(0,seatY-.05,.04);seat.add(s1);const s2=mkBox(.62,Math.max(.05,seatY-.1),.46,"#7fb0d6");s2.position.set(0,(seatY-.1)/2,.02);seat.add(s2);
+  const s3=mkBox(.62,.5,.1,"#c3e0f5");s3.position.set(0,seatY+.25,-.27);seat.add(s3);hold.add(seat);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(.34,24),basic("#1f2a44",{transparent:true,opacity:.13}));sh.rotation.x=-Math.PI/2;sh.position.y=.004;sh.scale.set(1,.55,1);hold.add(sh);hide.push(sh);
+  const el=document.createElement("div");el.className="card"+(S.simple?" now":"");
+  el.innerHTML=`<canvas width="420" height="520"></canvas><h3>${S.label}${S.sub?`<small>${S.sub}</small>`:""}</h3><p>${ck==="student"?S.note:C.name}</p>`;grid.appendChild(el);
+  cells.push({S,C,p,hold,seat,ctx:el.querySelector("canvas").getContext("2d")});
+}
+const BLACK=basic("#1f2a44");
+const R3=new THREE.WebGLRenderer({antialias:true});R3.setPixelRatio(1);R3.setSize(420,520,false);
+const cam=new THREE.PerspectiveCamera(26,420/520,.1,40);
+let mode=0,sil=false,spin=false,clock=0,last=performance.now(),spinA=0;
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;if(spin)spinA+=dt*1.1;
+  const t=clock%6,k=t<1.2?0:t<2.3?sm((t-1.2)/1.1):t<5?1:1-sm((t-5)/1);
+  scene.overrideMaterial=sil?BLACK:null;for(const h of hide)h.visible=!sil;
+  const ang=spin?spinA:.3+Math.sin(clock*.55)*.6;
+  for(const c of cells)c.hold.visible=false;
+  cells.forEach((c,i)=>{const {p,S,C}=c,d=p.d;c.hold.visible=true;c.hold.rotation.y=ang;
+    p.root.position.set(0,0,0);p.torso.rotation.set(0,0,0);
+    let H;
+    if(mode===0){setSit(p,false);p.root.position.y=d.legH;C.stand(p,clock);H=d.legH+d.Hup;}
+    else{setSit(p,true);p.root.position.y=S.sh+.06;C.sit(p,mode===2?k:0,clock);H=S.sh+.06+d.Hup;}
+    c.seat.visible=mode!==0&&!sil;
+    const x=i*GAP,dist=(H*1.2/2)/Math.tan(13*Math.PI/180);cam.position.set(x,H*.5+.25,dist);cam.lookAt(x,H*.5,0);
+    R3.render(scene,cam);c.ctx.drawImage(R3.domElement,0,0);c.hold.visible=false;});
+  requestAnimationFrame(frame);
+}
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=+b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("on",x===b));});
+document.getElementById("sil").onclick=e=>{sil=!sil;e.target.classList.toggle("on",sil);};
+document.getElementById("spin").onclick=e=>{spin=!spin;spinA=0;e.target.classList.toggle("on",spin);};
+window.__set=(m,s)=>{mode=m;sil=!!s;};
+requestAnimationFrame(frame);
+})().catch(e=>{const el=document.getElementById("err");el.style.display="block";el.textContent="시안을 그리는 중 오류가 났습니다: "+e.message;console.error(e);});
+</script>
+</body>
+</html>
