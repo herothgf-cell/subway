@@ -111,7 +111,7 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
     </div>
     <div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
     <div id="bottom">
-      <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>승객 살피기</span><span><kbd>클릭</kbd>자리 찜</span>
+      <span><kbd>WASD</kbd>이동</span><span><kbd>방향키</kbd>시선</span><span><kbd>F</kbd>보고 있는 자리 찜</span>
       <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>시점 전환</span><span><kbd>Esc</kbd>일시정지</span>
       <span id="planslots"></span>
     </div>
@@ -257,7 +257,7 @@ function startLeg(doorIdx){
   const am=run.leg==="am",L=level();
   const route=am?STATIONS.slice():STATIONS.slice().reverse();
   G={route,legKey:run.leg,N:route.length-1,st:0,phase:"dwell",t:T_DWELL-3.2,door:1,doorOpen:true,
-    seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0},
+    seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
@@ -290,7 +290,7 @@ function startLeg(doorIdx){
   for(let i=0;i<3+Math.min(4,Math.floor(L/2));i++)spawnBoarder(rand(.3,1.6),null);
   mode="play";paused=false;$("ov").classList.remove("on");$("toasts").innerHTML="";
   buildRoute();toast("목표: "+route[route.length-1]+"역("+(am?"회사":"집")+")까지 "+(route.length-1)+"정거장. 도착 전에 체력이 바닥나면 탈락.");
-  if(L<1)toast("머리 위에 말풍선 아이콘이 뜬 승객은 내릴 낌새가 있습니다. 클릭해서 찜하세요.");
+  if(L<1)toast("시야(밝은 부채꼴) 안의 승객만 낌새가 보입니다. 방향키로 시선을 돌리고, 내릴 것 같은 승객을 보면서 F로 찜하세요.");
   sfx("chime");
 }
 function seatPerson(p,s){p.state="seated";p.seat=s;s.occ=p;p.x=s.x;p.y=s.y;p.face=s.side==="top"?Math.PI/2:-Math.PI/2;p.delay=null;if(!G.ps.includes(p))G.ps.push(p);}
@@ -441,7 +441,7 @@ function trySit(target){
   }
   const s=target&&!target.occ&&hyp(pl.x-target.fx,pl.y-target.fy)<sitRange()?target:nearestFreeSeat();
   if(!s)return;
-  s.occ="player";pl.seat=s;pl.x=s.x;pl.y=s.y;pl.vx=pl.vy=0;pl.face=s.side==="top"?Math.PI/2:-Math.PI/2;
+  s.occ="player";pl.seat=s;pl.x=s.x;pl.y=s.y;pl.vx=pl.vy=0;pl.face=s.side==="top"?Math.PI/2:-Math.PI/2;pl.gazeT=pl.face;pl.gazeHold=0;
   const i=g.plans.findIndex(p=>p.seat===s);
   if(s.pink){toast("임산부 배려석입니다. 시선이 따갑습니다.","bad");}
   else if(i>=0){
@@ -566,7 +566,7 @@ function update(rdt){
   let touching=false;
   if(!pl.seat){
     pl.brace=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space);
-    let ix=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),iy=(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0);
+    let ix=(keys.KeyD?1:0)-(keys.KeyA?1:0),iy=(keys.KeyS?1:0)-(keys.KeyW?1:0);
     if(pl.brace)ix=iy=0;
     const m=hyp(ix,iy)||1,sp=128;
     const mvx=ix/m*sp+pl.vx,mvy=iy/m*sp;
@@ -593,6 +593,7 @@ function update(rdt){
     g.stamina=Math.min(100,g.stamina+(pl.seat.pink?.6:1)*dt);
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
+  updateGaze(rdt);updateSight(rdt);
   if(!touching&&!(pl.seat&&pl.seat.pink)&&!(g.yieldEv&&g.yieldEv.active))g.nuis=Math.max(0,g.nuis-1.3*rdt);
   if(pl.bt>0){pl.bt-=rdt;if(pl.bt<=0)pl.bubble=null;}
   for(let i=g.fx.length-1;i>=0;i--){g.fx[i].t+=rdt;if(g.fx[i].t>1.3)g.fx.splice(i,1);}
@@ -601,6 +602,59 @@ function update(rdt){
     if(g.stamina<=0){g.stamina=0;endLeg("exhaust");return;}
     if(g.nuis>=100){g.nuis=100;endLeg("nuis");return;}
   }
+}
+/* ========== 시야 ========== */
+// 방향키로 시선을 돌린다. 방향키를 놓고 2초가 지나면 걷는 방향을 따라간다. 멈춰 있으면 시선 유지.
+const SIGHT_HALF=.7;                                    // 시야 반각 (약 40도)
+function sightRange(){return 300+25*sk("obs");}
+function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d;}
+function updateGaze(rdt){
+  const pl=G.pl,gx=(keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0),gy=(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
+  if(gx||gy){pl.gazeT=Math.atan2(gy,gx);pl.gazeHold=2;}
+  else if(pl.gazeHold>0)pl.gazeHold-=rdt;
+  else if(!pl.seat&&(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD))pl.gazeT=pl.face;
+  pl.gaze+=angDiff(pl.gazeT,pl.gaze)*Math.min(1,rdt*9);
+}
+function blocked(ox,oy,tx,ty,self){ // 서 있는 사람이 시선을 가리는지
+  const dx=tx-ox,dy=ty-oy,L2=dx*dx+dy*dy;
+  for(const q of G.ps){
+    if(q===self||q.state==="seated"||q.state==="gone")continue;
+    const t=((q.x-ox)*dx+(q.y-oy)*dy)/L2;if(t<=.1||t>=.9)continue;
+    if(hyp(ox+dx*t-q.x,oy+dy*t-q.y)<10)return true;
+  }
+  return false;
+}
+function seesRaw(p){
+  const P=G.pl,dx=p.x-P.x,dy=p.y-P.y,d=hyp(dx,dy);
+  if(d<42)return true;                                 // 바로 옆은 고개 안 돌려도 보임
+  if(d>sightRange()||Math.abs(angDiff(Math.atan2(dy,dx),P.gaze))>SIGHT_HALF)return false;
+  return !blocked(P.x,P.y,p.x,p.y,p);
+}
+let focus=null,focusT=0;
+function updateSight(rdt){
+  const P=G.pl;let best=null,bs=1e9;
+  for(const p of G.ps){
+    p.vis=clamp((p.vis||0)+(seesRaw(p)?rdt*6:-rdt*3),0,1);
+    if(p.vis<.6||p.state==="gone")continue;
+    const dx=p.x-P.x,dy=p.y-P.y,sc=Math.abs(angDiff(Math.atan2(dy,dx),P.gaze))*260+hyp(dx,dy)*.5+(p.state==="seated"?0:70)-(p===focus?45:0);  // 보던 사람을 계속 보도록
+    if(sc<bs){bs=sc;best=p;}
+  }
+  if(best!==focus){focus=best;focusT=0;}else focusT+=rdt;
+}
+function drawCone(){
+  const P=G.pl,R=sightRange();
+  const gr=ctx.createRadialGradient(P.x,P.y,10,P.x,P.y,R);
+  gr.addColorStop(0,"rgba(255,236,150,.42)");gr.addColorStop(1,"rgba(255,236,150,0)");
+  const top=view==="q"?CAR.y-WALL+6:CAR.y;
+  ctx.save();ctx.beginPath();ctx.rect(CAR.x,top,CAR.w,CAR.y+CAR.h-top);ctx.clip();   // 객차 안쪽만
+  ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R,P.gaze-SIGHT_HALF,P.gaze+SIGHT_HALF);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+function drawFocus(time,q){ // 보고 있는 승객 표시
+  if(!focus||mode!=="play")return;const p=focus,y=q?(p.seat?p.seat.y-14:p.y-14):p.y,r=q?24:22,k=3+Math.sin(time*6)*1.5;
+  ctx.strokeStyle="#14181c";ctx.lineWidth=2.5;
+  for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const cx=p.x+sx*(r+k),cy=y+sy*(r+k);
+    ctx.beginPath();ctx.moveTo(cx-sx*8,cy);ctx.lineTo(cx,cy);ctx.lineTo(cx,cy-sy*8);ctx.stroke();}
 }
 function steer(p,tx,ty,sp,dt,movers,sep){
   let dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy),vx=0,vy=0;
@@ -668,10 +722,12 @@ function draw(time){if(view==="q"&&G)return drawQ(time);
   // 손잡이
   ctx.strokeStyle="rgba(120,130,128,.55)";ctx.lineWidth=2;
   for(let b=0;b<3;b++)for(let k=0;k<BENCH;k++){const x=DOORS[b].x+DOOR_W+SEAT_W*(k+.5);for(const y of[AY0-6,AY1+6]){ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.stroke();}}
+  drawCone();
   // 사람 (y 정렬)
   const list=g.ps.slice().sort((a,b)=>a.y-b.y);
   for(const p of list){
-    const ts=tellState(p);let ox=0,oy=0;
+    const ts=p.vis>.3?tellState(p):0;let ox=0,oy=0;
+    if(p.state==="seated")ctx.globalAlpha=.5+.5*(p.vis||0);
     if(ts){ox=Math.sin(time*13+p.ph)*1.8;oy=Math.cos(time*9+p.ph)*1.2;}
     if(p.state==="standing")ox+=(p.sway||0)+Math.sin(time*1.3+p.ph)*.8;
     drawPerson(p.x+ox,p.y+oy,p.face,p,p.state==="seated",false,time);
@@ -679,10 +735,15 @@ function draw(time){if(view==="q"&&G)return drawQ(time);
       ctx.strokeStyle="rgba(20,24,28,.55)";ctx.lineWidth=1.6;const yy=p.seat.side==="top"?p.y+22:p.y-22,k=Math.sin(time*13+p.ph)>0?1:-1;
       ctx.beginPath();ctx.moveTo(p.x-15,yy-3*k);ctx.lineTo(p.x-19,yy);ctx.moveTo(p.x+15,yy+3*k);ctx.lineTo(p.x+19,yy);ctx.stroke();
     }
-    if(p.arch==="sleeper"&&p.state==="seated"){ctx.fillStyle="#55606e";ctx.font="700 11px "+FONT;ctx.fillText("z",p.x+12,p.y-8+Math.sin(time*2+p.ph)*2);}
-    if(p.state==="seated"){const hn=hint(p);if(hn.icon)hintIcon(p.x,p.seat.side==="top"?p.y+30:p.y-30,hn,time);}
-    if(sk("obs")>=3&&p.state==="seated"&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,p.x,p.seat.side==="top"?p.y-22:p.y+26);}
+    ctx.globalAlpha=1;
+    if(p.state!=="seated"||!(p.vis>.05))continue;
+    ctx.globalAlpha=p.vis;
+    if(p.arch==="sleeper"){ctx.fillStyle="#55606e";ctx.font="700 11px "+FONT;ctx.fillText("z",p.x+12,p.y-8+Math.sin(time*2+p.ph)*2);}
+    {const hn=hint(p);if(hn.icon)hintIcon(p.x,p.seat.side==="top"?p.y+30:p.y-30,hn,time);}
+    if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,p.x,p.seat.side==="top"?p.y-22:p.y+26);}
+    ctx.globalAlpha=1;
   }
+  drawFocus(time,false);
   // 찜 표시
   for(const pl of g.plans){
     const s=pl.seat;ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
@@ -799,6 +860,7 @@ function drawQ(time){
     ctx.fillStyle="#F2B705";ctx.fillRect(d.x+6,CAR.y+CAR.h-12,DOOR_W-12,4);ctx.fillRect(d.x+6,CAR.y+8,DOOR_W-12,4);
     ctx.fillStyle="#9aa3a0";ctx.font="700 11px "+FONT;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText((d.i+1)+"번 문",d.cx,CAR.y+CAR.h-22);
   }
+  drawCone();
   const P=g.pl,can=!P.seat?nearestFreeSeat():null;
   const seatBox=(s,hl)=>{const x=s.x-SEAT_W/2+1.5;
     if(s.side==="top"){ctx.fillStyle=s.pink?"#f7b6d2":"#7093ba";rr(x,s.y-SEAT_D/2-16,SEAT_W-3,26,5);ctx.fill();}
@@ -807,11 +869,12 @@ function drawQ(time){
     if(hl){ctx.strokeStyle="#00A84D";ctx.lineWidth=3;rr(x-2,s.y-SEAT_D/2-2,SEAT_W+1,SEAT_D+4,8);ctx.stroke();
       ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,s.y,10,0,TAU);ctx.fill();ctx.fillStyle="#fff";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("E",s.x,s.y+1);}
   };
-  const wig=(p)=>{const h=hint(p);return h.stage>=1?[Math.sin(time*13+p.ph)*1.6,h.stage>=2?-4+Math.sin(time*9)*1.5:0]:[0,0];};
+  const wig=(p)=>{const h=hint(p),v=p.vis||0;return h.stage>=1?[Math.sin(time*13+p.ph)*1.6*v,(h.stage>=2?-4+Math.sin(time*9)*1.5:0)*v]:[0,0];};
+  const seen=(p,f)=>{ctx.globalAlpha=.5+.5*(p.vis||0);f();ctx.globalAlpha=1;};  // 시야 밖 좌석 승객은 흐리게
   // 위쪽 좌석과 승객
   for(const s of g.seats)if(s.side==="top"){seatBox(s,s===can);
     if(s.occ==="player")figure(s.x,s.y+4,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me"},"front",true,time);
-    else if(s.occ){const o=wig(s.occ);figure(s.x+o[0],s.y+4+o[1],s.occ,"front",false,time);}
+    else if(s.occ){const o=wig(s.occ);seen(s.occ,()=>figure(s.x+o[0],s.y+4+o[1],s.occ,"front",false,time));}
   }
   // 서 있는 사람들 (앞뒤 정렬)
   const list=g.ps.filter(p=>p.state!=="seated");if(!P.seat)list.push(P);
@@ -824,7 +887,7 @@ function drawQ(time){
   // 아래쪽 좌석: 승객은 뒷모습, 등받이가 앞을 가림
   for(const s of g.seats)if(s.side==="bot"){seatBox(s,s===can);
     if(s.occ==="player")figure(s.x,s.y+4,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me"},"back",true,time);
-    else if(s.occ){const o=wig(s.occ);figure(s.x+o[0],s.y+4+o[1],s.occ,"back",false,time);}
+    else if(s.occ){const o=wig(s.occ);seen(s.occ,()=>figure(s.x+o[0],s.y+4+o[1],s.occ,"back",false,time));}
     ctx.fillStyle=s.pink?"#e27fae":"#48688c";rr(s.x-SEAT_W/2+1.5,s.y+3,SEAT_W-3,SEAT_D/2+3,5);ctx.fill();
   }
   // 이쪽 벽(잘린 단면)과 출입문
@@ -836,12 +899,14 @@ function drawQ(time){
   ctx.fillStyle="#00A84D";ctx.fillRect(CAR.x-10,CAR.y+CAR.h+10,CAR.w+20,4);
   // 머리 위 표시: 낌새, 잠, 찜, 남은 정거장
   ctx.textBaseline="middle";
-  for(const s of g.seats){const p=s.occ;if(!p||p==="player")continue;
-    const hy=s.y-(s.side==="top"?48:44),hn=hint(p);
+  for(const s of g.seats){const p=s.occ;if(!p||p==="player"||!(p.vis>.05))continue;
+    const hy=s.y-(s.side==="top"?48:44),hn=hint(p);ctx.globalAlpha=p.vis;
     if(hn.icon)hintIcon(s.x,hy,hn,time);
     else if(p.arch==="sleeper"){ctx.fillStyle="#55606e";ctx.font="700 12px "+FONT;ctx.textAlign="center";ctx.fillText("z",s.x+11,hy+10+Math.sin(time*2+p.ph)*2);}
     if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,s.x-12,hy+10);}
+    ctx.globalAlpha=1;
   }
+  drawFocus(time,true);
   for(const pl of g.plans){const s=pl.seat,py=s.y-(s.side==="top"?70:66);
     ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
     ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,10,0,TAU);ctx.fill();ctx.beginPath();ctx.moveTo(s.x-4,py+8);ctx.lineTo(s.x,py+15);ctx.lineTo(s.x+4,py+8);ctx.fill();
@@ -916,9 +981,8 @@ function hud(){
   if(sk("excuse"))$("qhelp").style.opacity=g.excuseCd>0?.4:1;
   $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"));
   // 승객 카드
-  const c=$("card"),p=mouse.inside&&!paused?personAt(mouse.x,mouse.y):null;
-  if(!p){c.style.display="none";hoverId=0;return;}
-  if(p.id!==hoverId){hoverId=p.id;hoverT=0;}else hoverT+=1/60;
+  const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)?focus:null;
+  if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
   if(o>=1){const l=likelyStop(p);h+=`<div class="hint">자주 내리는 역: ${l||"한참 더 감"}</div>`;}
   if(hn.stage===.5)h+=`<div class="tell">안내방송에 고개를 들었다. 이번 역일까?</div>`;
@@ -926,15 +990,18 @@ function hud(){
   else if(hn.stage>=1)h+=o>=2?`<div class="fake">${KTXT[hn.icon]}… 싶더니 다시 자리를 잡았다. 페이크.</div>`:`<div class="tell">${KTXT[hn.icon]}. 내리려는 걸까?</div>`;
   if(p.settle&&p.state==="seated")h+=`<div class="stay">${SETTLE[p.settle]}</div>`;
   if(p.peek&&p.state==="seated"){
-    if(hoverT<.9)h+=`<div class="peek">어깨너머로 화면을 보는 중…</div>`;
+    if(hyp(p.x-g.pl.x,p.y-g.pl.y)>120)h+=`<div class="peek">휴대폰을 보고 있다. 더 가까이 가면 화면이 보일 것 같다.</div>`;
+    else if(focusT<.9)h+=`<div class="peek">어깨너머로 화면을 보는 중…</div>`;
     else h+=`<div class="peek">화면: ${p.dest===99?"웹툰 정주행 중. 내릴 기색이 없다.":"‘"+g.route[p.dest]+"역 출구’ 검색 중."}</div>`;
   }
   if(o>=3&&p.state==="seated"&&p.dest>g.st&&p.dest-g.st<=2)h+=`<div class="hint">${p.dest-g.st}정거장 뒤 하차 확실</div>`;
-  if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act">클릭하면 이 자리를 찜합니다</div>`;
-  c.innerHTML=h;c.style.display="block";
-  c.style.left=clamp(mouse.x+18,10,W-262)+"px";c.style.top=clamp(p.y<360?mouse.y+22:mouse.y-c.offsetHeight-16,10,H-130)+"px";
+  if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act"><kbd>F</kbd> ${g.plans.some(x=>x.seat===p.seat)?"찜 취소":"이 자리 찜하기"}</div>`;
+  if(c.innerHTML!==h)c.innerHTML=h;c.style.display="block";
+  const top=p.seat?p.seat.side==="top":p.y<(AY0+AY1)/2;
+  // 시선을 가리지 않도록 플레이어 반대편 옆에 띄운다
+  const right=p.x>=g.pl.x;
+  c.style.left=clamp(right?p.x+40:p.x-40-250,10,W-262)+"px";c.style.top=clamp(top?p.y-60:p.y-c.offsetHeight+10,10,H-c.offsetHeight-10)+"px";
 }
-let hoverId=0,hoverT=0;
 function personAt(x,y){
   if(view==="q")return personAtQ(x,y);
   for(const s of G.seats)if(s.occ&&s.occ!=="player"&&Math.abs(x-s.x)<SEAT_W/2&&Math.abs(y-s.y)<SEAT_D/2+6)return s.occ;
@@ -953,7 +1020,7 @@ function showMenu(){
   <div class="grid">
    <div class="tip"><b>목표</b>출근은 신림에서 강남(회사)까지, 퇴근은 반대로 8정거장. 도착할 때까지 체력이 남아 있어야 합니다.</div>
    <div class="tip"><b>눈치</b>차림새, 안내방송에 드는 고개, 짐 챙기기, 통화 내용, 어깨너머 휴대폰 화면까지. 내릴 사람의 낌새는 여러 가지입니다.</div>
-   <div class="tip"><b>계획과 컨트롤</b>내릴 것 같은 승객을 미리 클릭해 찜하고, WASD로 인파를 피해 그 앞을 선점하세요. 부딪히면 민폐 게이지가 찹니다.</div>
+   <div class="tip"><b>계획과 컨트롤</b>방향키로 시선을 돌려 승객을 살피고, 내릴 것 같은 승객을 보면서 F로 찜하고, WASD로 인파를 피해 그 앞을 선점하세요. 부딪히면 민폐 게이지가 찹니다.</div>
       <div class="tip"><b>버티기</b>남은 체력은 다음 통근으로 이어집니다. 급정거에는 Shift로 손잡이.</div>
   </div>
   <div class="btns"><button class="btn go" id="b1">월요일 출근하기</button><button class="btn" id="b2">패시브 스킬</button></div>`);
@@ -987,7 +1054,7 @@ function showShop(after){
 }
 function setPause(v){
   if(mode!=="play")return;paused=v;
-  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스로 살피기 · 클릭으로 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}</p>
+  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 방향키 시선 · F 보고 있는 자리 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}</p>
     <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
     $("b1").onclick=()=>setPause(false);$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
@@ -1018,6 +1085,9 @@ addEventListener("keydown",e=>{
   if(e.code==="Escape"||e.code==="KeyP"){if(mode==="play")setPause(!paused);return;}
   if(mode!=="play"||paused)return;
   if(e.code==="KeyE")trySit(null);
+  const ga={ArrowRight:0,ArrowDown:Math.PI/2,ArrowLeft:Math.PI,ArrowUp:-Math.PI/2}[e.code];
+  if(ga!=null&&G){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 짧게 눌러도 바로 돌아보게
+  if(e.code==="KeyF"&&focus&&focus.state==="seated")togglePlan(focus.seat);
   if(e.code==="KeyQ")excuse();
   if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 쿼터뷰":"시점: 탑뷰");}
 });
@@ -1027,10 +1097,6 @@ const frame=$("frame");
 function toWorld(e){const r=frame.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
 frame.addEventListener("mousemove",e=>{const p=toWorld(e);mouse.x=p.x;mouse.y=p.y;mouse.inside=true;});
 frame.addEventListener("mouseleave",()=>{mouse.inside=false;});
-cv.addEventListener("mousedown",e=>{
-  if(mode!=="play"||paused)return;const p=toWorld(e),s=seatAt(p.x,p.y);if(!s)return;
-  if(!s.occ)trySit(s);else togglePlan(s);
-});
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H);frame.style.transform="scale("+s+")";}
 addEventListener("resize",fit);fit();
 
