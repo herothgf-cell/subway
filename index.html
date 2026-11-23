@@ -263,7 +263,7 @@ function startLeg(doorIdx){
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;
   // 좌석 승객
-  let empties=L<1?2:L<4?1:(Math.random()<.45?1:0);
+  let empties=L<1?1:0;
   const far=g.seats.filter(s=>!s.pink&&Math.abs(s.x-g.pl.x)>330);
   const emptySet=new Set();while(empties-->0&&far.length){emptySet.add(far.splice(irand(0,far.length-1),1)[0]);}
   for(const s of g.seats){
@@ -278,10 +278,17 @@ function startLeg(doorIdx){
     while(n<2&&pool.length){const p=pool.splice(irand(0,pool.length-1),1)[0];p.arch="plain";p.shirt="#5d7a99";p.dest=st;assignHints(p);n++;}
   }
   // 서 있는 승객
-  const standing=Math.round(Math.min(76,(24+3.2*L+(am?0:6))*(g.mod.crowd||1)));
+  const standing=Math.round(Math.min(96,(46+3.2*L+(am?0:6))*(g.mod.crowd||1)));
   g.target=standing;
   const zw=g.crowd.map(c=>c.w),zt=zw.reduce((a,b)=>a+b,0);
-  for(let i=0;i<standing;i++){
+  // 좌석 앞(손잡이 자리)부터 채운다. 혼잡한 칸일수록 빈틈이 없다
+  let placed=0;
+  for(const s of g.seats){
+    const fill=clamp(.62+.05*L+.18*(zw[s.zone]-1),.5,.97);
+    if(placed>=standing||Math.random()>fill||hyp(s.fx-g.pl.x,s.fy-g.pl.y)<40)continue;
+    const p=makePerson(pick(ARCH_POOL),0);takeSlot(p,s);p.x=p.hx;p.y=p.hy;p.face=s.side==="top"?-Math.PI/2:Math.PI/2;g.ps.push(p);placed++;
+  }
+  for(let i=placed;i<standing;i++){
     let r=Math.random()*zt,z=0;for(;z<3;z++){r-=zw[z];if(r<=0)break;}
     const p=makePerson(pick(ARCH_POOL),0),sp=freeSpot(z);
     p.x=p.hx=sp.x;p.y=p.hy=sp.y;p.face=rand(0,TAU);g.ps.push(p);
@@ -290,10 +297,15 @@ function startLeg(doorIdx){
   for(let i=0;i<3+Math.min(4,Math.floor(L/2));i++)spawnBoarder(rand(.3,1.6),null);
   mode="play";paused=false;$("ov").classList.remove("on");$("toasts").innerHTML="";
   buildRoute();toast("목표: "+route[route.length-1]+"역("+(am?"회사":"집")+")까지 "+(route.length-1)+"정거장. 도착 전에 체력이 바닥나면 탈락.");
-  if(L<1)toast("시야(밝은 부채꼴) 안의 승객만 낌새가 보입니다. 방향키로 시선을 돌리고, 내릴 것 같은 승객을 보면서 F로 찜하세요.");
+  if(L<1){toast("시야(밝은 부채꼴) 안의 승객만 살필 수 있습니다. 방향키로 시선을 돌려 몸짓을 보고, F로 찜하세요.");
+    toast("자리가 나면 그 좌석 앞에 선 사람이 먼저 앉습니다. 좌석 앞 사람을 계속 밀면 비켜 주지만 민폐가 크게 오릅니다.");}
   sfx("chime");
 }
-function seatPerson(p,s){p.state="seated";p.seat=s;s.occ=p;p.x=s.x;p.y=s.y;p.face=s.side==="top"?Math.PI/2:-Math.PI/2;p.delay=null;if(!G.ps.includes(p))G.ps.push(p);}
+/* 좌석 앞 자리(슬롯): 그 자리에 서 있는 사람이 좌석이 비면 먼저 앉는다 */
+function takeSlot(p,s){if(p.slot)p.slot.holder=null;p.slot=s;s.holder=p;p.hx=s.fx+rand(-2,2);p.hy=s.fy;}
+function dropSlot(p){if(p.slot){if(p.slot.holder===p)p.slot.holder=null;p.slot=null;}}
+function playerSlot(){const P=G.pl;if(P.seat)return null;for(const s of G.seats)if(hyp(P.x-s.fx,P.y-s.fy)<20)return s;return null;}
+function seatPerson(p,s){dropSlot(p);p.state="seated";p.seat=s;s.occ=p;p.x=s.x;p.y=s.y;p.face=s.side==="top"?Math.PI/2:-Math.PI/2;p.delay=null;if(!G.ps.includes(p))G.ps.push(p);}
 function spawnBoarder(delay,arch,opt){
   const d=opt&&opt.door!=null?DOORS[opt.door]:pick(DOORS);
   const p=makePerson(arch||pick(ARCH_POOL),G.st);
@@ -409,13 +421,20 @@ function standUp(p){
 }
 function seatFreed(s){
   if(s.pink)return;
-  const g=G,delay=rand(.45,1.2)+.3*sk("hip")-Math.min(.25,g.L*.02);
+  const g=G,delay=rand(.35,.7)+.3*sk("hip")-Math.min(.2,g.L*.02);
   g.timers.push({t:delay,fn(){
     if(s.occ)return;
-    let best=null,bd=190;
-    for(const q of g.ps)if(q.state==="standing"&&!q.elder&&q.delay==null){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
-    if(best&&Math.random()<g.rivalP){best.state="toSeat";best.target=s;}
+    // 내가 그 좌석 앞을 차지하고 있으면 주변이 잠깐 양보해 준다. 그 사이 E로 앉아야 함
+    if(playerSlot()===s){g.timers.push({t:1.4+.4*sk("hip"),fn(){if(!s.occ)claimSeat(s,90);}});return;}
+    claimSeat(s,130);
   }});
+}
+function claimSeat(s,range){
+  const g=G,h=s.holder;
+  if(h&&h.state==="standing"&&h.delay==null&&!h.elder&&hyp(h.x-s.fx,h.y-s.fy)<24&&Math.random()<.93){h.state="toSeat";h.target=s;return;}
+  let best=null,bd=range;   // 앞사람이 없으면 옆 사람이 노린다
+  for(const q of g.ps)if(q.state==="standing"&&!q.elder&&q.delay==null){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
+  if(best&&Math.random()<g.rivalP){best.state="toSeat";best.target=s;}
 }
 function npcSit(p,s){
   seatPerson(p,s);p.dest=sampleDest(p.arch,G.legKey,G.route,G.st);assignHints(p);
@@ -466,6 +485,13 @@ function excuse(){
     if(d<95&&d>1){const h={x:q.x+dx/d*42,y:q.y+dy/d*30};constrain(h);q.hx=h.x;q.hy=h.y;q.wt=4;}
   }
 }
+function shove(q){
+  const g=G,s=q.slot;dropSlot(q);q.sq=0;q.cool=7;
+  if(s){s.resv=4;g.pl.into={s,t:.6};}   // 비켜 준 틈으로 내가 들어간다
+  const h={x:q.x+rand(-26,26),y:(AY0+AY1)/2+rand(-14,14)};constrain(h);q.hx=h.x;q.hy=h.y;
+  g.nuis+=13*(1-.2*sk("face"));say(q,pick(["아, 좀…","밀지 마세요","저기요…","(한숨)"]));sfx("bump");
+  G.fx.push({x:q.x,y:q.y-10,t:0,txt:"민폐 +"+Math.round(13*(1-.2*sk("face")))});
+}
 function say(e,txt){e.bubble=txt;e.bt=1.5;}
 function bump(q,hard){
   const g=G;g.bumps++;g.bumpCd=1.05;g.shake=Math.max(g.shake,.18);
@@ -515,9 +541,11 @@ function update(rdt){
       else if(g.phase==="run"&&p.dest!==g.st+1&&p.arch!=="sleeper"&&p.fakeT<=0&&Math.random()<g.fakeRate*dt*.12)p.fakeT=rand(2,3.6);
       break;
      case"standing":
+      if(p.sq>0)p.sq=Math.max(0,p.sq-rdt);
       if(p.delay!=null){p.delay-=dt;if(p.delay<=0){p.state="leaving";p.step=0;p.delay=null;let d=DOORS[0];for(const q of DOORS)if(Math.abs(q.cx-p.x)<Math.abs(d.cx-p.x))d=q;p.door=d;}break;}
       if(p.elder&&g.yieldEv&&g.yieldEv.p===p){ if(pl.seat){p.hx=pl.seat.fx;p.hy=pl.seat.fy+(pl.seat.side==="top"?8:-8);} }
-      else{p.wt-=dt;if(p.wt<=0){p.wt=rand(2.5,7);p.hx=clamp(p.hx+rand(-16,16),CAR.x+20,CAR.x+CAR.w-20);p.hy+=rand(-12,12);const h={x:p.hx,y:p.hy};constrain(h);p.hx=h.x;p.hy=h.y;}}
+      else if(p.slot){if(p.cool>0)p.cool-=dt;}   // 좌석 앞을 지키는 사람은 자리를 뜨지 않는다
+      else{if(p.cool>0)p.cool-=dt;p.wt-=dt;if(p.wt<=0){p.wt=rand(2.5,7);p.hx=clamp(p.hx+rand(-16,16),CAR.x+20,CAR.x+CAR.w-20);p.hy+=rand(-12,12);const h={x:p.hx,y:p.hy};constrain(h);p.hx=h.x;p.hy=h.y;}}
       steer(p,p.hx,p.hy,p.elder?52:34,dt,movers,true);break;
      case"toSeat":{
       const s=p.target;
@@ -541,10 +569,19 @@ function update(rdt){
     }
   }
   g.ps=g.ps.filter(p=>p.state!=="gone");
+  for(const s of g.seats)if(s.resv>0)s.resv-=dt;
+  for(const s of g.seats)if(s.holder&&(s.holder.state!=="standing"||s.holder.delay!=null||!g.ps.includes(s.holder))){s.holder.slot=null;s.holder=null;}
   g.seek-=dt;
   if(g.seek<=0){g.seek=rand(1.6,3.2);
+    const mine=playerSlot();
+    for(const s of g.seats){   // 빈 좌석 앞 자리는 근처 사람이 다시 채운다
+      if(s.holder||s===mine||s.resv>0||Math.random()>.45)continue;
+      let best=null,bd=150;
+      for(const q of g.ps)if(q.state==="standing"&&!q.slot&&!q.elder&&q.delay==null&&!(q.cool>0)){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
+      if(best)takeSlot(best,s);
+    }
     for(const s of g.seats){
-      if(s.occ||s.pink||(s.fresh&&g.st===0&&g.phase==="dwell"))continue;
+      if(s.occ||s.pink||s===mine||(s.fresh&&g.st===0&&g.phase==="dwell"))continue;
       if(g.ps.some(q=>q.state==="toSeat"&&q.target===s))continue;
       let best=null,bd=170;
       for(const q of g.ps)if(q.state==="standing"&&!q.elder&&q.delay==null){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
@@ -574,14 +611,23 @@ function update(rdt){
     pl.x+=mvx*rdt;pl.y+=mvy*rdt;
     const speed=hyp(mvx,mvy);
     if(ix||iy){pl.face=Math.atan2(iy,ix);pl.walk+=rdt*10;}
+    if(pl.into){const s=pl.into,dx=s.s.fx-pl.x,dy=s.s.fy-pl.y,d=hyp(dx,dy);s.t-=rdt;   // 비집고 들어가는 중: 충돌 무시
+      if(d>2){const st=Math.min(d,170*rdt);pl.x+=dx/d*st;pl.y+=dy/d*st;pl.walk+=rdt*10;}
+      if(d<=2||s.t<=0)pl.into=null;}
     constrain(pl);
-    for(const q of movers){
+    for(const q of pl.into?[]:movers){
       if(q.state==="gone"||(q.state==="boarding"&&q.step===0)||(q.state==="leaving"&&q.step===1))continue;
       const dx=pl.x-q.x,dy=pl.y-q.y,d=hyp(dx,dy),R=26+(g.mod.radius||0);
       if(d<R&&d>.01){
-        const o=R-d,nx=dx/d,ny=dy/d;
-        pl.x+=nx*o*.6;pl.y+=ny*o*.6;if(q.state==="standing"){q.x-=nx*o*.4;q.y-=ny*o*.4;constrain(q);}
+        const o=R-d,nx=dx/d,ny=dy/d,an=q.slot&&q.state==="standing"?.1:.4;   // 좌석 앞 사람은 버틴다
+        pl.x+=nx*o*(1-an);pl.y+=ny*o*(1-an);if(q.state==="standing"){q.x-=nx*o*an;q.y-=ny*o*an;constrain(q);}
         touching=true;
+        // 비집고 들어가기: 좌석 앞 사람을 계속 밀면 결국 비켜 준다 (민폐 크게 상승)
+        if(q.slot&&q.state==="standing"&&(ix||iy)&&-(nx*ix+ny*iy)/m>.45){
+          const was=q.sq||0;q.sq=was+rdt*2;
+          if(was<.5&&q.sq>=.5)say(q,pick(["…?","어어","왜 밀어요"]));
+          if(q.sq>=1.2)shove(q);
+        }
         if(g.bumpCd<=0&&speed>40)bump(q,Math.abs(pl.vx)>60);
       }
     }
@@ -739,7 +785,6 @@ function draw(time){if(view==="q"&&G)return drawQ(time);
     if(p.state!=="seated"||!(p.vis>.05))continue;
     ctx.globalAlpha=p.vis;
     if(p.arch==="sleeper"){ctx.fillStyle="#55606e";ctx.font="700 11px "+FONT;ctx.fillText("z",p.x+12,p.y-8+Math.sin(time*2+p.ph)*2);}
-    {const hn=hint(p);if(hn.icon)hintIcon(p.x,p.seat.side==="top"?p.y+30:p.y-30,hn,time);}
     if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,p.x,p.seat.side==="top"?p.y-22:p.y+26);}
     ctx.globalAlpha=1;
   }
@@ -901,8 +946,8 @@ function drawQ(time){
   ctx.textBaseline="middle";
   for(const s of g.seats){const p=s.occ;if(!p||p==="player"||!(p.vis>.05))continue;
     const hy=s.y-(s.side==="top"?48:44),hn=hint(p);ctx.globalAlpha=p.vis;
-    if(hn.icon)hintIcon(s.x,hy,hn,time);
-    else if(p.arch==="sleeper"){ctx.fillStyle="#55606e";ctx.font="700 12px "+FONT;ctx.textAlign="center";ctx.fillText("z",s.x+11,hy+10+Math.sin(time*2+p.ph)*2);}
+    // 낌새 아이콘은 띄우지 않는다. 몸짓과, 시선을 맞춘 승객의 카드로만 읽는다
+    if(p.arch==="sleeper"&&!hn.icon){ctx.fillStyle="#55606e";ctx.font="700 12px "+FONT;ctx.textAlign="center";ctx.fillText("z",s.x+11,hy+10+Math.sin(time*2+p.ph)*2);}
     if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,s.x-12,hy+10);}
     ctx.globalAlpha=1;
   }
@@ -1020,7 +1065,7 @@ function showMenu(){
   <div class="grid">
    <div class="tip"><b>목표</b>출근은 신림에서 강남(회사)까지, 퇴근은 반대로 8정거장. 도착할 때까지 체력이 남아 있어야 합니다.</div>
    <div class="tip"><b>눈치</b>차림새, 안내방송에 드는 고개, 짐 챙기기, 통화 내용, 어깨너머 휴대폰 화면까지. 내릴 사람의 낌새는 여러 가지입니다.</div>
-   <div class="tip"><b>계획과 컨트롤</b>방향키로 시선을 돌려 승객을 살피고, 내릴 것 같은 승객을 보면서 F로 찜하고, WASD로 인파를 피해 그 앞을 선점하세요. 부딪히면 민폐 게이지가 찹니다.</div>
+   <div class="tip"><b>계획과 컨트롤</b>방향키로 시선을 돌려 승객을 살피고, 내릴 것 같은 승객을 보면서 F로 찜하고, 그 좌석 앞을 미리 차지하세요. 자리가 나면 좌석 앞에 선 사람이 먼저 앉습니다. 비집고 들어가면 민폐 게이지가 찹니다.</div>
       <div class="tip"><b>버티기</b>남은 체력은 다음 통근으로 이어집니다. 급정거에는 Shift로 손잡이.</div>
   </div>
   <div class="btns"><button class="btn go" id="b1">월요일 출근하기</button><button class="btn" id="b2">패시브 스킬</button></div>`);
