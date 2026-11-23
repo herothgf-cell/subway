@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f6f5ed">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle fill='%23107349' cx='16' cy='16' r='16'/%3E%3Cpath fill='none' stroke='white' stroke-width='3.5' stroke-linejoin='round' d='M10 12c0-7 13-7 12 0 0 4-9 7-12 12h13'/%3E%3C/svg%3E">
+  <title>자리사수 · 2호선 출근길</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="game.js"></script>
+  <script defer src="clay-heads.js"></script>
+  <script defer src="commuters.js"></script>
+  <script defer src="clay-set-materials.js"></script>
+  <script defer src="scene.js"></script>
+  <script defer src="vendor/three-r180.min.js"></script>
+  <script defer src="puppets3d.js"></script>
+  <script defer src="car3d.js"></script>
+  <script defer src="world3d.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-train" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 11h14M12 6v5M8 6h8M8 21l2-3m6 3-2-3"/><path d="M8 14.5h1m6 0h1"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="m3 9 4 0 5-4v14l-5-4H3zM16 9a5 5 0 0 1 0 6m3-9a9 9 0 0 1 0 12"/></symbol>
+    <symbol id="i-muted" viewBox="0 0 24 24"><path d="m3 9 4 0 5-4v14l-5-4H3zM16 9l5 6m0-6-5 6"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.7 2.7 0 0 1 5 .7c0 2-2.5 2-2.5 4m0 2.8v.1"/></symbol>
+    <symbol id="i-turn" viewBox="0 0 24 24"><path d="M19 20v-7a4 4 0 0 0-4-4H5m4-4L5 9l4 4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"/><path d="M9 3v18M3 7h4m-4 5h4m-4 5h4m5-10h5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M2 12h5l3-7 4 14 3-7h5"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3"/></symbol>
+    <symbol id="i-mouse" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 2v7M6 10h12"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="5" cy="16" r="2.5"/><circle cx="19" cy="7" r="2.5"/><path d="M7.5 16h3a3 3 0 0 0 3-3v-3a3 3 0 0 1 3-3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14m8-14v14" stroke-width="3"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-14h-8z"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 18v-3m5 3v-6m5 6V9m5 9V5"/></symbol>
+  </svg>
+  <header class="masthead">
+    <div class="wrap mast-inner">
+      <div class="brand"><span class="brand-icon"><svg><use href="#i-train"/></svg></span>자리사수<span class="brand-line">LINE 02</span></div>
+      <nav aria-label="게임 설정">
+        <a href="concepts/index.html" class="nav-btn concept-link">시안 비교</a>
+        <button id="sound" class="nav-btn" aria-pressed="false"><svg><use href="#i-muted"/></svg><span>소리 꺼짐</span></button>
+        <button id="help" class="nav-btn"><svg><use href="#i-help"/></svg><span>이용 안내</span></button>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="title">
+      <div><div class="line-label"><span class="line-number">2</span> 서울 지하철 2호선</div>
+        <h1 id="title">출근길 자리 사수<span class="title-stop" aria-hidden="true">.</span></h1>
+        <p>승객의 옷차림과 몸짓을 살피고, 곧 비는 자리 앞에 서세요.</p>
+      </div>
+      <div class="pass" aria-label="통근 승차권"><div><span class="micro">COMMUTER PASS</span><strong id="ticket-day">DAY 01</strong></div><div class="perforation"></div><div class="pass-end"><svg><use href="#i-train"/></svg><b id="ticket-leg">출근행</b></div></div>
+    </section>
+    <div class="layout">
+      <div class="play-column">
+        <section class="game-panel" aria-label="지하철 객차 게임">
+          <div class="board-head"><div class="board-caption"><i class="lamp"></i>객차 내부<span class="divider-light"></span><span class="cab-number" id="view-mode">02호차</span></div>
+            <div class="board-right"><button id="view-lock" class="view-lock" hidden aria-pressed="false" title="마우스 움직임으로 둘러보기 · Esc 해제">마우스 고정</button><span id="phase-name">탑승 대기</span><button id="pause" class="pause" aria-label="일시정지" title="일시정지" hidden><svg><use href="#i-pause"/></svg></button></div>
+          </div>
+          <div class="scene-wrap"><canvas width="1440" height="650" id="scene" tabindex="0" aria-label="2호선 객차. 드래그로 둘러보고 WASD로 이동합니다. 승객 선택은 1부터 6, 착석은 E 또는 스페이스."></canvas>
+            <span id="sight" class="sight" aria-hidden="true" hidden></span>
+            <span id="look-feedback" role="status" hidden></span>
+            <div class="pause-cover" id="pause-cover" hidden><button class="primary" id="resume"><svg><use href="#i-play"/></svg>이어서 운행</button></div>
+          </div>
+          <div class="action-strip"><div class="announcement" role="status"><span class="announcement-label"><span class="signal-dot"></span><span id="announcement-label">차내 안내</span></span><strong id="notice">방향키로 사람 사이를 움직이고, 빈자리 앞에서 E를 누르세요.</strong></div>
+            <button class="primary" id="action"><svg><use href="#i-play"/></svg><span>출근 시작</span></button>
+          </div>
+        </section>
+        <section class="route-card" aria-labelledby="route-heading">
+          <div class="card-heading"><h2 id="route-heading"><svg><use href="#i-route"/></svg>운행 구간</h2><span class="route-meta" id="route-meta">출근 · 3개 정거장</span></div>
+          <ol id="route" class="route"></ol>
+        </section>
+      </div>
+      <aside class="sidebar">
+        <section class="observation" aria-labelledby="observation-heading">
+          <div class="observation-head">
+            <h2 id="observation-heading"><svg><use href="#i-eye"/></svg>승객 관찰</h2>
+            <div class="seat-switch">
+              <button id="previous-view" aria-label="이전 좌석 관찰"><svg><use href="#i-arrow"/></svg></button>
+              <span id="view-number">1번 좌석</span>
+              <button id="next-view" aria-label="다음 좌석 관찰"><svg><use href="#i-arrow"/></svg></button>
+            </div>
+          </div>
+          <div class="view-screen">
+            <canvas id="observation-view" width="528" height="292" role="img" aria-label="가까이에서 보는 좌석"></canvas>
+            <span id="view-blocked" hidden>옆으로 움직여 시야를 확보하세요.</span>
+          </div>
+          <div class="view-caption"><strong id="observation-title"></strong><p id="observation-text">좌석에 마우스를 올려 옷차림과 몸짓을 살펴보세요.</p></div>
+          <div id="prediction-controls" class="prediction-controls" hidden>
+            <span id="selection-number" aria-live="polite"></span>
+            <button id="predict-view" class="secondary">이 승객 예상</button>
+          </div>
+        </section>
+        <section class="notebook" aria-labelledby="note-heading">
+          <div class="notebook-head"><div class="micro"><i></i> COMMUTE LOG</div><h2 id="note-heading">J의 통근 수첩</h2><svg class="book-icon"><use href="#i-book"/></svg></div>
+          <div class="notebook-body">
+            <div class="stat-heading"><span><svg><use href="#i-pulse"/></svg>남은 체력</span><strong><b id="stamina">100</b><small> / 100</small></strong></div>
+            <div class="meter" id="meter" role="meter" aria-label="체력" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="meter-fill"></div></div>
+            <div class="points"><span><svg><use href="#i-coin"/></svg>보유 포인트</span><strong><b id="points">0</b> <small>P</small></strong></div>
+            <button class="upgrade-link" id="skills">패시브 스킬<svg><use href="#i-arrow"/></svg></button>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <footer class="controls" aria-label="조작 방법"><strong>조작법</strong><span id="look-control" hidden><svg><use href="#i-mouse"/></svg>드래그 · 시점 조절</span><span><kbd>WASD</kbd><small> / </small><kbd>방향키</kbd> 이동</span><span>승객 클릭 · 하차 예상</span><span><kbd>E</kbd><small> / </small><kbd>Space</kbd> 가까운 빈자리 착석</span></footer>
+  </main>
+  <dialog id="dialog"><div class="dialog-head"><span class="line-label"><span class="line-number">2</span>자리사수</span><button id="close-dialog" class="close" aria-label="닫기"><svg><use href="#i-close"/></svg></button></div><div id="dialog-body"></div></dialog>
+  <noscript>게임을 실행하려면 브라우저에서 JavaScript를 켜 주세요.</noscript>
+</body>
+</html>

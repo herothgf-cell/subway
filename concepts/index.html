@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f6f5ee">
+  <title>1인칭 출근길 시안 · 자리사수</title>
+  <style>
+    * { box-sizing:border-box; } body { margin:0; background:#f6f5ee; color:#20372e; font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif; word-break:keep-all; }
+    header { border-bottom:1px solid #cbd1c4; background:#fcfbf5; }
+    .wrap { width:min(1200px,calc(100% - 64px)); margin:auto; } header .wrap { min-height:58px; display:flex; align-items:center; justify-content:space-between; }
+    .brand { display:flex; align-items:center; gap:8px; font-weight:900; letter-spacing:-.07em; font-size:20px; } .line { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:#107349; color:#fff; font:bold 18px Arial; }
+    a { color:#175c3e; font-size:13px; font-weight:bold; text-underline-offset:.28em; }.brand,a.back { text-decoration:none; }
+    a:focus-visible,button:focus-visible { outline:3px solid #d78c3b; outline-offset:4px; }
+    .intro { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin:25px 0 17px; }
+    h1 { font-size:clamp(30px,4vw,47px); line-height:1.15; letter-spacing:-.085em; margin:0; }
+    p { line-height:1.6; } .intro p { margin:6px 0 0; color:#526158; font-size:14px; }
+    .options { display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0; }
+    button { border:1px solid #b6c4b8; border-radius:24px; background:#fcfcf7; color:#405348; padding:8px 13px; font-family:inherit; font-size:13px; line-height:1.3; font-weight:700; cursor:pointer; }
+    button:hover { background:#e5eddf; } button[aria-pressed=true] { background:#22543c; border-color:#22543c; color:#fff; }
+    .picture { display:block; border-radius:10px; overflow:hidden; border:1px solid #76887a; background:#d5d9cd; line-height:0; }
+    .picture img { width:100%; height:auto; display:block; aspect-ratio:16/9; object-fit:cover; }
+    figure { margin:0 0 26px; } figcaption { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:16px 1px; }
+    h2 { margin:0; font-size:19px; letter-spacing:-.05em; } figcaption p { font-size:14px; margin:4px 0 0; color:#4a5a50; }
+    figcaption>a { white-space:nowrap; padding-top:4px; }
+    @media(min-width:801px) {
+      main.wrap { width:min(1200px,calc(100% - 64px),max(720px,calc(177.78svh - 402px))); }
+    }
+    @media(max-width:800px) { .intro { align-items:flex-start; flex-direction:column; }.wrap { width:calc(100% - 30px); } }
+    @media(max-width:480px) { .intro { margin:18px 0 12px; gap:12px; }.intro p,figcaption p { font-size:12px; } figcaption { gap:9px; } button { padding:8px 11px; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><span class="brand"><span class="line">2</span> 자리사수</span><a class="back" href="../index.html">클레이 게임 플레이 ↗</a></div></header>
+  <main class="wrap">
+    <div class="intro"><div><h1>1인칭 출근길 시안</h1><p>신도림 도착 직전, 앞사람 어깨 사이로 보이는 두 승객을 살펴보세요.</p></div>
+      <div class="options" role="group" aria-label="화풍 선택">
+        <button type="button" data-style="webtoon" aria-pressed="false">1 · 웹툰</button>
+        <button type="button" data-style="clay" aria-pressed="true">2 · 클레이</button>
+        <button type="button" data-style="documentary" aria-pressed="false">3 · 실사풍</button>
+      </div>
+    </div>
+    <figure>
+      <a class="picture" href="02-clay.png" aria-label="현재 시안 원본 열기"><img src="02-clay.png" id="art" width="1672" height="941" alt="붐비는 2호선에서 앞사람 어깨 너머로 승객의 손을 살펴보는 클레이 시안"></a>
+      <figcaption><div aria-live="polite"><h2 id="name">클레이 애니메이션</h2><p id="caption">두툼한 소매 끝에서 휴대폰을 쥔 손과 가방 안으로 향하는 손이 입체적으로 보입니다.</p></div><a id="original" href="02-clay.png">원본 확대 ↗</a></figcaption>
+    </figure>
+  </main>
+  <script>
+    const designs = {
+      webtoon:{file:"01-webtoon.png",title:"생활 웹툰",caption:"야상의 주머니 입구와 무릎을 짚은 손이 선으로 또렷하게 드러납니다.",alt:"앞사람 배낭과 어깨 너머로 야상 주머니를 만지는 승객과 에코백 속을 뒤지는 승객이 보이는 웹툰 장면"},
+      clay:{file:"02-clay.png",title:"클레이 애니메이션",caption:"두툼한 소매 끝에서 휴대폰을 쥔 손과 가방 안으로 향하는 손이 입체적으로 보입니다.",alt:"붐비는 지하철에서 주변 승객의 옷과 소지품을 입체 인형의 질감으로 표현한 클레이 시안"},
+      documentary:{file:"03-documentary.png",title:"출근길 다큐멘터리",caption:"코트가 시야를 가리고, 승객 사이로 휴대폰을 쥔 손과 가방을 여는 손이 보입니다.",alt:"손잡이를 잡은 나의 손 너머로 아침 햇빛 속 승객들의 손동작과 옷 주름이 보이는 실사풍 장면"}
+    };
+    function select(name) {
+      if (!Object.hasOwn(designs,name)) name = "clay";
+      const design = designs[name];
+      document.querySelectorAll("[data-style]").forEach(button => button.setAttribute("aria-pressed",String(button.dataset.style === name)));
+      const art = document.getElementById("art");
+      art.src = design.file;
+      art.alt = design.alt;
+      document.querySelector(".picture").href = design.file;
+      document.getElementById("original").href = design.file;
+      document.getElementById("name").textContent = design.title;
+      document.getElementById("caption").textContent = design.caption;
+    }
+    document.querySelector(".options").addEventListener("click", event => {
+      const button = event.target.closest("[data-style]");
+      if (button) location.hash = button.dataset.style;
+    });
+    window.addEventListener("hashchange", () => select(location.hash.slice(1)));
+    select(location.hash.slice(1));
+  </script>
+</body>
+</html>
