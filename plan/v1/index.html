@@ -35,7 +35,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span>계획대로, 2호선</span><span class="tag v">v1</span><span class="tag">초안 2026-11-24</span></div>
-<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 13건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
+<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 14건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
 <p style="margin-top:8px">함께 보는 문서: <a href="../../PLAN.md">PLAN.md</a> (현재 게임 기준 기획서, v3) · <a href="DECISIONS.md">DECISIONS.md</a> (결정 기록)</p></header>
 <div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag">신규</span></a>
 <a href="02_character_v1.html"><span class="num">02</span><span><b>캐릭터 설정 및 능력치</b><span class="d">캐릭터별 집·회사 구간, 능력치 6종, 고유 특성</span></span><span class="tag">신규</span></a>
@@ -49,7 +49,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <a href="10_item_v1.html"><span class="num">10</span><span><b>아이템</b><span class="d">가방·옷·신발·소지품 장착과 입수</span></span><span class="tag">신규</span></a>
 <a href="11_seat_grade_v1.html"><span class="num">11</span><span><b>좌석 등급</b><span class="d">자리와 입석 위치의 등급</span></span><span class="tag">후순위</span></a>
 <a href="12_daily_plan_v1.html"><span class="num">12</span><span><b>오늘의 계획표</b><span class="d">통근별 목표 선택, 루틴 콤보, 멘붕</span></span><span class="tag ok">구현됨</span></a>
-<a href="13_misc_ideas_v1.html"><span class="num">13</span><span><b>기타 아이디어</b><span class="d">동행과 지하철 매너, 단골 승객, 막차 등</span></span><span class="tag">후순위</span></a></div>
+<a href="13_misc_ideas_v1.html"><span class="num">13</span><span><b>기타 아이디어</b><span class="d">동행과 지하철 매너, 단골 승객, 막차 등</span></span><span class="tag">후순위</span></a>
+<a href="14_diary_v1.html"><span class="num">14</span><span><b>출근 일기</b><span class="d">사건 기록, 문장 틀, 가상 시각, 이미지로 저장</span></span><span class="tag ok">구현됨</span></a></div>
 <h2>구현 현황</h2>
 <p>게임 본체는 어깨 너머 3D(<code>index.html</code>, V 키로 탑뷰 전환)입니다. 쿼터뷰 2.5D 버전은 뺐습니다.</p>
 <div class="tw"><table>
@@ -57,12 +58,13 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>0</td><td>시뮬레이터, 기준 난이도 측정</td><td><span class="st ok">완료</span></td><td><code>node tools/sim.js</code>. 봇 3종으로 규칙 변경 전후를 비교</td></tr>
 <tr><td>1</td><td>12 오늘의 계획표</td><td><span class="st ok">구현됨</span></td><td>계획 16종, 루틴 콤보, 멘붕. 남은 것: "들키지 않기"(07 필요), "백팩은 앞으로"(10 필요), 일정별 전용 계획(04 필요)</td></tr>
 <tr><td>1</td><td>05 환승역 물갈이</td><td><span class="st ok">구현됨</span></td><td>사당 S, 교대 A. 쓸려 내림, 손잡이 절반 규칙 포함. 남은 것: 출근·퇴근 방향 보정, "문턱에서 버티기"</td></tr>
-<tr><td>2</td><td>08 회사·집 이벤트 → 07 시선 눈치 → 06 특수 승객</td><td><span class="st wait">다음</span></td><td>07에서 어깨너머 화면 정리 (2초 주시 + 들킬 위험)</td></tr>
-<tr><td>3</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">대기</span></td><td>관찰력 표시 변경은 먼저 반영함 (후보 2곳, "곧 내릴 것 같다")</td></tr>
-<tr><td>4</td><td>03 노선 확장 → 02 캐릭터 → 04 일정 → 01 인트로</td><td><span class="st wait">대기</span></td><td>인트로 시안(<code>intro-flow.html</code>)은 병행 가능, 아직 시작 전</td></tr>
-<tr><td>5</td><td>11 좌석 등급</td><td><span class="st wait">대기</span></td><td></td></tr>
-<tr><td>6</td><td>13 기타 아이디어 (출근 일기, 계절, 동행과 매너, 매너 점수, 단골 승객, 막차)</td><td><span class="st wait">후순위</span></td><td>다른 문서가 13에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)은 13이 들어올 때 함께 넣는다</td></tr>
-<tr><td>7</td><td>개선점 목록 처리</td><td><span class="st wait">대기</span></td><td>기능 구현이 모두 끝난 뒤</td></tr>
+<tr><td>2</td><td>14 출근 일기</td><td><span class="st ok">구현됨</span></td><td>정산 화면의 일기와 이미지 저장. 남은 것: 문장 검수, 플래너 보관, 내일의 다짐과 계획표 연결(04 이후)</td></tr>
+<tr><td>3</td><td>08 회사·집 이벤트 → 07 시선 눈치 → 06 특수 승객</td><td><span class="st wait">다음</span></td><td>07에서 어깨너머 화면 정리 (2초 주시 + 들킬 위험)</td></tr>
+<tr><td>4</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">대기</span></td><td>관찰력 표시 변경은 먼저 반영함 (후보 2곳, "곧 내릴 것 같다")</td></tr>
+<tr><td>5</td><td>03 노선 확장 → 02 캐릭터 → 04 일정 → 01 인트로</td><td><span class="st wait">대기</span></td><td>인트로 시안(<code>intro-flow.html</code>)은 병행 가능, 아직 시작 전</td></tr>
+<tr><td>6</td><td>11 좌석 등급</td><td><span class="st wait">대기</span></td><td></td></tr>
+<tr><td>7</td><td>13 기타 아이디어 (계절, 동행과 매너, 매너 점수, 단골 승객, 막차)</td><td><span class="st wait">후순위</span></td><td>다른 문서가 13에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)은 13이 들어올 때 함께 넣는다</td></tr>
+<tr><td>8</td><td>개선점 목록 처리</td><td><span class="st wait">대기</span></td><td>기능 구현이 모두 끝난 뒤</td></tr>
 </table></div>
 
 <h2>검토 중인 제안 (결정 대기)</h2>
@@ -84,7 +86,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><th>묶음</th><th>문서</th><th>역할</th></tr>
 <tr><td>틀</td><td>01 인트로, 02 캐릭터, 03 노선 확장, 04 일정</td><td>누가, 어디를, 언제 다니는지</td></tr>
 <tr><td>통근 한 판</td><td>05 환승역, 06 특수 승객, 07 시선 눈치, 11 좌석 등급</td><td>객차 안에서 벌어지는 일</td></tr>
-<tr><td>J 성격</td><td>12 오늘의 계획표, 13 동행과 매너</td><td>스스로 정한 목표와 조건</td></tr>
+<tr><td>J 성격</td><td>12 오늘의 계획표, 13 동행과 매너, 14 출근 일기</td><td>스스로 정한 목표와 조건</td></tr>
 <tr><td>통근 사이·성장</td><td>08 회사·집 이벤트, 09 패시브 스킬, 10 아이템</td><td>다음 통근을 준비하는 선택</td></tr>
 </table></div>
 <h2>미결 사항 결정 방식</h2>
@@ -99,6 +101,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-24</td><td>v1 초안 작성</td></tr>
 <tr><td>2026-11-24</td><td>미결 사항 결정 방식 추가 / 01 인트로: 시안 흐름 선행 / 02 캐릭터: 균형 적용 범위 검토 / 13 기타: 출근 일기·계절 상세화</td></tr>
 <tr><td>2026-11-24</td><td>12·05 미결 사항 결정과 구현(계획표, 환승역 물갈이, 쓸려 내림, 멘붕). 게임 본체를 3D로 전환. 이 문서에 구현 현황, 검토 중인 제안, 개선점 목록을 추가해 한 장에서 관리</td></tr>
+<tr><td>2026-11-24</td><td>출근 일기를 정식 구현하고 독립 문서(14)로 추가. 13의 나머지는 후순위 유지</td></tr>
 <tr><td>2026-11-24</td><td>13 기타 아이디어 전체를 후순위로 미룸 (출근 일기 1단계 포함). 다음 작업은 08 회사·집 이벤트</td></tr>
 <tr><td>2026-11-24</td><td>관찰력: 하차역을 직접 알려 주지 않도록 변경 (후보 2곳 표시, 남은 정거장 수 제거, 환승 검색 유형 우선 지정 제거). 09·05 반영</td></tr>
 <tr><td>2026-11-24</td><td>능력치 "버티기" 신설(6종): 사람에게 떠밀리는 것은 균형이 아닌 버티기가 담당. 손잡이는 균형 쪽은 완전히, 버티기 쪽은 절반만 막음. 02·05·06·09 반영, 캐릭터 수치 재조정</td></tr>

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>계획대로, 2호선</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap">
 <style>
 :root{
   --line:#00A84D; --line-d:#007a38; --ink:#14181c; --paper:#F3F0E8; --card:#fffdf7;
@@ -95,6 +96,14 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;margin-bottom:8px}
 .wallet{position:absolute;right:36px;top:30px;font-weight:800;font-size:16px}
 #meltfx{position:absolute;inset:0;display:none;background:radial-gradient(ellipse at center,rgba(20,24,28,0) 34%,rgba(20,24,28,.8) 76%)}
+/* 출근 일기 */
+.diary{position:relative;margin-top:14px;background:#fffdf5;border-radius:10px;border-left:5px solid var(--warn);padding:12px 16px 12px 18px;background-image:repeating-linear-gradient(transparent,transparent 29px,#e6ebe4 29px,#e6ebe4 30px);background-position:0 40px}
+.diary .dh{font-size:12.5px;font-weight:800;color:#565b60;display:flex;justify-content:space-between;margin-bottom:6px}
+.diary .dl{margin:0;font:25px/30px "Nanum Pen Script","Gaegu",var(--font);color:#1f2a44}
+.diary .dt{color:#007a38}
+.diary.shaky .dl:nth-child(odd){transform:rotate(-.6deg) translateX(3px)}.diary.shaky .dl:nth-child(even){transform:rotate(.7deg) translateX(-2px)}
+.diary.cut .dl:nth-of-type(2){text-decoration:line-through;text-decoration-color:var(--bad)}
+.diary .btn{position:absolute;right:10px;bottom:8px;padding:5px 12px;font-size:12.5px;border-bottom-width:3px}
 /* 오늘의 계획표 */
 #dplan{position:absolute;left:24px;top:104px;width:214px;display:none;background:var(--card);border-radius:10px;padding:8px 12px 9px;font-size:12.5px;line-height:1.5;box-shadow:0 2px 0 rgba(0,0,0,.35);border-left:5px solid var(--line)}
 #dplan b{display:block;font-size:11.5px;color:var(--mute);margin-bottom:2px}
@@ -238,12 +247,12 @@ const GRIT=3,MELT_AT=3;                 // 버티기 능력치(캐릭터가 들�
 const gritK=()=>1-.1*(GRIT-3);          // 사람에게 떠밀리는 거리 배수
 function addCollapse(){                 // 멘붕은 통근당 1회. 멘붕 뒤에는 그 통근에서 스택이 쌓이지 않는다
   const g=G;if(g.meltUsed||g.st>=g.N)return;
-  if(++g.collapse>=MELT_AT){g.meltUsed=true;g.melt=20;g.meltdowns=1;g.collapse=0;g.breath=0;g.meltSay=0;
+  if(++g.collapse>=MELT_AT){g.meltUsed=true;g.melt=20;g.meltdowns=1;g.collapse=0;g.breath=0;g.meltSay=0;ev("melt");
     toast("멘붕. 계획이 연달아 틀어졌습니다. 가만히 서서 3초 심호흡하거나 자리에 앉으세요.","bad");sfx("bad");}
 }
 function meltEnd(msg){G.melt=0;G.collapse=0;toast(msg,"good");}
 function swept(){                       // 환승역 하차 인파에 밀려 승강장으로 내려짐
-  const g=G;g.stamina=Math.max(1,g.stamina-8);g.plans.length=0;g.claims.length=0;g.sweeps++;g.sweepT=0;
+  const g=G;g.stamina=Math.max(1,g.stamina-8);g.plans.length=0;g.claims.length=0;g.sweeps++;g.sweepT=0;ev("swept");
   addCollapse();sfx("bad");mode="reboard";
   if(document.pointerLockElement)document.exitPointerLock();
   const cnt=DOORS.map(d=>g.ps.filter(p=>p.state!=="seated"&&p.state!=="gone"&&Math.abs(p.x-d.cx)<110).length);
@@ -282,6 +291,128 @@ function assignHints(p){
   p.settle=!leave&&p.arch!=="sleeper"&&p.arch!=="elder"&&Math.random()<.45?pick(Object.keys(SETTLE)):null;
 }
 const HAIR=["#1d1b1a","#2b211c","#3a2a20","#111","#5a4a3a","#c9c5bd"], SKIN=["#f1c9a5","#e8b98f","#f5d6b8","#d9a57c"];
+
+/* ========== 출근 일기 (추가 기획서 14) ========== */
+// 통근 중 사건을 기록해 두었다가 정산 때 머리말 + 사건 2~3문장 + 맺음말로 조합한다.
+// 문장 틀의 {st} 역, {arch} 승객, {time} 시각, {n} 횟수 등은 그날의 값으로 채우고, {은}{이}{을}은 앞말의 받침에 맞춘다.
+const DIARY_ARCH={student:"과잠",office:"정장",hiker:"등산복",lawyer:"서류 봉투",transfer:"지도 앱을 보던 사람",sleeper:"잠든 승객",teen:"교복",shopper:"쇼핑백",plain:"통근객",mom:"승객",elder:"어르신"};
+const DIARY={
+ // 자주 나오는 사건: 10개씩
+ planned:{pr:3,t:["{arch}{은} 역시 {st}에서 내렸다. {time} 착석.","{time}, {st}. 찜해 둔 자리가 계획대로 비었다.","{st}에서 앉았다. 낌새가 보이기 전에 정해 둔 자리다.","예측: {arch}, {st} 하차. 결과: 일치. {time} 착석.","{arch}{이} 일어나기 전부터 그 앞에 서 있었다. {st}, {time}.","{st}에서 계획이 그대로 실행되었다. 수정 사항 없음.","{time} 착석. 미리 찜한 자리, 미리 서 있던 위치. 오차 없음.","{arch}{을} 고른 것은 옳았다. {st}에서 자리를 넘겨받았다.","{st} 도착 전에 이미 결론이 나 있었다. {time}에 앉았다.","계획대로 앉은 날은 다리보다 기분이 먼저 편하다. {st}, {time}."]},
+ tell:{pr:3,t:["{st} 직전에 {arch}{이} 짐을 챙겼다. 그걸 보고 움직였다. {time} 착석.","{time}, {st}. 계획은 아니었지만 눈치는 빨랐다.","낌새를 보고 나서야 찜했다. {st}에서 앉기는 했다.","{arch}{이} 일어날 자세를 잡는 것을 봤다. 늦지 않았다. {st}, {time}.","{st}에서 앉았다. 예측이라기보다 반응이었다.","계획 반, 눈치 반. {time} 착석으로 기록한다.","{arch}의 움직임을 읽은 것은 {st} 바로 앞이었다. 다음에는 더 일찍 본다.","{st}. 보고 나서 정했으니 계획이라 부르기는 어렵다. 그래도 앉았다.","{time}에 앉았다. 근거는 {arch}의 손이 가방으로 간 것 하나였다.","눈치로 얻은 자리다. {st}, {time}. 플래너에는 별표 없이 적는다."]},
+ stood:{pr:5,t:["{n}정거장을 서서 왔다. 다리가 기억하고 있다.","오늘은 한 번도 앉지 못했다. {n}정거장, 기록해 둔다.","앉을 자리는 있었다. 내 앞이 아니었을 뿐이다.","{from}에서 {to}까지 서서 갔다. 손잡이와 많이 친해졌다.","찜한 자리는 끝까지 비지 않았다. {n}정거장을 서 있었다.","서서 가는 것도 계획에 넣어 두었어야 했다.","{to}에 도착했을 때 좌석은 여전히 남의 것이었다.","오늘의 착석 시각: 없음.","{n}정거장 동안 내 앞사람은 한 명도 내리지 않았다. 고르는 눈을 점검한다.","서 있는 동안 노선도를 세 번 읽었다. {n}정거장은 길다."]},
+ bump:{pr:5,t:["{n}번 부딪혔다. {n}번 사과했다.","충돌 {n}회. 동선 계획에 사람이 빠져 있었다.","\"죄송합니다\"를 {n}번 말했다. 목표는 0번이었다.","오늘 통로는 예상보다 좁았다. 부딪힌 횟수 {n}.","{n}번의 접촉이 있었다. 급할수록 돌아갔어야 했다.","사람 사이를 지나가다 {n}번 닿았다. 틈은 기다리면 생긴다는 것을 적어 둔다.","충돌 {n}회는 계획에 없던 숫자다.","어깨가 {n}번 닿았다. 다음에는 한 박자 늦게 움직인다.","{st} 근처에서 처음 부딪혔다. 내릴 때는 {n}번이 되어 있었다.","부딪힌 것은 {n}번, 눈총은 그보다 많았다."]},
+ planPart:{pr:4,t:["계획표 {total}줄 중 {done}줄에 체크했다. 「{failName}」에는 줄을 그었다.","「{doneName}」{은} 지켰다. 「{failName}」{은} 지키지 못했다.","{total}개 중 {done}개. 나쁘지 않지만 전부는 아니다.","「{failName}」에 줄을 긋는 손이 조금 무거웠다.","체크 {done}, 줄 {fail}. 오늘의 계획표는 그렇게 닫았다.","「{doneName}」 달성. 나머지는 내일의 나에게 넘긴다.","계획표가 절반쯤 맞았다. 절반쯤 틀렸다는 뜻이기도 하다.","「{failName}」{은} 적을 때부터 조금 불안했다.","{done}줄은 계획대로, {fail}줄은 계획과 다르게 되었다.","오늘 계획표의 성적은 {total}분의 {done}이다."]},
+ // 드문 사건: 3개씩
+ exhaust:{pr:1,t:["{st}에서 더는 버티지 못했다. 이번 주 계획은 여기까지.","{st}에서 다리가 먼저 결정을 내렸다.","체력이 {st}에서 바닥났다. 다음 주 계획표 첫 줄은 정해졌다."]},
+ nuis:{pr:1,t:["{st}에서 내렸다. 시선을 견딜 계획은 세우지 않았었다.","오늘은 내가 민폐였다. {st}에서 스스로 내렸다.","사과를 너무 많이 했다. {st}에서 통근을 멈췄다."]},
+ swept:{pr:1,t:["{st}에서 쓸려 내렸다. 계획에 없던 하차다.","{st}에서 문 앞에 서 있었다. 정신을 차리니 승강장이었다.","{st}의 인파는 손잡이로 막을 수 없었다. 다시 탔다."]},
+ planAll:{pr:2,t:["계획표 {total}줄 모두 체크. 오늘은 나무랄 데가 없다.","적은 대로 되었다. {total}줄 전부.","계획표에 줄을 그을 일이 없었다. 이런 날을 위해 적는다."]},
+ planNone:{pr:2,t:["계획표 {total}줄에 전부 줄을 그었다.","적은 것 중 지킨 것이 없다. 종이는 죄가 없다.","오늘 계획표는 희망 사항 목록이 되었다."]},
+ stolen:{pr:2,t:["{st}에서 찜해 둔 자리를 눈앞에서 놓쳤다.","{st}. 내 계획과 같은 계획을 가진 사람이 한 명 더 있었다.","찜한 자리에 다른 사람이 먼저 앉았다. {st}에서의 일이다."]},
+ melt:{pr:2,t:["세 번째로 틀어졌을 때 3초간 아무 생각도 나지 않았다.","계획이 연달아 무너졌다. 심호흡을 했다. 효과가 있었다.","잠깐 플랜 B와 C가 구분되지 않았다. 지금은 괜찮다."]},
+ xferPlanned:{pr:3,t:["{st} 두 정거장 전부터 정해 둔 자리였다. {time} 착석.","환승역은 예측한 사람에게 자리를 준다. {st}, {time}.","{st}에서 사람들이 내릴 때 나는 앉았다. 계획대로."]},
+ yield:{pr:3,t:["{st}에서 자리를 내어 드렸다. 계획에는 없었지만 수정하지 않겠다.","{time}에 일어났다. 앉아 있던 시간보다 그 순간이 더 오래 남는다.","{st}에서 양보했다. 다리는 손해, 기록은 이득."]},
+ fake:{pr:4,t:["{arch}{이} 가방을 챙기길래 찜했다. 립밤을 꺼낸 것이었다.","{st} 앞에서 {arch}의 몸짓에 속았다. 내리지 않았다.","짐을 챙기는 것과 내리는 것은 다른 일이다. 오늘 배웠다."]},
+ surf:{pr:4,t:["{st}의 인파를 부딪히지 않고 지나 보냈다.","{st}에서는 통로 안쪽에 서 있었다. 아무 일도 없었다.","{st} 물갈이를 서서 넘겼다. 한 번도 닿지 않았다."]},
+ sat:{pr:4,t:["{st}에서 빈자리가 났다. 계획은 아니었지만 앉았다. {time}.","{time}, {st}. 찜하지 않은 자리에 앉았다.","운이 좋았다. {st}에서 앉았다."]},
+ nobump:{pr:5,t:["한 번도 부딪히지 않았다. 사과할 일이 없는 통근이었다.","충돌 0회. 틈이 보일 때까지 기다린 보람이 있다.","아무에게도 닿지 않고 {to}에 도착했다."]},
+};
+const DIARY_HEAD={   // 머리말: 요일·출퇴근·출발 시각 뒤에 그날의 변수 한 줄
+ normal:["변수 없음.","평소대로.","늘 타던 시각, 늘 타던 열차."],
+ rain:["비. 우산만큼 통로가 좁았다.","비. 바닥도 사람 사이도 젖어 있었다.","비 오는 날의 열차는 한 칸이 반 칸 같다."],
+ delay:["열차 지연. 승강장의 사람이 한 번에 탔다.","열차가 늦었다. 계획은 늦지 않았다.","지연. 한 대 분량의 사람이 더 탔다."],
+ quiet:["한산했다. 통로가 보였다.","사람이 적었다. 이런 날은 계획이 잘 맞는다.","한산한 날. 선택지가 많았다."],
+};
+const DIARY_TAIL={   // 맺음말: 그날 가장 아팠던 일에 대한 내일의 다짐. 없으면 good 또는 plain
+ swept:["내일은 {st} 전에 문 앞을 비운다."],bump:["내일은 틈이 생길 때까지 기다린다."],stood:["내일은 찜할 사람을 한 정거장 일찍 정한다."],
+ stolen:["내일은 찜한 자리 앞을 먼저 차지한다."],fake:["내일은 손이 아니라 엉덩이가 들리는 것을 본다."],melt:["내일은 지킬 만큼만 적는다."],planNone:["내일은 지킬 만큼만 적는다."],
+ exhaust:["다음 주에 다시 적는다."],nuis:["다음 주에 다시 적는다."],
+ good:["내일도 같은 문, 같은 시각.","수정할 계획이 없다.","오늘도 계획대로."],plain:["내일의 계획표는 내일 아침에 적는다.","이만하면 계획의 범위 안이다."],
+};
+const DIARY_BAD=["exhaust","nuis","swept","melt","stolen","planNone","fake","stood","bump"],DIARY_GOOD=["planAll","planned","xferPlanned","nobump"];
+const CLOCK0={am:7*60+14,pm:18*60+32};   // 가상 시각: 출근 07:14, 퇴근 18:32 출발. 역 사이 2분
+function clock(){const g=G,m=Math.round(CLOCK0[g.legKey]+2*(g.st+(g.phase==="run"?Math.min(1,g.t/T_RUN):0)));return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
+function ev(k,o){const g=G;if(!g||!g.log)return;g.log.push(Object.assign({k,st:g.route[Math.min(g.N,g.st+(g.phase==="run"&&(k==="exhaust"||k==="nuis")?1:0))],time:clock()},o||{}));}
+function josa(s){return s.replace(/(.)(」?)\{(은|이|을)\}/g,(m,ch,q,j)=>{const c=ch.charCodeAt(0),b=c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28>0;return ch+q+{은:b?"은":"는",이:b?"이":"가",을:b?"을":"를"}[j];});}
+function diaryPick(key,arr){   // 최근에 쓴 틀은 피한다 (틀 수의 절반까지 기억)
+  const rec=profile.diaryRecent||(profile.diaryRecent={}),used=rec[key]||[];
+  let c=arr.map((_,i)=>i).filter(i=>!used.includes(i));if(!c.length)c=arr.map((_,i)=>i);
+  const i=pick(c);rec[key]=used.concat(i).slice(-Math.floor(arr.length/2));return arr[i];
+}
+const diaryFill=(t,o)=>josa(t.replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:m));
+const modKind=m=>!m?"normal":m.radius?"rain":m.crowd>1?"delay":m.crowd<1?"quiet":"normal";
+function makeDiary(fail){
+  const g=G,log=g.log.slice(),from=g.route[0],to=g.route[g.N];
+  const add=(k,o)=>log.push(Object.assign({k,st:g.route[Math.min(g.st,g.N)],time:clock()},o||{}));
+  if(fail==="exhaust"||fail==="nuis")ev(fail),log.push(g.log[g.log.length-1]);
+  if(!fail){
+    if(!g.everSat)add("stood",{n:g.N});
+    if(g.bumps===0)add("nobump");
+    const dc=g.dp.filter(d=>d.status!=="void"),dd=dc.filter(d=>d.status==="done"),df=dc.filter(d=>d.status==="fail");
+    if(dc.length>=2&&dd.length===dc.length)add("planAll",{total:dc.length});
+    else if(dc.length&&!dd.length)add("planNone",{total:dc.length});
+    else if(dd.length&&df.length)add("planPart",{total:dc.length,done:dd.length,fail:df.length,doneName:dd[0].n,failName:df[0].n});
+  }
+  if(g.bumps>0)add("bump",{n:g.bumps,st:g.bump1||g.route[g.st]});
+  // 종류별로 하나씩, 우선순위가 높은 순서로 2~3개
+  const seen=new Set(),uniq=[];for(const e of log)if(DIARY[e.k]&&!seen.has(e.k)){seen.add(e.k);uniq.push(e);}
+  uniq.sort((a,b)=>DIARY[a.k].pr-DIARY[b.k].pr);
+  const chosen=uniq.slice(0,uniq.length>2&&DIARY[uniq[2].k].pr<=3?3:2).sort((a,b)=>log.indexOf(a)-log.indexOf(b));   // 고른 뒤에는 일어난 순서대로 적는다
+  const lines=chosen.map(e=>diaryFill(diaryPick(e.k,DIARY[e.k].t),Object.assign({from,to,arch:"승객"},e,e.arch?{arch:DIARY_ARCH[e.arch]||"승객"}:{})));
+  const am=g.legKey==="am",mk=modKind(g.mod);
+  const head=DAYS[run.day]+" "+(am?"출근":"퇴근")+". "+(am?"07:14":"18:32")+" "+from+" 출발. "+diaryPick("head_"+mk,DIARY_HEAD[mk]);
+  const anyGood=DIARY_GOOD.some(k=>seen.has(k)),bad=DIARY_BAD.find(k=>seen.has(k)&&(k==="bump"?g.bumps>=3&&!anyGood:k==="stood"?!anyGood:true)),   // 잘 풀린 날은 충돌 몇 번으로 다짐하지 않는다
+    badEv=bad&&uniq.find(e=>e.k===bad);
+  const tk=bad&&DIARY_TAIL[bad]?bad:anyGood?"good":"plain";
+  const tail=diaryFill(diaryPick("tail_"+tk,DIARY_TAIL[tk]),badEv||{});
+  saveProfile();
+  return {week:run.week,day:DAYS[run.day],am,mod:mk,from,to,head,lines,tail,fail:!!fail,melt:g.meltdowns>0,combo:run.combo||0,
+    stickers:g.dp.filter(d=>d.status==="done"||d.status==="fail").map(d=>({n:d.n,ok:d.status==="done"}))};
+}
+const MOD_ICON={normal:"",rain:"☂ 비",delay:"⏱ 지연",quiet:"☀ 한산"};
+function diaryHTML(d){
+  return `<div class="diary${d.melt?" shaky":""}${d.fail?" cut":""}"><div class="dh">${d.week}주차 ${d.day} · ${d.am?"출근":"퇴근"} ${MOD_ICON[d.mod]}<span>${d.from} ━━▶ ${d.to}</span></div>
+   <p class="dl">${d.head}</p>${d.lines.map(l=>`<p class="dl">${l}</p>`).join("")}<p class="dl dt">${d.tail}</p>
+   <button class="btn ghost" id="bdiary">이미지로 저장</button></div>`;
+}
+async function diaryPNG(d){   // 다이어리 한 페이지 모양의 그림 파일로 저장
+  try{await document.fonts.load('38px "Nanum Pen Script"',[d.head].concat(d.lines,[d.tail]).join(" "));}catch(e){}   // 손글씨 글꼴을 못 받으면 기본 글꼴로 그린다
+  const Wd=760,PAD=56,c=document.createElement("canvas"),x=c.getContext("2d"),HAND='"Nanum Pen Script","Gaegu","Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  const wrap=(t,font,w)=>{x.font=font;const out=[];let cur="";for(const word of t.split(" ")){const nx=cur?cur+" "+word:word;if(x.measureText(nx).width>w&&cur){out.push(cur);cur=word;}else cur=nx;}if(cur)out.push(cur);return out;};
+  c.width=Wd;c.height=10;
+  const body=[d.head].concat(d.lines,[d.tail]).map(t=>wrap(t,"38px "+HAND,Wd-PAD*2));
+  const nLines=body.reduce((a,b)=>a+b.length,0),stRows=Math.ceil(d.stickers.length/2);
+  const Hd=PAD+92+nLines*46+body.length*10+(d.stickers.length?28+stRows*52:0)+(d.combo?44:0)+96;
+  c.height=Hd;
+  x.fillStyle="#fffdf5";x.fillRect(0,0,Wd,Hd);
+  x.strokeStyle="#dfe7e2";x.lineWidth=1;for(let y=PAD+118;y<Hd-90;y+=46){x.beginPath();x.moveTo(PAD-12,y);x.lineTo(Wd-PAD+12,y);x.stroke();}
+  x.fillStyle="#00A84D";x.fillRect(0,0,Wd,12);x.fillStyle="#F2B705";x.fillRect(PAD-28,12,3,Hd-12);
+  x.fillStyle="#14181c";x.textBaseline="alphabetic";x.font='800 26px "Pretendard","Malgun Gothic",sans-serif';
+  x.fillText(d.week+"주차 "+d.day+" · "+(d.am?"출근":"퇴근")+(MOD_ICON[d.mod]?"   "+MOD_ICON[d.mod]:""),PAD,PAD+18);
+  // 구간
+  const ry=PAD+62;x.font='700 22px "Pretendard","Malgun Gothic",sans-serif';const fw=x.measureText(d.from).width,tw=x.measureText(d.to).width;
+  x.fillText(d.from,PAD,ry+8);x.fillText(d.to,Wd-PAD-tw,ry+8);
+  x.strokeStyle="#00A84D";x.lineWidth=7;x.lineCap="round";x.beginPath();x.moveTo(PAD+fw+18,ry);x.lineTo(Wd-PAD-tw-30,ry);x.stroke();
+  x.fillStyle="#00A84D";x.beginPath();x.moveTo(Wd-PAD-tw-12,ry);x.lineTo(Wd-PAD-tw-34,ry-12);x.lineTo(Wd-PAD-tw-34,ry+12);x.closePath();x.fill();
+  // 일기 (멘붕을 겪은 날은 글씨가 삐뚤고, 탈락한 날은 마지막 사건에 줄이 그어진다)
+  let y=PAD+150,k=0;x.fillStyle="#1f2a44";x.font="38px "+HAND;
+  body.forEach((para,pi)=>{para.forEach(line=>{x.save();x.translate(PAD,y);if(d.melt)x.rotate(Math.sin(++k*2.3)*.022);x.fillText(line,d.melt?Math.sin(k*1.7)*7:0,0);
+      if(d.fail&&pi===1){x.strokeStyle="#E5484D";x.lineWidth=3;x.beginPath();x.moveTo(-4,-11);x.lineTo(x.measureText(line).width+8,-8);x.stroke();}
+      x.restore();y+=46;});y+=10;});
+  // 달성 스티커
+  if(d.stickers.length){y+=6;x.font='800 21px "Pretendard","Malgun Gothic",sans-serif';
+    d.stickers.forEach((s,i)=>{const sx=PAD+(i%2)*((Wd-PAD*2)/2+6),sy=y+Math.floor(i/2)*52,w=(Wd-PAD*2)/2-12;
+      x.save();x.translate(sx+w/2,sy+18);x.rotate((i%2?1:-1)*.018);x.fillStyle=s.ok?"#00A84D":"#e3dfd3";x.beginPath();x.roundRect(-w/2,-20,w,40,10);x.fill();
+      x.fillStyle=s.ok?"#fff":"#7b8187";x.textAlign="center";x.fillText((s.ok?"✔ ":"✕ ")+s.n,0,8);
+      if(!s.ok){x.strokeStyle="#7b8187";x.lineWidth=2;x.beginPath();x.moveTo(-w/2+18,0);x.lineTo(w/2-18,0);x.stroke();}x.restore();});
+    y+=stRows*52;}
+  if(d.combo){x.textAlign="left";x.fillStyle="#b25e00";x.font='800 22px "Pretendard","Malgun Gothic",sans-serif';x.fillText("루틴 콤보 "+d.combo,PAD,y+26);}
+  x.textAlign="center";x.fillStyle="#00A84D";x.font='800 24px "Pretendard","Malgun Gothic",sans-serif';x.fillText("계획대로, 2호선",Wd/2,Hd-40);x.textAlign="left";
+  const a=document.createElement("a");a.download="출근일기_"+d.week+"주차_"+d.day+"_"+(d.am?"출근":"퇴근")+".png";a.href=c.toDataURL("image/png");a.click();
+  return {w:Wd,h:Hd};
+}
+let lastDiary=null;
 
 /* ========== 객차 구조 ========== */
 const CAR={x:60,y:240,w:1160,h:260};
@@ -372,7 +503,7 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
-    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,log:[],bump1:null,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
@@ -431,7 +562,7 @@ function spawnBoarder(delay,arch,opt){
 /* ========== 구간 진행 ========== */
 function depart(){
   const g=G;
-  if(XFER[g.route[g.st]]==="S"&&g.st>0&&g.st<g.N&&g.xferStand&&g.bumps===g.xferBumps)addPts(15,"물살 타기");
+  if(XFER[g.route[g.st]]==="S"&&g.st>0&&g.st<g.N&&g.xferStand&&g.bumps===g.xferBumps){addPts(15,"물살 타기");ev("surf");}
   if(!g.route.some((n,i)=>i>g.st&&i<g.N&&XFER[n]))dpSet("xfer",false,"환승역이 지남");
   g.phase="run";g.t=0;g.doorOpen=false;g.xferMoved=false;
   for(const p of g.ps){
@@ -497,6 +628,7 @@ function endLeg(fail){
     total+=pp;g.planPts=pp;run.planPts+=pp;
   }
   run.points+=total;run.legs++;run.seats+=g.seatStops;run.plans+=g.planHits;run.yields+=g.yields;
+  lastDiary=makeDiary(fail);   // 출근 일기
   if(fail){finishRun(fail,rows,total);return;}
   const am=run.leg==="am";
   run.stamina=clamp(g.stamina+(am?18:42),0,100);
@@ -515,8 +647,9 @@ function endLeg(fail){
   sheet(`<span class="tag">${am?"출근":"퇴근"} 완료 · ${g.route[g.N]}역</span><h2>${title}</h2>
    <p class="sub">${g.seatStops}개 역을 앉아서 지났습니다. 충돌 ${g.bumps}회. ${am?"회사에서 숨을 돌려 체력 +18.":"집에서 푹 자고 체력 +42."} 다음 시작 체력 ${Math.round(run.stamina)}.</p>
    <div class="rows">${rows.map(r=>`<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join("")}</div>
+   ${diaryHTML(lastDiary)}
    <div class="btns"><button class="btn go" id="b1">${nextTxt}</button><button class="btn ghost" id="b2">여기서 퇴사 (포인트 정산)</button></div>`);
-  $("b1").onclick=showPlatform;$("b2").onclick=()=>finishRun("quit",null,0);
+  $("b1").onclick=showPlatform;$("b2").onclick=()=>finishRun("quit",null,0);$("bdiary").onclick=()=>diaryPNG(lastDiary);
 }
 function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의 근거)
   const w={week:run.week,pts:run.points-(run.weekPts||0),planPts:run.planPts};run.weekPts=run.points;run.planPts=0;
@@ -533,8 +666,9 @@ function finishRun(why,rows,total){
   sheet(`<span class="tag">${run.week}주차 ${DAYS[run.day]} · ${run.legs}회 통근</span><h2>${msg[0]}</h2><p class="sub">${msg[1]}</p>
    <div class="rows"><div><span>앉아서 지난 역</span><span>${run.seats}</span></div><div><span>계획대로 착석</span><span>${run.plans}</span></div>
    <div><span>자리 양보</span><span>${run.yields}</span></div><div><span>이번 주 계획표로 번 포인트</span><span>${wl.planPts} P</span></div><div><span>획득 포인트</span><span>+${run.points} P</span></div></div>
+   ${rows&&lastDiary?diaryHTML(lastDiary):""}
    <div class="btns"><button class="btn go" id="b1">패시브 스킬 찍기</button><button class="btn ghost" id="b2">처음으로</button></div>`);
-  $("b1").onclick=()=>showShop(true);$("b2").onclick=showMenu;run=null;
+  $("b1").onclick=()=>showShop(true);$("b2").onclick=showMenu;if(rows&&lastDiary)$("bdiary").onclick=()=>diaryPNG(lastDiary);run=null;
 }
 
 /* ========== 승객 판단 ========== */
@@ -597,7 +731,7 @@ function commitSeat(p,s){
 function npcSit(p,s){
   seatPerson(p,s);p.dest=sampleDest(p.arch,G.legKey,G.route,G.st);assignHints(p);
   const i=G.plans.findIndex(pl=>pl.seat===s);
-  if(i>=0){G.plans.splice(i,1);G.stamina=Math.max(1,G.stamina-5);addCollapse();toast("계획 붕괴. 찜한 자리를 뺏겼습니다 (체력 -5)","bad");sfx("bad");}
+  if(i>=0){G.plans.splice(i,1);G.stamina=Math.max(1,G.stamina-5);addCollapse();ev("stolen");toast("계획 붕괴. 찜한 자리를 뺏겼습니다 (체력 -5)","bad");sfx("bad");}
 }
 /* ========== 플레이어 행동 ========== */
 function sitRange(){return 46*(1+.25*sk("hip"));}
@@ -623,7 +757,7 @@ function trySit(target){
     if(g.yieldEv&&g.yieldEv.active){ // 양보
       const s=pl.seat,e=g.yieldEv.p;pl.seat=null;pl.x=s.fx+(s.fx<CAR.x+CAR.w/2?30:-30);pl.y=s.fy;constrain(pl);
       e.elder=false;seatPerson(e,s);g.yieldEv=null;g.yields++;g.nuis=Math.max(0,g.nuis-30);
-      addPts(25,"양보");dpSet("yield",true);toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
+      addPts(25,"양보");ev("yield");dpSet("yield",true);toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
     }
     const s=pl.seat;s.occ=null;pl.seat=null;pl.x=s.fx;pl.y=s.fy;g.leftSeat=s;toast("자리에서 일어났습니다.");
     g.timers.push({t:.5,fn(){if(!s.occ)seatOpen(s);}});return;
@@ -646,9 +780,9 @@ function trySit(target){
   else if(i>=0){g.sitPtsSt=g.st;
     const early=g.plans[i].early;g.planHits++;if(early)dpSet("asplanned",true);
     const xf=early&&g.phase==="dwell"&&xferAt(g.st)&&g.st-g.plans[i].st0>=2;   // 2정거장 이상 전에 찜한 자리에 환승역에서 착석
-    addPts(xf?40:early?30:12,xf?"환승 계획대로!":early?"계획대로!":"눈치 착석");g.stamina=Math.min(100,g.stamina+(early?6:2));
+    addPts(xf?40:early?30:12,xf?"환승 계획대로!":early?"계획대로!":"눈치 착석");ev(xf?"xferPlanned":early?"planned":"tell",{arch:g.plans[i].arch});g.stamina=Math.min(100,g.stamina+(early?6:2));
     toast(xf?"환승 계획대로! 미리 찜한 자리에 환승역에서 앉았습니다.":early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
-  }else{g.sitPtsSt=g.st;addPts(6,"착석");toast("착석 성공.","good");}
+  }else{g.sitPtsSt=g.st;addPts(6,"착석");ev("sat");toast("착석 성공.","good");}
   g.plans.length=0;sfx("good");
 }
 function togglePlan(s){
@@ -658,9 +792,9 @@ function togglePlan(s){
   if(i>=0){const ci=g.claims.findIndex(c=>c.pid===g.plans[i].pid);if(ci>=0)g.claims.splice(ci,1);g.plans.splice(i,1);dpSet("planA",false,"찜을 취소함");return;}
   const max=1+sk("plan");if(g.plans.length>=max)g.plans.shift();
   if(++g.claimN>1)dpSet("planA",false,"찜을 바꿈");
-  if(tellState(s.occ)===2)dpSet("nofake",false,"페이크였다");
+  if(tellState(s.occ)===2){dpSet("nofake",false,"페이크였다");ev("fake",{arch:s.occ.arch});}
   g.claims.push({pid:s.occ.id,st:g.st+1});
-  g.plans.push({seat:s,pid:s.occ.id,early:tellState(s.occ)!==1,st0:g.st});sfx("tick");
+  g.plans.push({seat:s,pid:s.occ.id,arch:s.occ.arch,early:tellState(s.occ)!==1,st0:g.st});sfx("tick");
 }
 function excuse(){
   const g=G;if(!sk("excuse")||g.excuseCd>0||g.pl.seat)return;
@@ -679,7 +813,7 @@ function shove(q){
 }
 function say(e,txt){e.bubble=txt;e.bt=1.5;}
 function bump(q,hard){
-  const g=G;g.bumps++;g.bumpCd=1.05;dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
+  const g=G;g.bumps++;g.bumpCd=1.05;if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
   g.nuis+=(hard?10:7)*(g.inFlow?2:1)*(1-.2*sk("face"));g.stamina-=3;   // 하차 흐름을 거스르면 2배
   say(g.pl,pick(["죄송합니다!","앗, 죄송해요","실례했습니다"]));
   if(q&&Math.random()<.5)say(q,pick(["아…","저기요","조심 좀…","(한숨)"]));
