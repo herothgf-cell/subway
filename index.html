@@ -183,6 +183,7 @@ const DPLANS=[
  {k:"quiet",n:"조용한 통근",d:"민폐 게이지 30 이하 유지",star:2,p:25},
  {k:"eye",n:"정확한 눈",d:"찜한 승객이 바로 다음 역에서 하차 1회",star:2,p:25},
  {k:"stand",n:"서서 가기",d:"",star:2,p:25},
+ {k:"xfer",n:"환승역 노리기",d:"환승역(사당·교대)에 정차한 동안 빈자리에 착석",star:2,p:25},
  {k:"end",n:"끝자리",d:"끝자리에 착석 (배려석 제외)",star:3,p:40},
  {k:"nobump",n:"무접촉 통근",d:"충돌 0회",star:3,p:40},
  {k:"nofake",n:"속지 않기",d:"페이크 동작 중인 승객을 찜하지 않기",star:3,p:40},
@@ -190,6 +191,22 @@ const DPLANS=[
 ];
 const DP=k=>DPLANS.find(d=>d.k===k);
 const COMBO_MAX=5;
+/* ========== 환승역 물갈이 (추가 기획서 05) ========== */
+const XFER={"사당":"S","교대":"A"};   // 현재 구간의 환승 등급. 강남은 늘 출발역이거나 종점이라 물갈이가 없다
+const XG={S:{stand:.40,seat:.30,board:1.10,dwell:13},A:{stand:.25,seat:.20,board:1.00,dwell:10},B:{stand:.15,seat:.12,board:.90,dwell:7.5}};
+const xferAt=i=>G&&i>0&&i<G.N?XG[XFER[G.route[i]]]||null:null;
+function xferPrep(tx){   // 환승역 2정거장 전: 비율에 모자란 만큼 목적지를 그 역으로 다시 지정한다 (환승 검색 유형 먼저)
+  const g=G,x=xferAt(tx);if(!x)return;
+  const fill=(list,ratio,seated)=>{
+    let need=Math.round(list.length*ratio)-list.filter(p=>p.dest===tx).length;
+    const pool=list.filter(p=>p.dest>tx&&p.arch!=="sleeper"&&p.arch!=="elder"&&p.arch!=="mom"&&!p.elder);
+    for(let i=pool.length-1;i>0;i--){const j=irand(0,i);[pool[i],pool[j]]=[pool[j],pool[i]];}
+    pool.sort((a,b)=>(b.arch==="transfer")-(a.arch==="transfer"));
+    while(need-->0&&pool.length){const q=pool.shift();q.dest=tx;assignHints(q);q.rush=seated&&Math.random()<.2;}   // 급하차: 낌새 없이 문이 열린 뒤 일어난다
+  };
+  fill(g.ps.filter(p=>p.state==="standing"&&p.delay==null),x.stand,false);
+  fill(g.ps.filter(p=>p.state==="seated"&&!p.seat.pink),x.seat,true);
+}
 const standHalf=()=>Math.ceil((STATIONS.length-1)/2);
 const dpDesc=d=>d.k==="stand"?"출발 후 "+standHalf()+"정거장 동안 앉지 않기":d.d;
 const dpReward=d=>Math.round(d.p*(1+.1*Math.min(COMBO_MAX,run.combo||0)));
@@ -211,7 +228,7 @@ function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   for(const k of["nobump","quiet","firm","nofake"])dpSet(k,true);
   dpSet("planA",g.claimN===1,g.claimN?"":"찜을 하지 않음");
   dpSet("sitarrive",!!(g.pl.seat&&!g.pl.seat.pink),"서서 도착");dpSet("stamina",g.stamina>=50,"체력 50 미만");
-  for(const k of["asplanned","end","eye","early","stand","giveway","scan"])dpSet(k,false);
+  for(const k of["asplanned","end","eye","early","stand","giveway","scan","xfer"])dpSet(k,false);
   const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
 }
 const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
@@ -326,7 +343,7 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
-    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
@@ -362,6 +379,7 @@ function startLeg(doorIdx){
   }
   // 함께 타는 경쟁 승객
   for(let i=0;i<3+Math.min(4,Math.floor(L/2));i++)spawnBoarder(rand(.3,1.6),null);
+  xferPrep(1);
   mode="play";paused=false;$("ov").classList.remove("on");$("toasts").innerHTML="";
   buildRoute();toast("목표: "+route[route.length-1]+"역("+(am?"회사":"집")+")까지 "+(route.length-1)+"정거장. 도착 전에 체력이 바닥나면 탈락.");
   if(L<1){toast("마우스로 시선을 돌려 앉은 승객의 몸짓을 보세요. 휴대폰을 넣거나 가방을 끌어안으면 곧 내립니다. 클릭으로 찜.");
@@ -383,7 +401,10 @@ function spawnBoarder(delay,arch,opt){
 
 /* ========== 구간 진행 ========== */
 function depart(){
-  const g=G;g.phase="run";g.t=0;g.doorOpen=false;
+  const g=G;
+  if(XFER[g.route[g.st]]==="S"&&g.st>0&&g.st<g.N&&g.xferStand&&g.bumps===g.xferBumps)addPts(15,"물살 타기");
+  if(!g.route.some((n,i)=>i>g.st&&i<g.N&&XFER[n]))dpSet("xfer",false,"환승역이 지남");
+  g.phase="run";g.t=0;g.doorOpen=false;g.xferMoved=false;
   for(const p of g.ps){
     if(p.state==="boarding"){if(p.delay>0||p.step===0){const sp=freeSpot(p.door.i);p.x=p.hx=sp.x;p.y=p.hy=sp.y;}p.state="standing";p.delay=null;p.hx=p.x;p.hy=p.y;}
     if(p.state==="leaving")p.state="gone";
@@ -396,12 +417,14 @@ function depart(){
   if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
   if(g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
   g.jolts.push({at:T_RUN-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
-  g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다.";
+  xferPrep(g.st+2);
+  g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다."+(xferAt(g.st+2)?"   ·   다음다음 역 "+g.route[g.st+2]+" 환승":"");
   sfx("close");
   {const nx=g.route[g.st+1],last=g.st+1>=g.N;g.timers.push({t:1.6,fn:()=>{sfx("chime");g.timers.push({t:.9,fn:()=>announceNext(nx,last)});}});}
 }
 function arrive(){
   const g=G;g.st++;g.phase="dwell";g.t=0;g.doorOpen=true;sfx("chime");
+  const xg=xferAt(g.st);g.dwell=xg?xg.dwell:T_DWELL;g.xferStand=!g.pl.seat;g.xferBumps=g.bumps;   // 환승역은 정차 시간이 길다
   buildRoute();
   if(g.pl.seat){g.seatStops++;addPts(g.pl.seat.pink?4:10,"앉아서 도착");}
   if(g.st>=standHalf()&&!g.everSat)dpSet("stand",true);
@@ -409,12 +432,13 @@ function arrive(){
   g.led=g.route[g.st]+"역입니다. 내리실 문은 오른쪽입니다.";
   let out=0;
   for(const p of g.ps){
-    if(p.dest===g.st){out++;p.delay=p.state==="seated"?rand(.1,1.4)*(ARCH[p.arch].late?1.6:1):rand(0,.8);}
+    if(p.dest===g.st){out++;p.delay=p.rush?rand(2.4,4.2):p.state==="seated"?rand(.1,1.4)*(ARCH[p.arch].late?1.6:1):rand(0,xg?2.4:.8);}
   }
-  const hub=g.route[g.st]==="사당"||g.route[g.st]==="교대"?5:0;
+  const hub=0;
   const cur=g.ps.filter(p=>p.state!=="seated").length-g.ps.filter(p=>p.state!=="seated"&&p.dest===g.st).length;
   let n=clamp(Math.round(out*.8+hub+(g.target-cur)*.6+rand(-1,2)),1,18);if(cur>g.target+6)n=Math.min(n,2);
-  for(let i=0;i<n;i++)spawnBoarder(1.7+rand(0,2.4),null);
+  if(xg)n=Math.round(out*xg.board);   // 환승역: 내린 만큼 다시 탄다 (승차 러시는 정차 뒤쪽)
+  for(let i=0;i<n;i++)spawnBoarder(xg?xg.dwell-7.5+rand(0,3.4):1.7+rand(0,2.4),null);
   // 양보 이벤트
   if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
     g.yieldDone=true;g.yieldSeen=true;
@@ -488,7 +512,7 @@ function finishRun(why,rows,total){
 function tellAt(p){return ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit;}
 const NOH={stage:0,icon:null,real:false};
 function hint(p){ // 좌석 승객이 지금 보이는 낌새
-  if(p.state!=="seated")return NOH;
+  if(p.state!=="seated"||p.rush)return NOH;
   const g=G;
   if(p.dest===g.st&&g.phase==="dwell"&&p.delay!=null)return {stage:2,icon:"stand",real:true};
   if(g.phase!=="run")return NOH;
@@ -584,14 +608,17 @@ function trySit(target){
   if(g.st<standHalf())dpSet("stand",false,"일찍 앉음");
   if(!s.pink&&(g.st<3||(g.st===3&&g.phase==="dwell")))dpSet("early",true);
   if(isEndSeat(s))dpSet("end",true);
+  if(!s.pink&&g.phase==="dwell"&&xferAt(g.st))dpSet("xfer",true);
+  g.xferStand=false;
   s.occ="player";pl.seat=s;pl.x=s.x;pl.y=s.y;pl.vx=pl.vy=0;pl.face=s.side==="top"?Math.PI/2:-Math.PI/2;pl.gazeT=pl.face;pl.gazeHold=0;
   const i=g.plans.findIndex(p=>p.seat===s);
   if(s.pink){toast("임산부 배려석입니다. 시선이 따갑습니다.","bad");}
   else if(g.sitPtsSt===g.st||s===g.leftSeat){toast("다시 앉았습니다.");}   // 같은 역에서 앉았다 일어났다 반복해도 점수는 한 번만
   else if(i>=0){g.sitPtsSt=g.st;
     const early=g.plans[i].early;g.planHits++;if(early)dpSet("asplanned",true);
-    addPts(early?30:12,early?"계획대로!":"눈치 착석");g.stamina=Math.min(100,g.stamina+(early?6:2));
-    toast(early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
+    const xf=early&&g.phase==="dwell"&&xferAt(g.st)&&g.st-g.plans[i].st0>=2;   // 2정거장 이상 전에 찜한 자리에 환승역에서 착석
+    addPts(xf?40:early?30:12,xf?"환승 계획대로!":early?"계획대로!":"눈치 착석");g.stamina=Math.min(100,g.stamina+(early?6:2));
+    toast(xf?"환승 계획대로! 미리 찜한 자리에 환승역에서 앉았습니다.":early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
   }else{g.sitPtsSt=g.st;addPts(6,"착석");toast("착석 성공.","good");}
   g.plans.length=0;sfx("good");
 }
@@ -603,7 +630,7 @@ function togglePlan(s){
   if(++g.claimN>1)dpSet("planA",false,"찜을 바꿈");
   if(tellState(s.occ)===2)dpSet("nofake",false,"페이크였다");
   g.claims.push({pid:s.occ.id,st:g.st+1});
-  g.plans.push({seat:s,pid:s.occ.id,early:tellState(s.occ)!==1});sfx("tick");
+  g.plans.push({seat:s,pid:s.occ.id,early:tellState(s.occ)!==1,st0:g.st});sfx("tick");
 }
 function excuse(){
   const g=G;if(!sk("excuse")||g.excuseCd>0||g.pl.seat)return;
@@ -649,11 +676,15 @@ function update(rdt){
       }
     }
     banner(ban);
+    if(!g.xferMoved&&g.t>T_RUN*.5&&xferAt(g.st+1)){g.xferMoved=true;   // 환승역 직전: 서 있는 하차 예정자가 문 쪽으로 모인다
+      for(const q of g.ps)if(q.state==="standing"&&q.dest===g.st+1&&q.delay==null&&!q.elder){
+        dropSlot(q);let d=DOORS[0];for(const o of DOORS)if(Math.abs(o.cx-q.x)<Math.abs(d.cx-q.x))d=o;
+        const h={x:d.cx+rand(-34,34),y:BY1-rand(4,34)};constrain(h);q.hx=h.x;q.hy=h.y;q.wt=99;q.cool=30;}}
     if(g.t>=T_RUN){arrive();}
   }else{
     banner(null);
-    if(g.t>T_DWELL-1.9&&g.doorOpen){g.doorOpen=false;sfx("close");}
-    if(g.t>=T_DWELL)depart();
+    if(g.t>g.dwell-1.9&&g.doorOpen){g.doorOpen=false;sfx("close");}
+    if(g.t>=g.dwell)depart();
   }
   // 승객
   const movers=g.ps.filter(p=>p.state!=="seated");g.exitBlock=false;
