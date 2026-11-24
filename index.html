@@ -94,10 +94,14 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .skill .btn{padding:8px 14px;font-size:13.5px;min-width:86px}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;margin-bottom:8px}
 .wallet{position:absolute;right:36px;top:30px;font-weight:800;font-size:16px}
+/* 3D: 승객 카드는 화면 오른쪽 아래에 고정 */
+body.v3d #card{left:auto!important;right:28px!important;top:auto!important;bottom:64px!important}
+#lockhint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,24,28,.82);color:#fff;font-weight:800;font-size:17px;padding:14px 22px;border-radius:12px;display:none;pointer-events:none}
 </style>
 </head>
 <body>
 <div id="stage"><div id="frame">
+  <canvas id="gl" width="1280" height="720" style="display:none"></canvas>
   <canvas id="cv" width="1280" height="720"></canvas>
   <div id="hud">
     <div id="top">
@@ -109,15 +113,19 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
       </div>
       <div class="plate" id="ptplate"><small>이번 주 포인트</small><b id="pts">0</b></div>
     </div>
-    <div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
+    <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
     <div id="bottom">
-      <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>시선</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
-      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>시점 전환</span><span><kbd>Esc</kbd>일시정지</span>
+      <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
+      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지</span>
       <span id="planslots"></span>
     </div>
   </div>
   <div class="overlay" id="ov"><div class="sheet" id="sheet"></div></div>
 </div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="game3d.js"></script>
+<script src="characters.js"></script>
+<script src="game3d.js"></script>
 <script>
 "use strict";
 /* ========== 기본 유틸 ========== */
@@ -659,6 +667,7 @@ function update(rdt){
   if(!pl.seat){
     pl.brace=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space);
     let ix=(keys.KeyD?1:0)-(keys.KeyA?1:0),iy=(keys.KeyS?1:0)-(keys.KeyW?1:0);
+    if(view==="q"){const fw=-iy,rt=ix,gc=Math.cos(pl.gaze),gs=Math.sin(pl.gaze);ix=gc*fw-gs*rt;iy=gs*fw+gc*rt;if(Math.abs(ix)<1e-6)ix=0;if(Math.abs(iy)<1e-6)iy=0;}   // 3D: W는 시선 방향으로
     if(pl.brace)ix=iy=0;
     if(pl.turn){if(!keys.KeyA&&!keys.KeyD&&!keys.KeyW&&!keys.KeyS)pl.turnRel=true;
       if(!pl.turnRel)ix=iy=0;else if(ix||iy){pl.turn=null;pl.screen=null;}}
@@ -719,9 +728,9 @@ function sightRange(){return 300+25*sk("obs");}
 function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d;}
 function updateGaze(rdt){
   const pl=G.pl,gx=(keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0),gy=(keys.ArrowDown?1:0)-(keys.ArrowUp?1:0);
+  if(view==="q"){pl.gazeT+=gx*rdt*2.4;pl.gaze+=angDiff(pl.gazeT,pl.gaze)*Math.min(1,rdt*16);return;}   // 3D: 마우스(또는 좌우 방향키)로 돌린 값을 따라간다
   if(gx||gy){pl.gazeT=Math.atan2(gy,gx);pl.gazeHold=2;}
   else if(pl.gazeHold>0)pl.gazeHold-=rdt;
-  else if(mouse.inside){const ty=mouse.y+(view==="q"?18:0);if(hyp(mouse.x-pl.x,ty-pl.y)>14)pl.gazeT=Math.atan2(ty-pl.y,mouse.x-pl.x);}   // 마우스가 가리키는 곳을 본다
   else if(!pl.seat&&(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD))pl.gazeT=pl.face;
   pl.gaze+=angDiff(pl.gazeT,pl.gaze)*Math.min(1,rdt*9);
 }
@@ -785,7 +794,9 @@ function steer(p,tx,ty,sp,dt,movers,sep){
 const cv=$("cv"),ctx=cv.getContext("2d");
 let view=profile.view==="t"?"t":"q";
 function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
-function draw(time){if(view==="q"&&G)return drawQ(time);
+function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").style.display=on3?"block":"none";document.body.classList.toggle("v3d",!!on3);
+  $("lockhint").style.display=on3&&mode==="play"&&!paused&&!locked()?"block":"none";
+  if(on3)return draw3D(time);if(view==="q"&&G)return drawQ(time);
   const g=G;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle="#0d1013";ctx.fillRect(0,0,W,H);
   if(!g)return drawIdle(time);
   const sh=g.shake>0?(Math.random()-.5)*g.shake*22:0;ctx.translate(sh,0);
@@ -1297,25 +1308,35 @@ addEventListener("keydown",e=>{
   if(e.code==="KeyE")trySit(null);
   if((e.code==="KeyA"||e.code==="KeyD")&&G&&!G.pl.seat){   // 내리는 사람 앞이면 A/D는 이동 대신 몸을 90도 돌려 길을 터 준다
     const P=G.pl,s=G.seats.find(x=>x.exiting&&Math.abs(P.x-x.fx)<14&&Math.abs(P.y-x.fy)<24);
-    if(s)turnBody(s,e.code==="KeyD"?1:-1);
+    if(s)turnBody(s,(e.code==="KeyD"?1:-1)*(view==="q"&&-Math.sin(P.gaze)<0?-1:1));
   }
   const ga={ArrowRight:0,ArrowDown:Math.PI/2,ArrowLeft:Math.PI,ArrowUp:-Math.PI/2}[e.code];
-  if(ga!=null&&G){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 짧게 눌러도 바로 돌아보게
+  if(ga!=null&&G&&view!=="q"){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 탑뷰: 짧게 눌러도 바로 돌아보게
   if(e.code==="KeyF"&&focus&&focus.state==="seated")togglePlan(focus.seat);
   if(e.code==="KeyQ")excuse();
   if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false)annStop();toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
-  if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 쿼터뷰":"시점: 탑뷰");}
+  if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 3D":"시점: 탑뷰");if(view!=="q"&&document.pointerLockElement)document.exitPointerLock();}
 });
 addEventListener("keyup",e=>{keys[e.code]=false;});
 addEventListener("blur",()=>{for(const k in keys)keys[k]=false;});
 const frame=$("frame");
 function toWorld(e){const r=frame.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
-frame.addEventListener("mousemove",e=>{const p=toWorld(e);mouse.x=p.x;mouse.y=p.y;mouse.inside=true;});
+let pitch3=0;
+const locked=()=>document.pointerLockElement===frame;
+frame.addEventListener("mousemove",e=>{
+  if(view==="q"){if(locked()&&G&&mode==="play"&&!paused){G.pl.gazeT+=e.movementX*.0026;pitch3=clamp(pitch3+e.movementY*.002,-.55,.5);}return;}
+  const p=toWorld(e);mouse.x=p.x;mouse.y=p.y;mouse.inside=true;});
 frame.addEventListener("mouseleave",()=>{mouse.inside=false;});
-cv.addEventListener("mousedown",e=>{   // 빈자리 클릭: 앉기, 보이는 승객 클릭: 찜
-  if(mode!=="play"||paused)return;const p=toWorld(e),s=seatAt(p.x,p.y);if(!s)return;
+cv.addEventListener("mousedown",e=>{
+  if(mode!=="play"||paused)return;
+  if(view==="q"){   // 3D: 첫 클릭은 마우스 잠금, 그다음부터는 보고 있는 승객 찜 또는 빈자리 앉기
+    if(!locked()){frame.requestPointerLock&&frame.requestPointerLock();return;}
+    if(focus&&focus.state==="seated")togglePlan(focus.seat);else if(!G.pl.seat)trySit(null);
+    return;}
+  const p=toWorld(e),s=seatAt(p.x,p.y);if(!s)return;
   if(!s.occ)trySit(s);else if(s.occ!=="player"&&(s.occ.vis||0)>.5)togglePlan(s);
 });
+document.addEventListener("pointerlockchange",()=>{if(!locked()&&view==="q"&&mode==="play"&&!paused)setPause(true);});   // Esc로 잠금이 풀리면 일시정지
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H);frame.style.transform="scale("+s+")";}
 addEventListener("resize",fit);fit();
 
@@ -1329,5 +1350,6 @@ function loop(now){
 }
 showMenu();requestAnimationFrame(loop);
 </script>
+<script src="game3d.js"></script>
 </body>
 </html>
