@@ -49,6 +49,7 @@ button{font-family:inherit;cursor:pointer}
 kbd{display:inline-block;background:#2a3036;border-radius:5px;padding:2px 7px;font:700 11.5px var(--font);color:#fff;border-bottom:2px solid #000;margin-right:3px}
 #bottom span{margin-right:12px}
 #planslots{margin-left:auto;color:#fff;font-weight:700}
+#card .grade{margin-top:5px;font-weight:700;font-size:12px;color:#4a5157}#card .grade.gS{color:#b8860b}#card .grade.gB{color:var(--mute)}#card .grade.gpink{color:#c2417a}
 #card{position:absolute;display:none;width:250px;background:var(--card);border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.4);border-left:5px solid var(--line)}
 #card b{font-size:14px;display:block;margin-bottom:2px}
 #card .hint{color:var(--line-d);font-weight:700}#card .tell{color:#b25e00;font-weight:700}#card .fake{color:var(--mute)}
@@ -465,6 +466,10 @@ function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
 }
 const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
+/* 좌석 등급 (추가 기획서 11): S 끝자리(회복 ×1.3, 경쟁이 가장 셈), A 보통, B 좁은 자리(06 넓게 앉은 승객 옆, 회복 ×0.5), 배려석 */
+const seatGrade=s=>s.pink?"pink":s.narrow?"B":isEndSeat(s)?"S":"A";
+const GRADE_TXT={S:"끝자리 S · 회복 ×1.3, 경쟁이 셈",A:"보통 자리 A",B:"좁은 자리 B · 회복 ×0.5",pink:"임산부 배려석 · 앉으면 민폐"};
+const END_REC=1.3,LEAN_K=.6;   // 끝자리 회복 배수, 문 옆에 기댔을 때 서 있는 체력 소모 배수
 /* ========== 계획 붕괴 스택과 멘붕 (12), 버티기와 쓸려 내림 (02, 05) ========== */
 const MELT_AT=3;                        // 멘붕이 오는 붕괴 스택 기준값 (실제 값은 멘탈 능력치로 정한다: meltAt)
 const gritK=()=>(1-.1*(stat("grit")-3))*(sk("xfer")?.6:1);   // 사람에게 떠밀리는 거리 배수 (환승 고수 -40%)
@@ -1149,10 +1154,10 @@ function seatOpen(s){
   const pside=near?(P.screen&&P.screen.s===s?P.screen.side:Math.abs(pdx)<8?0:Math.sign(pdx)):null;
   for(const q of g.ps){
     if(q.state!=="standing"||q.elder||q.delay!=null)continue;
-    const d=hyp(q.x-s.fx,q.y-s.fy);if(d>66)continue;
+    const d=hyp(q.x-s.fx,q.y-s.fy);if(d>(isEndSeat(s)?80:66))continue;
     const qdx=q.x-s.fx,behind=Math.abs(qdx)<=12&&Math.abs(q.y-s.fy)>12;
     if(near&&(pside===0||(!behind&&Math.sign(qdx)===pside)))continue;   // 내가 막은 쪽 사람은 끼어들지 못한다
-    q.contend=s;q.ct=(q.front===s?rand(.2,.45):d<40?rand(.25,.6):rand(.7,1.2))+quick+(behind?.35:0);   // 반대편 사람과 눈치 싸움
+    q.contend=s;q.ct=Math.max(.12,(q.front===s?rand(.2,.45):d<40?rand(.25,.6):rand(.7,1.2))+quick+(behind?.35:0)-(isEndSeat(s)?.12:0));   // 끝자리는 경쟁자가 더 빨리 움직인다 (11)   // 반대편 사람과 눈치 싸움
   }
 }
 function commitSeat(p,s){
@@ -1216,7 +1221,8 @@ function trySit(target){
     const xf=early&&g.phase==="dwell"&&xferAt(g.st)&&g.st-g.plans[i].st0>=2;   // 2정거장 이상 전에 찜한 자리에 환승역에서 착석
     if(xf||early)profile.planTotal=(profile.planTotal||0)+1;
     addPts(xf||early?Math.round((xf?40:30)*(lineB("plan",4)?1.1:1)*(CH().k==="han"&&run.lastPlanned?1.1:1)):12,xf?"환승 계획대로!":early?"계획대로!":"눈치 착석");ev(xf?"xferPlanned":early?"planned":"tell",{arch:g.plans[i].arch});g.stamina=Math.min(maxSta(),g.stamina+(early?6:2));
-    toast(xf?"환승 계획대로! 미리 찜한 자리에 환승역에서 앉았습니다.":early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
+    if(early&&isEndSeat(s)){addPts(10,"완벽한 계획대로!");ev("perfect");g.shake=Math.max(g.shake,.12);g.timers.push({t:.18,fn:()=>sfx("good")});toast("완벽한 계획대로! 끝자리를 계획한 그대로 차지했습니다. (+10P)","good");}   // S 자리 (11)
+    else toast(xf?"환승 계획대로! 미리 찜한 자리에 환승역에서 앉았습니다.":early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
     run.lastPlanned=!!(xf||early);   // 한계획 "플래너": 계획대로 앉은 다음 착석 보너스
   }else{g.sitPtsSt=g.st;addPts(6,"착석");ev("sat");toast("착석 성공.","good");run.lastPlanned=false;}
   g.plans.length=0;sfx("good");
@@ -1371,7 +1377,7 @@ function update(rdt){
       if(g.ps.some(q=>(q.state==="toSeat"&&q.target===s)||q.contend===s))continue;
       let best=null,bd=170;
       for(const q of g.ps)if(q.state==="standing"&&!q.elder&&q.delay==null){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
-      if(best&&Math.random()<g.rivalP*.7){best.state="toSeat";best.target=s;}
+      if(best&&Math.random()<g.rivalP*(isEndSeat(s)?1:.7)){best.state="toSeat";best.target=s;}
     }
   }
   // 양보 이벤트
@@ -1440,10 +1446,13 @@ function update(rdt){
       }
     }
     let near=0;for(const q of movers)if(hyp(q.x-pl.x,q.y-pl.y)<56)near++;
-    g.stamina-=(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(1-.06*(stat("sta")-3))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
+    {const lean=pl.y>AY1+6&&DOORS.some(d=>pl.x<d.x+24||pl.x>d.x+DOOR_W-24?Math.abs(pl.x-d.cx)<DOOR_W/2+4:false);   // 문 옆에 기대기 (11): 문 쪽 출입 공간의 양 끝(칸막이 옆)
+      if(lean&&!g.lean&&!g.leanTold){g.leanTold=true;toast("문 옆에 기댔습니다. 서 있을 때 체력 소모 -40%. 환승역에서는 하차 인파에 쓸려 내리기 쉽습니다.");}
+      g.lean=lean;}
+    g.stamina-=(g.lean?LEAN_K:1)*(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(1-.06*(stat("sta")-3))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
   }else{
-    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
+    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:isEndSeat(pl.seat)?END_REC:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
   if(pl.turn){const s=pl.turn.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>30||Math.abs(pl.y-s.fy)>30){pl.turn=null;}}
@@ -1655,7 +1664,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   for(const pl of g.plans){
     const s=pl.seat;ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
     const py=s.side==="top"?s.y-SEAT_D/2-16:s.y+SEAT_D/2+16;
-    ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,9,0,TAU);ctx.fill();ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);
+    ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,9,0,TAU);ctx.fill();ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);if(isEndSeat(s)){ctx.fillStyle="#F2B705";ctx.beginPath();ctx.arc(s.x+10,py-8,6,0,TAU);ctx.fill();ctx.fillStyle="#14181c";ctx.font="900 9px "+FONT;ctx.fillText("S",s.x+10,py-7.5);}
   }
   // 플레이어
   const P=g.pl;
@@ -1880,7 +1889,7 @@ function drawQ(time){
   for(const pl of g.plans){const s=pl.seat,py=s.y-(s.side==="top"?70:66);
     ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
     ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,10,0,TAU);ctx.fill();ctx.beginPath();ctx.moveTo(s.x-4,py+8);ctx.lineTo(s.x,py+15);ctx.lineTo(s.x+4,py+8);ctx.fill();
-    ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);
+    ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);if(isEndSeat(s)){ctx.fillStyle="#F2B705";ctx.beginPath();ctx.arc(s.x+10,py-8,6,0,TAU);ctx.fill();ctx.fillStyle="#14181c";ctx.font="900 9px "+FONT;ctx.fillText("S",s.x+10,py-7.5);}
   }
   // 스크린 표시: 막고 있는 쪽으로 팔을 벌린다
   if(P.screen&&!P.seat){const sd=P.screen.side;ctx.strokeStyle="rgba(0,168,77,.9)";ctx.lineWidth=4;ctx.lineCap="round";
@@ -1963,6 +1972,7 @@ function hud(){
   if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
   if(p.sp&&!p.spOff)h+=`<div class="tell">${p.sp==="backpack"&&p.bpFront?"가방을 앞으로 멨다.":SP_INFO[p.sp].card}</div>`;
+  if(p.state==="seated"&&p.seat)h+=`<div class="grade g${seatGrade(p.seat)}">이 자리: ${GRADE_TXT[seatGrade(p.seat)]}</div>`;   // 좌석 등급 (11)
   if(seeLikely()){const l=likelyStops(p);h+=`<div class="hint">이런 차림은 보통: ${l||"한참 더 감"}</div>`;}
   // 낌새와 하는 일은 카드에 쓰지 않는다. 승객의 몸짓을 직접 보고 판단
   if(p.peek&&p.state==="seated"){

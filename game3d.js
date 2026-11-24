@@ -183,7 +183,8 @@ function overlay(g,time){
   // 찜 표시
   for(const pl of g.plans){const s=pl.seat,q=proj(X(s.x),1.72,Z(s.y));if(!q)continue;
     ctx.fillStyle="#ffe34d";ctx.strokeStyle="#1f2a44";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q[0],q[1],17,0,TAU);ctx.fill();ctx.stroke();
-    ctx.fillStyle="#1f2a44";ctx.font="800 15px "+FONT;ctx.textAlign="center";ctx.fillText("찜",q[0],q[1]+1);}
+    ctx.fillStyle="#1f2a44";ctx.font="800 15px "+FONT;ctx.textAlign="center";ctx.fillText("찜",q[0],q[1]+1);
+    if(typeof isEndSeat==="function"&&isEndSeat(s)){ctx.fillStyle="#F2B705";ctx.strokeStyle="#1f2a44";ctx.lineWidth=2;ctx.beginPath();ctx.arc(q[0]+15,q[1]-13,9,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#1f2a44";ctx.font="900 11px "+FONT;ctx.fillText("S",q[0]+15,q[1]-12);}}   // 끝자리 S 배지 (11)
   // 보고 있는 승객
   if(focus&&focus.state!=="gone"&&g.ps.includes(focus)){const sx=focus.seat?focus.seat.x:focus.x,sy=focus.seat?focus.seat.y:focus.y,q=proj(X(sx),focus.seat?1.12:1.3,Z(sy));
     if(q){const r=34+Math.sin(time*6)*2;ctx.strokeStyle="rgba(31,42,68,.85)";ctx.lineWidth=3;for(const [a,b] of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.beginPath();ctx.moveTo(q[0]+a*r-a*11,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r-b*11);ctx.stroke();}}}
