@@ -94,6 +94,18 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .skill .btn{padding:8px 14px;font-size:13.5px;min-width:86px}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;margin-bottom:8px}
 .wallet{position:absolute;right:36px;top:30px;font-weight:800;font-size:16px}
+/* 오늘의 계획표 */
+#dplan{position:absolute;left:24px;top:104px;width:214px;display:none;background:var(--card);border-radius:10px;padding:8px 12px 9px;font-size:12.5px;line-height:1.5;box-shadow:0 2px 0 rgba(0,0,0,.35);border-left:5px solid var(--line)}
+#dplan b{display:block;font-size:11.5px;color:var(--mute);margin-bottom:2px}
+#dplan div{display:flex;gap:6px;font-weight:700}
+#dplan i{font-style:normal;width:14px;flex:none;text-align:center}
+#dplan .done{color:var(--line-d)}#dplan .fail{color:var(--mute);text-decoration:line-through}#dplan .void{color:var(--mute)}
+.plans{display:flex;flex-direction:column;gap:8px}
+.pl{display:flex;align-items:center;gap:12px;text-align:left;border:3px solid #d8d3c5;border-radius:12px;background:var(--card);padding:10px 14px;font-size:13.5px;color:#565b60}
+.pl:hover{border-color:var(--line)}.pl.on{border-color:var(--line);background:#fff}
+.pl .ck{width:24px;height:24px;border:2.5px solid var(--ink);border-radius:6px;flex:none;display:grid;place-items:center;font-weight:800;color:var(--line-d)}
+.pl .pn{flex:1}.pl .pn b{display:block;font-size:15px;color:var(--ink)}
+.pl .st{color:#d99a00;letter-spacing:1px;width:54px}.pl .pp{font-weight:800;color:var(--ink);width:46px;text-align:right}
 /* 3D: 승객 카드는 화면 오른쪽 아래에 고정 */
 body.v3d #card{left:auto!important;right:28px!important;top:auto!important;bottom:64px!important}
 #lockhint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,24,28,.82);color:#fff;font-weight:800;font-size:17px;padding:14px 22px;border-radius:12px;display:none;pointer-events:none}
@@ -113,7 +125,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
       </div>
       <div class="plate" id="ptplate"><small>이번 주 포인트</small><b id="pts">0</b></div>
     </div>
-    <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
+    <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
     <div id="bottom">
       <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
       <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지</span>
@@ -158,6 +170,46 @@ const SKILLS=[
  {k:"hip",n:"빠른 엉덩이",cost:[50,100],d:["착석 거리 +25%, 경쟁자 반응이 느려짐","착석 거리 +50%, 경쟁자 반응이 더 느려짐"]},
  {k:"face",n:"철면피",cost:[40,90],d:["민폐 게이지 상승 -20%","민폐 게이지 상승 -40%"]},
 ];
+/* ========== 오늘의 계획표 (추가 기획서 12) ========== */
+const DPLANS=[
+ {k:"early",n:"일찍 앉기",d:"3정거장 안에 착석",star:1,p:15},
+ {k:"firm",n:"단단한 하체",d:"급정거에 한 번도 밀리지 않기",star:1,p:15},
+ {k:"yield",n:"양보 한 번",d:"자리 양보 1회 (앉으면 양보할 일이 반드시 생김)",star:1,p:15},
+ {k:"asplanned",n:"계획대로 앉기",d:"찜한 자리에 낌새 전 착석 1회",star:2,p:25},
+ {k:"quiet",n:"조용한 통근",d:"민폐 게이지 30 이하 유지",star:2,p:25},
+ {k:"eye",n:"정확한 눈",d:"찜한 승객이 바로 다음 역에서 하차 2회",star:2,p:25},
+ {k:"stand",n:"서서 가기",d:"",star:2,p:25},
+ {k:"end",n:"끝자리",d:"끝자리에 착석 (배려석 제외)",star:3,p:40},
+ {k:"nobump",n:"무접촉 통근",d:"충돌 0회",star:3,p:40},
+ {k:"nofake",n:"속지 않기",d:"페이크 동작 중인 승객을 찜하지 않기",star:3,p:40},
+ {k:"planA",n:"플랜 A만",d:"찜은 한 번만, 바꾸거나 취소하지 않기",star:3,p:40},
+];
+const DP=k=>DPLANS.find(d=>d.k===k);
+const COMBO_MAX=5;
+const standHalf=()=>Math.ceil((STATIONS.length-1)/2);
+const dpDesc=d=>d.k==="stand"?"출발 후 "+standHalf()+"정거장 동안 앉지 않기":d.d;
+const dpReward=d=>Math.round(d.p*(1+.1*Math.min(COMBO_MAX,run.combo||0)));
+function genCandidates(){   // 후보 5개: ★ 2, ★★ 2, ★★★ 1. 모순되는 조합(일찍 앉기 + 서서 가기)은 함께 내지 않는다
+  const sh=a=>{for(let i=a.length-1;i>0;i--){const j=irand(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const by=n=>sh(DPLANS.filter(d=>d.star===n));
+  const two=by(2);let c=by(1).slice(0,2).concat(two.slice(0,2),by(3).slice(0,1));
+  if(c.some(d=>d.k==="early")&&c.some(d=>d.k==="stand"))c=c.filter(d=>d.k!=="stand").concat(two[2]);
+  return c.sort((a,b)=>a.star-b.star).map(d=>d.k);
+}
+const dpGet=k=>G&&G.dp.find(d=>d.k===k&&d.status==="pending");
+function dpSet(k,ok,why){   // 달성·실패는 확정되는 즉시 알린다
+  const d=dpGet(k);if(!d)return;d.status=ok?"done":"fail";
+  if(ok){toast("계획 달성: "+d.n,"good");sfx("good");}
+  else{G.collapse++;toast("계획 실패: "+d.n+(why?" · "+why:""),"bad");sfx("bad");say(G.pl,pick(["…계획에 없던 일이다","괜찮아. 아직 남은 줄이 있어","(플래너에 줄을 긋는다)"]));}
+}
+function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
+  const g=G;
+  for(const k of["nobump","quiet","firm","nofake"])dpSet(k,true);
+  dpSet("planA",g.claimN===1,g.claimN?"":"찜을 하지 않음");
+  for(const k of["asplanned","end","eye","early","stand"])dpSet(k,false);
+  const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
+}
+const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
 const ARCH={
  student:{label:"과잠 입은 대학생",desc:"전공책을 끌어안고 졸음과 싸우는 중.",shirt:"#27408b",prop:"pack",am:{"서울대입구":7,"낙성대":1,beyond:1},pm:{"신림":4,"봉천":3,"서울대입구":1,beyond:1}},
  office:{label:"정장 차림 직장인",desc:"사원증 줄이 셔츠 주머니에 꽂혀 있다.",shirt:"#3b3f46",prop:"brief",am:{"강남":5,"교대":2,"서초":1,beyond:4},pm:{"사당":3,"신림":3,"서울대입구":2,beyond:3}},
@@ -211,7 +263,7 @@ function makeSeats(){
   for(let b=0;b<3;b++)for(const side of["top","bot"])for(let k=0;k<BENCH;k++){
     const x=DOORS[b].x+DOOR_W+SEAT_W*(k+.5);
     const pink=(side==="top"&&k===0)||(side==="bot"&&k===BENCH-1);
-    s.push({id:s.length,x,y:side==="top"?TOP_Y:BOT_Y,fx:x,fy:side==="top"?AY0+2:AY1-2,side,pink,occ:null,zone:b});
+    s.push({id:s.length,k,x,y:side==="top"?TOP_Y:BOT_Y,fx:x,fy:side==="top"?AY0+2:AY1-2,side,pink,occ:null,zone:b});
   }
   return s;
 }
@@ -223,7 +275,7 @@ const T_RUN=14,T_DWELL=7.5;
 
 function level(){return (run.week-1)*4+run.day+(run.leg==="pm"?.5:0);}
 function startRun(){
-  run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0};
+  run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0,combo:0,cand:[],picks:[],collapseNext:0,planPts:0,weekPts:0};
   profile.runs++;saveProfile();showPlatform();
 }
 function sampleDest(arch,legKey,route,from){
@@ -269,8 +321,9 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,claims:[],claimN:0,eyeHits:0,yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
-  const g=G;
+  const g=G;run.collapseNext=0;
   // 좌석 승객
   let empties=L<1?1:0;
   const far=g.seats.filter(s=>!s.pink&&Math.abs(s.x-g.pl.x)>330);
@@ -333,6 +386,7 @@ function depart(){
   }
   g.ps=g.ps.filter(p=>p.state!=="gone");
   for(const p of g.ps)if(p.state==="seated"&&p.dest!==g.st+1&&p.arch!=="sleeper"&&Math.random()<.04+g.fakeRate*.4)p.fg=g.st;
+  if(g.st>=3)dpSet("early",false,"3정거장이 지남");
   g.jolts=[{at:.35,dir:-1,warn:0,msg:null}];
   if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
   if(g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
@@ -345,7 +399,8 @@ function arrive(){
   const g=G;g.st++;g.phase="dwell";g.t=0;g.doorOpen=true;sfx("chime");
   buildRoute();
   if(g.pl.seat){g.seatStops++;addPts(g.pl.seat.pink?4:10,"앉아서 도착");}
-  if(g.st>=g.N){g.ending=1.1;g.led=g.route[g.st]+"역 도착. 수고하셨습니다.";return;}
+  if(g.st>=standHalf()&&!g.everSat)dpSet("stand",true);
+  if(g.st>=g.N){dpFinal();g.ending=1.1;g.led=g.route[g.st]+"역 도착. 수고하셨습니다.";return;}
   g.led=g.route[g.st]+"역입니다. 내리실 문은 오른쪽입니다.";
   let out=0;
   for(const p of g.ps){
@@ -356,8 +411,8 @@ function arrive(){
   let n=clamp(Math.round(out*.8+hub+(g.target-cur)*.6+rand(-1,2)),1,18);if(cur>g.target+6)n=Math.min(n,2);
   for(let i=0;i<n;i++)spawnBoarder(1.7+rand(0,2.4),null);
   // 양보 이벤트
-  if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.L>=.5&&g.st<g.N-1&&Math.random()<.42){
-    g.yieldDone=true;
+  if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
+    g.yieldDone=true;g.yieldSeen=true;
     let d=DOORS[0];for(const q of DOORS)if(Math.abs(q.cx-g.pl.x)<Math.abs(d.cx-g.pl.x))d=q;
     const e=spawnBoarder(1.4,"elder",{door:d.i,elder:true});e.dest=99;assignHints(e);
     g.yieldEv={p:e,t:0,active:false};
@@ -373,7 +428,16 @@ function endLeg(fail){
     if(g.bumps===0){rows.push(["무충돌 통근","+15"]);total+=15;}
     const sb=Math.round(g.stamina/10);rows.push(["남은 체력 보너스","+"+sb]);total+=sb;
   }
-  rows.unshift(["착석·계획·양보",""+g.pts]);
+  rows.unshift(["착석·찜·양보",""+g.pts]);
+  const dcnt=g.dp.filter(d=>d.status!=="void"),ddone=dcnt.filter(d=>d.status==="done");
+  g.planN=dcnt.length;g.planDone=ddone.length;g.planFail=dcnt.length-ddone.length;
+  if(!fail&&dcnt.length){   // 오늘의 계획표 정산
+    let pp=0;
+    for(const d of ddone){const v=dpReward(d);rows.push(["계획 달성: "+d.n,"+"+v]);pp+=v;}
+    if(dcnt.length>=2&&ddone.length===dcnt.length){rows.push(["오늘도 계획대로 (루틴 콤보 +1)","+20"]);pp+=20;run.combo=Math.min(COMBO_MAX,run.combo+1);}
+    else if(!ddone.length){run.combo=0;run.collapseNext=1;rows.push(["계획이 모두 틀어짐 (콤보 초기화)","0"]);}
+    total+=pp;g.planPts=pp;run.planPts+=pp;
+  }
   run.points+=total;run.legs++;run.seats+=g.seatStops;run.plans+=g.planHits;run.yields+=g.yields;
   if(fail){finishRun(fail,rows,total);return;}
   const am=run.leg==="am";
@@ -385,7 +449,8 @@ function endLeg(fail){
   if(lastLeg){
     run.points+=80;rows.push([run.week+"주차 개근 보너스","+80"]);total+=80;
     profile.bestWeek=Math.max(profile.bestWeek,run.week);
-    run.week++;run.day=0;run.leg="am";run.stamina=100;nextTxt=run.week+"주차 시작";
+    weekLog();
+    run.week++;run.day=0;run.leg="am";run.stamina=100;run.combo=0;nextTxt=run.week+"주차 시작";
   }
   rows.push(["이번 편도 합계","+"+total+" P"]);
   const title=g.seatStops>=g.N-1?"완벽한 통근":g.seatStops>0?"앉아서 왔다":"서서 버텼다";
@@ -395,15 +460,21 @@ function endLeg(fail){
    <div class="btns"><button class="btn go" id="b1">${nextTxt}</button><button class="btn ghost" id="b2">여기서 퇴사 (포인트 정산)</button></div>`);
   $("b1").onclick=showPlatform;$("b2").onclick=()=>finishRun("quit",null,0);
 }
+function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의 근거)
+  const w={week:run.week,pts:run.points-(run.weekPts||0),planPts:run.planPts};run.weekPts=run.points;run.planPts=0;
+  if(w.pts>0){profile.weekLog=(profile.weekLog||[]).concat(w).slice(-20);saveProfile();}
+  return w;
+}
 function finishRun(why,rows,total){
   annStop();
+  const wl=weekLog();
   mode="over";profile.points+=run.points;saveProfile();
   const msg={exhaust:["체력 방전","다리가 풀려 다음 역 벤치에 주저앉았습니다. 이번 주 통근은 여기까지."],
     nuis:["민폐 승객 등극","주변의 따가운 시선을 견디지 못하고 다음 역에서 내렸습니다."],
     quit:["이번 주 정산","무리하지 않는 것도 계획입니다."]}[why];
   sheet(`<span class="tag">${run.week}주차 ${DAYS[run.day]} · ${run.legs}회 통근</span><h2>${msg[0]}</h2><p class="sub">${msg[1]}</p>
    <div class="rows"><div><span>앉아서 지난 역</span><span>${run.seats}</span></div><div><span>계획대로 착석</span><span>${run.plans}</span></div>
-   <div><span>자리 양보</span><span>${run.yields}</span></div><div><span>획득 포인트</span><span>+${run.points} P</span></div></div>
+   <div><span>자리 양보</span><span>${run.yields}</span></div><div><span>이번 주 계획표로 번 포인트</span><span>${wl.planPts} P</span></div><div><span>획득 포인트</span><span>+${run.points} P</span></div></div>
    <div class="btns"><button class="btn go" id="b1">패시브 스킬 찍기</button><button class="btn ghost" id="b2">처음으로</button></div>`);
   $("b1").onclick=()=>showShop(true);$("b2").onclick=showMenu;run=null;
 }
@@ -428,7 +499,8 @@ function hint(p){ // 좌석 승객이 지금 보이는 낌새
 function tellState(p){const h=hint(p);return h.stage>=1?(h.real?1:2):0;} // 0 없음, 1 진짜, 2 페이크
 function standUp(p){
   // 일어난 사람은 좌석 바로 앞에서 출구(좌석 앞 자리)가 비기를 기다린다
-  const s=p.seat;s.occ=null;p.seat=null;p.x=s.x;p.y=s.side==="top"?s.fy-12:s.fy+12;p.state="leaving";p.step=-1;p.exitSeat=s;p.wait=0;p.said=0;p.delay=null;
+  const s=p.seat;s.occ=null;p.seat=null;p.x=s.x;p.y=s.side==="top"?s.fy-12:s.fy+12;p.state="leaving";
+  {const ci=G.claims.findIndex(c=>c.pid===p.id);if(ci>=0){const c=G.claims.splice(ci,1)[0];if(c.st===G.st&&++G.eyeHits>=2)dpSet("eye",true);}}p.step=-1;p.exitSeat=s;p.wait=0;p.said=0;p.delay=null;
   let d=DOORS[0];for(const q of DOORS)if(Math.abs(q.cx-p.x)<Math.abs(d.cx-p.x))d=q;p.door=d;
   s.exiting=p;
   if(s.holder)stepAside(s.holder,s);
@@ -492,7 +564,7 @@ function trySit(target){
     if(g.yieldEv&&g.yieldEv.active){ // 양보
       const s=pl.seat,e=g.yieldEv.p;pl.seat=null;pl.x=s.fx+(s.fx<CAR.x+CAR.w/2?30:-30);pl.y=s.fy;constrain(pl);
       e.elder=false;seatPerson(e,s);g.yieldEv=null;g.yields++;g.nuis=Math.max(0,g.nuis-30);
-      addPts(25,"양보");toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
+      addPts(25,"양보");dpSet("yield",true);toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
     }
     const s=pl.seat;s.occ=null;pl.seat=null;pl.x=s.fx;pl.y=s.fy;g.leftSeat=s;toast("자리에서 일어났습니다.");
     g.timers.push({t:.5,fn(){if(!s.occ)seatOpen(s);}});return;
@@ -502,12 +574,16 @@ function trySit(target){
     g.nuis+=5*(1-.2*sk("face"));say(ex.exiting,"아직 내리는 중이에요");sfx("bump");return;}
   const s=target&&!target.occ&&!target.exiting&&canReach(target)?target:nearestFreeSeat();
   if(!s){if(target&&!target.occ)toast("앞줄로 가야 앉을 수 있습니다.");return;}
+  g.everSat=true;
+  if(g.st<standHalf())dpSet("stand",false,"일찍 앉음");
+  if(!s.pink&&(g.st<3||(g.st===3&&g.phase==="dwell")))dpSet("early",true);
+  if(isEndSeat(s))dpSet("end",true);
   s.occ="player";pl.seat=s;pl.x=s.x;pl.y=s.y;pl.vx=pl.vy=0;pl.face=s.side==="top"?Math.PI/2:-Math.PI/2;pl.gazeT=pl.face;pl.gazeHold=0;
   const i=g.plans.findIndex(p=>p.seat===s);
   if(s.pink){toast("임산부 배려석입니다. 시선이 따갑습니다.","bad");}
   else if(g.sitPtsSt===g.st||s===g.leftSeat){toast("다시 앉았습니다.");}   // 같은 역에서 앉았다 일어났다 반복해도 점수는 한 번만
   else if(i>=0){g.sitPtsSt=g.st;
-    const early=g.plans[i].early;g.planHits++;
+    const early=g.plans[i].early;g.planHits++;if(early)dpSet("asplanned",true);
     addPts(early?30:12,early?"계획대로!":"눈치 착석");g.stamina=Math.min(100,g.stamina+(early?6:2));
     toast(early?"계획대로! 예측한 자리에 앉았습니다.":"눈치 빠른 착석.","good");
   }else{g.sitPtsSt=g.st;addPts(6,"착석");toast("착석 성공.","good");}
@@ -516,8 +592,11 @@ function trySit(target){
 function togglePlan(s){
   const g=G;if(g.pl.seat||!s.occ||s.occ==="player"||s.pink)return;
   const i=g.plans.findIndex(p=>p.seat===s);
-  if(i>=0){g.plans.splice(i,1);return;}
+  if(i>=0){const ci=g.claims.findIndex(c=>c.pid===g.plans[i].pid);if(ci>=0)g.claims.splice(ci,1);g.plans.splice(i,1);dpSet("planA",false,"찜을 취소함");return;}
   const max=1+sk("plan");if(g.plans.length>=max)g.plans.shift();
+  if(++g.claimN>1)dpSet("planA",false,"찜을 바꿈");
+  if(tellState(s.occ)===2)dpSet("nofake",false,"페이크였다");
+  g.claims.push({pid:s.occ.id,st:g.st+1});
   g.plans.push({seat:s,pid:s.occ.id,early:tellState(s.occ)!==1});sfx("tick");
 }
 function excuse(){
@@ -537,7 +616,7 @@ function shove(q){
 }
 function say(e,txt){e.bubble=txt;e.bt=1.5;}
 function bump(q,hard){
-  const g=G;g.bumps++;g.bumpCd=1.05;g.shake=Math.max(g.shake,.18);
+  const g=G;g.bumps++;g.bumpCd=1.05;dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
   g.nuis+=(hard?10:7)*(1-.2*sk("face"));g.stamina-=3;
   say(g.pl,pick(["죄송합니다!","앗, 죄송해요","실례했습니다"]));
   if(q&&Math.random()<.5)say(q,pick(["아…","저기요","조심 좀…","(한숨)"]));
@@ -559,7 +638,7 @@ function update(rdt){
       if(j.done)continue;
       if(j.msg&&g.t>=j.at-j.warn)ban=j.msg;
       if(g.t>=j.at){j.done=true;g.shake=.3;sfx("jolt");
-        if(!pl.seat&&!pl.brace){pl.vx+=j.dir*250*(1-.28*sk("bal"));}
+        if(!pl.seat&&!pl.brace){pl.vx+=j.dir*250*(1-.28*sk("bal"));dpSet("firm",false,"급정거에 밀림");}
         for(const q of g.ps)if(q.state==="standing"){q.sway=j.dir*rand(3,7);}
       }
     }
@@ -654,11 +733,11 @@ function update(rdt){
   // 양보 이벤트
   if(g.yieldEv){
     const ev=g.yieldEv,e=ev.p;
-    if(!pl.seat||!g.ps.includes(e)){e.elder=false;g.yieldEv=null;}
+    if(!pl.seat||!g.ps.includes(e)){e.elder=false;g.yieldEv=null;if(ev.active)dpSet("yield",false,"양보하지 않음");}
     else{
       if(!ev.active&&e.state==="standing"&&hyp(e.x-e.hx,e.y-e.hy)<14){ev.active=true;say(e,"아이고, 다리야…");}
       if(ev.active){ev.t+=rdt;g.nuis+=4.2*(1-.2*sk("face"))*rdt;
-        if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");}}
+        if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");dpSet("yield",false,"양보하지 않음");}}
     }
   }
   prompt(g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":null);
@@ -719,6 +798,7 @@ function update(rdt){
   if(g.ending==null){
     if(g.stamina<=0){g.stamina=0;endLeg("exhaust");return;}
     if(g.nuis>=100){g.nuis=100;endLeg("nuis");return;}
+    if(g.nuis>30)dpSet("quiet",false,"민폐 30 초과");
   }
 }
 /* ========== 시야 ========== */
@@ -1169,6 +1249,9 @@ function hud(){
   $("qhelp").style.display=sk("excuse")?"":"none";
   if(sk("excuse"))$("qhelp").style.opacity=g.excuseCd>0?.4:1;
   $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"));
+  {const el=$("dplan"),on=mode==="play"&&g.dp.length>0;let h="";
+    if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="eye"&&d.status==="pending"?" ("+g.eyeHits+"/2)":""}</span></div>`).join("");
+    if(el.innerHTML!==h)el.innerHTML=h;el.style.display=on?"block":"none";}
   // 승객 카드
   const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)?focus:null;
   if(!p){c.style.display="none";return;}
@@ -1219,7 +1302,23 @@ function showPlatform(){
   run.crowd=[0,1,2].map(()=>({w:rand(.5,1.7)}));
   // 문 4개의 체감 혼잡도: 인접 구역 평균에 약간의 오차
   const dv=[run.crowd[0].w,(run.crowd[0].w+run.crowd[1].w)/2,(run.crowd[1].w+run.crowd[2].w)/2,run.crowd[2].w].map(v=>v+rand(-.18,.18));
-  const lab=v=>v<.85?["여유","c0"]:v<1.25?["보통","c1"]:["혼잡","c2"];
+  run.cand=genCandidates();run.picks=[];run.dv=dv;
+  showPlanner();
+}
+function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계획표에 적는다
+  const am=run.leg==="am";
+  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${am?"출근":"퇴근"} · 오늘의 계획표</span>
+   <h2>오늘은 무엇을 지킬까요? (최대 3개)</h2>
+   <p class="sub">적은 계획을 지키면 보상을 받습니다. 2개 이상 적어 모두 지키면 +20P와 루틴 콤보 +1, 적은 계획이 전부 틀어지면 콤보가 끊깁니다. 적지 않아도 됩니다.<br>루틴 콤보 <b>${run.combo}</b> (계획 보상 +${run.combo*10}%)${run.collapseNext?" · 지난 통근의 계획이 모두 틀어졌습니다":""}</p>
+   <div class="plans">${run.cand.map(k=>{const d=DP(k),on=run.picks.includes(k);return `<button class="pl${on?" on":""}" data-k="${k}"><span class="ck">${on?"✔":""}</span><span class="pn"><b>${d.n}</b>${dpDesc(d)}</span><span class="st">${"★".repeat(d.star)}</span><span class="pp">${dpReward(d)}P</span></button>`;}).join("")}</div>
+   <div class="btns"><button class="btn go" id="b1">${run.picks.length?run.picks.length+"개 적고 승강장으로":"계획 없이 승강장으로"}</button></div>`);
+  document.querySelectorAll(".pl").forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=run.picks.indexOf(k);
+    if(i>=0)run.picks.splice(i,1);else if(run.picks.length<3)run.picks.push(k);else{toast("계획은 3개까지 적을 수 있습니다.");return;}
+    sfx("tick");showPlanner();});
+  $("b1").onclick=showDoors;
+}
+function showDoors(){
+  const dv=run.dv,lab=v=>v<.85?["여유","c0"]:v<1.25?["보통","c1"]:["혼잡","c2"];
   const am=run.leg==="am",from=am?"신림":"강남",to=am?"강남":"신림";
   sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${am?"출근":"퇴근"} · ${from} → ${to}</span>
    <h2>목표: ${to}역(${am?"회사":"집"})까지 8정거장</h2>
