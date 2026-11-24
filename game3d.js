@@ -125,8 +125,23 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
   u.lod=lod;
   const noLine=far||u.gh>.06;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
 }
-function makeMe(){   // 주인공 모델: 캐릭터(02)마다 차림(protagonist-lineup.html에서 고른 안). 사원증 줄은 공통
-  const lk=(typeof CH==="function"?CH().look:null)||{shirt:"#a9c8e8",hair:"#1d1b1a",hairStyle:"side",h:1};
+function makeMe(){return makeMeLook((typeof CH==="function"?CH().look:null)||{shirt:"#a9c8e8",hair:"#1d1b1a",hairStyle:"side",h:1});}
+// 사원증 카드 사진 (02 캐릭터 선택): 주인공 모델을 작은 캔버스에 한 번 그려 이미지로 둔다. 잠긴 캐릭터는 실루엣
+const PRC={};let PRR=null;
+function charPortrait(k,lk,dark){
+  const key=k+(dark?"-d":"");if(PRC[key]!=null)return PRC[key];
+  try{
+    if(!PRR){const cv=document.createElement("canvas");cv.width=168;cv.height=220;PRR={cv,r:new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true,preserveDrawingBuffer:true})};PRR.r.setClearColor(0x000000,0);}
+    const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,.45);dl.position.set(1.2,3,2.5);sc.add(dl);
+    const p=makeMeLook(lk);C.setSit(p,false);p.root.position.y=.86*(lk.h||1);p.root.rotation.y=.3;sc.add(p.root);
+    if(dark)p.root.traverse(o=>{if(o.isMesh&&o.material&&o.material.color&&o.material!==C.OM&&o.material!==C.OM2){o.material=o.material.clone();o.material.map=null;o.material.color.set(0x5b6066);}});
+    const cam=new THREE.OrthographicCamera(-.42,.42,1.98,.88,.1,30);cam.position.set(0,0,10);cam.lookAt(0,0,0);
+    PRR.r.render(sc,cam);PRC[key]=PRR.cv.toDataURL();
+  }catch(e){PRC[key]="";}
+  return PRC[key];
+}
+window.charPortrait=charPortrait;   // index.html의 캐릭터 선택 화면에서 쓴다
+function makeMeLook(lk){   // 주인공 모델: 캐릭터(02)마다 차림(protagonist-lineup.html에서 고른 안). 사원증 줄은 공통
   return C.person(Object.assign({collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",shoe:"#fffdf5"},lk,{
     cloth:(x,F,B)=>{
       if(lk.suit){x.fillStyle="#ffffff";x.beginPath();x.moveTo(F-34,22);x.lineTo(F+34,22);x.lineTo(F,150);x.fill();x.fillStyle=lk.suit;x.beginPath();x.moveTo(F-9,40);x.lineTo(F+9,40);x.lineTo(F+12,120);x.lineTo(F,142);x.lineTo(F-12,120);x.fill();   // 정장 셔츠 앞판과 넥타이

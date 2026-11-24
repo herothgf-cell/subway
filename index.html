@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>계획대로, 2호선</title>
+<title>계획대로, 지하철</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap">
 <style>
 :root{
@@ -45,7 +45,7 @@ button{font-family:inherit;cursor:pointer}
 #sbar{background:var(--line)}#nbar{background:var(--bad)}
 #ptplate{min-width:96px;text-align:right}
 #ptplate small{display:block;font-size:11px;color:var(--mute)}#ptplate b{font-size:22px;font-variant-numeric:tabular-nums}
-#bottom{position:absolute;left:24px;right:24px;bottom:14px;display:flex;gap:8px;align-items:center;color:#cfd3d6;font-size:12.5px;flex-wrap:wrap}
+#bottom{position:absolute;left:24px;right:24px;bottom:12px;display:flex;gap:8px;align-items:center;color:#f3f5f6;font-size:12.5px;font-weight:600;flex-wrap:wrap;background:rgba(14,17,20,.78);border-radius:10px;padding:5px 12px}
 kbd{display:inline-block;background:#2a3036;border-radius:5px;padding:2px 7px;font:700 11.5px var(--font);color:#fff;border-bottom:2px solid #000;margin-right:3px}
 #bottom span{margin-right:12px}
 #planslots{margin-left:auto;color:#fff;font-weight:700}
@@ -113,6 +113,7 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .ids{display:flex;flex-wrap:wrap;gap:12px}.idc{flex:1 1 220px;text-align:left;font:inherit;color:inherit;background:var(--card);border:2px solid #d8dcd8;border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:stretch}
 .idc.on{border-color:var(--line);box-shadow:0 0 0 2px var(--line)}.idc.locked{opacity:.55;cursor:default}
 .idh{display:flex;gap:10px;align-items:center;font-size:12.5px;line-height:1.35}.idh b{font-size:16px}.ph{width:46px;height:56px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;flex:none}
+.ph.pimg{width:84px;height:110px;background:#e9ece8!important;overflow:hidden}.ph.pimg img{width:100%;height:100%;display:block}
 .df{color:#c9a227;letter-spacing:1px}.idr{font-size:12.5px;font-weight:700}.idc svg{align-self:center}
 .sts{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;font-size:11.5px;align-items:center}.sts i{height:7px;background:#e3e7e3;border-radius:4px;overflow:hidden}.sts em{display:block;height:100%;background:var(--line)}
 .tr{font-size:12px;line-height:1.4}.bw{font-size:11.5px;opacity:.7}.lk{font-size:13px;font-weight:700;padding:20px 0}
@@ -201,14 +202,15 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
 #intro .sign{position:absolute;left:50%;top:26%;transform:translateX(-50%);background:#fff;border:4px solid #14181c;border-radius:10px;padding:18px 30px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:46%;z-index:2}
 #intro .sign .nm{font-size:44px;font-weight:900;color:#14181c;letter-spacing:-1px}
 #intro .sign .who{font-size:14px;color:#5d6862;font-weight:700}
-#intro .sign .menu{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:620px}
-#intro .sign button{border:0;background:#3a4148;color:#fff;border-radius:999px;padding:8px 18px;font-weight:800;font-size:15px}
-#intro .sign button.go{background:#00A84D;font-size:17px}
+#intro .sign .menu{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:620px;margin-top:4px}
+#intro .sign button{border:0;background:#3a4148;color:#fff;border-radius:999px;padding:10px 30px;font-weight:800;font-size:17px;min-width:150px}
+#intro .sign button.go{background:#00A84D}
 #intro .sign button:hover{filter:brightness(1.15)}
+#intro .sign button:disabled{opacity:.35;cursor:default;filter:none}
 #intro .wal{position:absolute;right:20px;top:16px;background:rgba(0,0,0,.55);border-radius:8px;padding:4px 12px;font-weight:800;font-size:14px;z-index:2}
 .rec{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}.rec td,.rec th{border-bottom:1px solid #d8dcd8;padding:7px 10px;text-align:left}
 /* 튜토리얼 (01): 플래너 메모 */
-#tutmemo{position:absolute;left:24px;bottom:52px;width:340px;display:none;background:#fffdf3;border-radius:6px;padding:10px 16px 12px;font:26px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;transform:rotate(-1.5deg);box-shadow:0 6px 18px rgba(0,0,0,.45);border-left:6px solid #f0a0a0;pointer-events:none}
+#tutmemo{position:absolute;left:24px;bottom:58px;width:340px;display:none;background:#fffdf3;border-radius:6px;padding:10px 16px 12px;font:26px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;transform:rotate(-1.5deg);box-shadow:0 6px 18px rgba(0,0,0,.45);border-left:6px solid #f0a0a0;pointer-events:none}
 #tutmemo small{display:block;font:800 11.5px var(--font);color:#7b8187;margin-bottom:2px}
 .tutp{background:#fffdf3;border-left:6px solid #f0a0a0;border-radius:6px;padding:8px 14px;font:25px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;margin:8px 0}
 .tutp small{display:block;font:800 11.5px var(--font);color:#7b8187}
@@ -370,9 +372,9 @@ const STATS={sta:"체력",eye:"눈치",agi:"민첩",bal:"균형",grit:"버티기
 const CHARS=[
  {k:"han",n:"한계획",age:32,job:"마케팅팀 대리",home:"신림",work:"강남",st:{sta:3,eye:3,agi:3,bal:3,grit:3,mental:3},diff:1,
   trait:"플래너",td:"계획대로 앉은 다음, 다음 ‘계획대로!’ 착석 포인트 +10%",lock:null,look:{shirt:"#a9c8e8",pin:"#4a86c8",pants:"#26304a",hair:"#1d1b1a",hairStyle:"side",shoe:"#5a3d2b",h:1}},
- {k:"oh",n:"오신입",age:26,job:"개발팀 신입",home:"구로디지털단지",work:"역삼",st:{sta:5,eye:2,agi:4,bal:2,grit:4,mental:2},diff:2,
-  trait:"뛰어타기",td:"출발역 정차 중 한 번, B로 다른 문으로 옮겨 탈 수 있음",lock:{d:"한 주 개근 1회",ok:()=>bestAny()>=1},look:{shirt:"#c9ced6",pin:"#4a7fd6",collar:"round",pants:"#1f2a44",hair:"#2b211c",hairStyle:"short",headphones:"#4a7fd6",h:.99,wx:1.1},crowdAm:1.15},
- {k:"yu",n:"유감각",age:29,job:"디자이너",home:"합정",work:"시청",st:{sta:2,eye:4,agi:4,bal:3,grit:2,mental:3},diff:2,
+ {k:"oh",n:"오신입",age:26,job:"개발팀 신입",home:"구로디지털단지",work:"역삼",st:{sta:4,eye:2,agi:4,bal:2,grit:4,mental:2},diff:2,
+  trait:"뛰어타기",td:"출발역 정차 중 한 번, B로 다른 문으로 옮겨 탈 수 있음",lock:{d:"한 주 개근 1회",ok:()=>bestAny()>=1},look:{shirt:"#c9ced6",pin:"#4a7fd6",collar:"round",pants:"#1f2a44",hair:"#2b211c",hairStyle:"short",headphones:"#4a7fd6",h:.99,wx:1.1},crowdAm:1.3},
+ {k:"yu",n:"유감각",age:29,job:"디자이너",home:"합정",work:"시청",st:{sta:1,eye:4,agi:4,bal:3,grit:2,mental:3},diff:2,
   trait:"눈썰미",td:"승객 카드에 ‘자주 내리는 역 후보 2곳’이 처음부터 보임 (관찰력 1단계 표시)",lock:{d:"‘계획대로!’ 누적 30회",ok:()=>(profile.planTotal||0)>=30},look:{shirt:"#c9a877",pin:"#e8843c",collar:"coat",pants:"#2b2b3a",skirt:"same",coat:true,cuffC:"same",hair:"#3a2a20",hairStyle:"long",hat:"beanie",hatC:"#e8843c",shoe:"#2b2b3a",h:.95,wx:.94}},
  {k:"jung",n:"정부장",age:47,job:"영업부장",home:"잠실",work:"시청",st:{sta:2,eye:5,agi:2,bal:4,grit:2,mental:4},diff:3,
   trait:"연륜",td:"페이크 동작에 속지 않음 (관찰력 2단계의 페이크 간파)",lock:{d:"한 런에서 4주차 도달",ok:()=>bestAny()>=3},look:{shirt:"#3b3f46",pin:"#5b616b",shape:"v",collarC:"#ffffff",cuffC:"#ffffff",pants:"#2b2f36",hair:"#9a9ea6",hairStyle:"short",glasses:true,shoe:"#15151c",h:1.02,wx:1.1,suit:"#c0392b"}},
@@ -1071,7 +1073,7 @@ function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의
 function finishRun(why,rows,total){
   annStop();
   const wl=weekLog();
-  mode="over";profile.points+=run.points;rollStock();saveProfile();
+  mode="over";profile.points+=run.points;rollStock();saveProfile();clearRun();
   const msg={exhaust:["체력 방전","다리가 풀려 다음 역 벤치에 주저앉았습니다. 이번 주 통근은 여기까지."],
     nuis:["민폐 승객 등극","주변의 따가운 시선을 견디지 못하고 다음 역에서 내렸습니다."],
     quit:["이번 주 정산","무리하지 않는 것도 계획입니다."]}[why];
@@ -1974,23 +1976,21 @@ function seatAt(x,y){const up=view==="q"?40:SEAT_D/2+6;for(const s of G.seats)if
 function sheet(html){$("intro").classList.remove("on");$("tutmemo").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
 function showMenu(){   // 타이틀 화면 (01): 스크린도어 너머로 열차가 지나가고, 역명판이 메뉴. 전광판에 최장 개근 기록
   mode="menu";G=null;IN=null;$("ov").classList.remove("on");banner(null);prompt(null);$("card").style.display="none";$("tutmemo").style.display="none";
-  const c=CH(),bw=bestAny();
-  const led=(bw?`최장 개근 ${bw}주 · `:"")+`${c.n} · ${c.home} → ${c.work} · 다음 열차 곧 도착 · 승강장과 열차 사이가 넓으니 발밑을 조심하세요`;
+  const bw=bestAny(),sv=loadRun();
+  const led=(bw?`최장 개근 ${bw}주 · `:"")+`다음 열차 곧 도착 · 승강장과 열차 사이가 넓으니 발밑을 조심하세요`;
   const el=$("intro");el.classList.add("on");
-  el.innerHTML=`<div class="cut t0"><div class="wal">보유 ${profile.points} P</div><div class="led"><span>${led}</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
-   <div class="sign"><div class="nm">계획대로<span>,</span> 2호선</div><div class="who">파워 J 직장인의 출퇴근 자리 사수기 · ${c.n} (${c.home} ↔ ${c.work})</div>
-   <div class="menu"><button class="go" id="m1">출근하기</button><button id="m2">캐릭터 · ${c.n}</button><button id="m3">스킬</button><button id="m4">기록</button><button id="m5">인트로 다시 보기</button><button id="m6">${profile.seenHelp?"튜토리얼 다시 하기":"튜토리얼: 다음 출근에 진행"}</button></div></div>
+  el.innerHTML=`<div class="cut t0"><div class="led"><span>${led}</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
+   <div class="sign"><div class="nm">계획대로<span>,</span> 지하철</div><div class="who">파워 J 직장인의 출퇴근 자리 사수기</div>
+   <div class="menu"><button class="go" id="m1">출근하기</button><button id="m2"${sv?"":" disabled"}>불러오기</button></div></div>
    <div class="queue">${inPeople(12,true)}</div></div>`;
-  $("m1").onclick=startRun;$("m2").onclick=showChars;$("m3").onclick=()=>showShop(false);$("m4").onclick=showRecords;$("m5").onclick=()=>introPlay(true);
-  $("m6").onclick=()=>{profile.seenHelp=!profile.seenHelp;saveProfile();sfx("tick");showMenu();};
+  $("m1").onclick=showChars;if(sv)$("m2").onclick=resumeRun;
 }
-function showRecords(){
-  sheet(`<div class="wallet">보유 ${profile.points} P</div><h2>기록</h2>
-   <table class="rec"><tr><th>캐릭터</th><th>최장 개근</th></tr>${CHARS.map(c=>`<tr><td>${charOpen(c)?c.n:"잠김"}</td><td>${profile.best&&profile.best[c.k]?profile.best[c.k]+"주":"–"}</td></tr>`).join("")}</table>
-   <p class="sub">출근한 횟수 ${profile.runs||0}회 · ‘계획대로!’ 누적 ${profile.planTotal||0}회</p>
-   <div class="btns"><button class="btn ghost" id="b1">처음으로</button></div>`);
-  $("b1").onclick=showMenu;
-}
+/* 런 저장 (불러오기): 통근 직전(승강장)과 주말 화면에서 저장하고, 런이 끝나면 지운다 */
+const RKEY=KEY+"-run";
+function saveRun(at){try{run.char=profile.char;run.at=at;localStorage.setItem(RKEY,JSON.stringify(run));}catch(e){}}
+function loadRun(){try{const r=JSON.parse(localStorage.getItem(RKEY)||"null");return r&&r.sched?r:null;}catch(e){return null;}}
+function clearRun(){try{localStorage.removeItem(RKEY);}catch(e){}}
+function resumeRun(){const r=loadRun();if(!r)return;run=r;if(r.char&&CHARS.some(c=>c.k===r.char)){profile.char=r.char;saveProfile();}if(r.at==="weekend")showWeekend();else showPlatform();}
 /* ========== 인트로 (추가 기획서 01). 처음 실행: 컷 ①~④ → 캐릭터 선택 → 1주차 월요일(튜토리얼). 두 번째부터: 컷 ③ → 타이틀 ========== */
 const INTRO={han:{dir:"강남 방면",door:"3-2",t:["06:30","07:12","07:14","07:16"],seat:"서울대입구 과잠 앞"},oh:{dir:"신림 방면",door:"6-1",t:["06:20","07:05","07:07","07:13"],seat:"신림에서 내리는 사람 앞"},
   yu:{dir:"시청 방면",door:"2-4",t:["07:40","08:21","08:23","08:24"],seat:"홍대입구 캐리어 옆"},jung:{dir:"성수 방면",door:"8-3",t:["05:50","06:40","06:42","06:51"],seat:"건대입구 정장 앞"}};
@@ -2002,7 +2002,7 @@ function introCut(id){
   if(id==="c1")return `<div class="cut c1"><div class="zz">새벽.<br>방은 아직 어둡다.</div><div class="phone"><div class="t">${d.t[0]}</div><div class="a">알람 · 출근</div><div class="off">끄기</div></div><div class="hand"></div></div>`;
   if(id==="c2"){const rows=[[d.t[0],"기상"],[d.t[1],c.home+"역 "+d.door+" 승강장"],[d.t[2],"탑승 ("+d.dir+")"],[d.t[3],"착석 · "+d.seat,1],["",c.work+" 도착 → 커피"]];
     return `<div class="cut c2"><div class="planner"><h3>1주차 월요일</h3>${rows.map(r=>`<div class="row"><b>${r[0]}</b><span class="${r[2]?"mk":""}">${r[1]}</span></div>`).join("")}<div class="say">"오늘도 계획대로."</div></div></div>`;}
-  if(id==="c3")return `<div class="cut c3"><div class="led"><span>이번 열차  ${c.home}  ·  ${d.dir}  ·  계획대로, 2호선</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div><div class="queue">${inPeople(16,true)}</div><div class="logo">계획대로<span>,</span> 2호선</div></div>`;
+  if(id==="c3")return `<div class="cut c3"><div class="led"><span>이번 열차  ${c.home}  ·  ${d.dir}  ·  계획대로, 지하철</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div><div class="queue">${inPeople(16,true)}</div><div class="logo">계획대로<span>,</span> 지하철</div></div>`;
   return `<div class="cut c4"><div class="car"><div class="crowd">${inPeople(36,false)}</div><div class="dl"></div><div class="dr"></div></div><div class="memo">${d.t[2]} 탑승 ✔<br><span class="crack">${d.t[3]} 착석</span></div><div class="cap">"…계획에 없던 인파다."</div></div>`;
 }
 function introPlay(full){
@@ -2037,7 +2037,7 @@ function showChars(){   // 사원증 카드: 앞면 이름·직함, 뒷면 능�
   sheet(`<div class="wallet">보유 ${profile.points} P</div><h2>누구의 출근길인가요?</h2><p class="sub">포인트와 스킬, 아이템은 모두 함께 씁니다. 최고 기록은 캐릭터마다 따로 남습니다.</p>
   <div class="ids">${CHARS.map(c=>{const open=charOpen(c),on=c.k===CH().k,n=routeBetween(c.home,c.work).length-1;
     return `<button class="idc${on?" on":""}${open?"":" locked"}" data-k="${c.k}" ${open?"":"disabled"}>
-     <div class="idh"><span class="ph" style="background:${open?(c.look.pin||c.look.shirt):"#9aa0a6"}">${open?c.n[0]:"?"}</span><span><b>${c.n}</b><br>${c.age}세 · ${c.job}<br><span class="df">${"★".repeat(c.diff)}</span></span></div>
+     <div class="idh">${(()=>{const img=window.charPortrait?window.charPortrait(c.k,c.look,!open):"";return img?`<span class="ph pimg"><img src="${img}" alt="${open?c.n:"잠김"}"></span>`:`<span class="ph" style="background:${open?(c.look.pin||c.look.shirt):"#9aa0a6"}">${open?c.n[0]:"?"}</span>`;})()}<span><b>${c.n}</b><br>${c.age}세 · ${c.job}<br><span class="df">${"★".repeat(c.diff)}</span></span></div>
      ${open?`<div class="idr">${c.home} → ${c.work} · ${n}정거장</div>${loopMap(c,150)}
      <div class="sts">${Object.keys(STATS).map(k=>`<span>${STATS[k]}</span><i><em style="width:${c.st[k]*20}%"></em></i>`).join("")}</div>
      <div class="tr"><b>${c.trait}</b> ${c.td}</div><div class="bw">최고 기록: ${profile.best[c.k]?profile.best[c.k]+"주 개근":"없음"}</div>`
@@ -2050,6 +2050,7 @@ const MODS=[{name:"평소와 같은 날",crowd:1},{name:"평소와 같은 날",c
 function showPlatform(){
   mode="platform";G=null;
   if(!run.sched)makeWeek();
+  saveRun("platform");
   {const day=run.sched[run.day];run.mod=day.rain?MODS[2]:day.quiet?MODS[4]:run.day===0&&run.leg==="am"&&run.week===1?MODS[0]:pick([MODS[0],MODS[0],MODS[3]]);}   // 비·한산은 그날 일정대로, 지연은 당일
   run.trains=0;run.trainMul=1;run.nextCrowd=[0,1,2].map(()=>({w:rand(.45,1.55)}));
   run.crowd=[0,1,2].map(()=>({w:rand(.5,1.7)}));
@@ -2136,7 +2137,7 @@ function settleWeek(){   // 그 주(또는 주말 약속) 포인트를 정산해
   profile.points+=run.points;run.points=0;run.weekPts=0;saveProfile();
 }
 function showWeekend(){   // 토·일: 약속 1개 제안 / 휴무. 스킬과 상점도 여기서
-  mode="weekend";G=null;run.leg="we";
+  mode="weekend";G=null;run.leg="we";saveRun("weekend");
   const o=run.sched[run.day],a=o.offer&&APP(o.offer.k),n=a?routeBetween(CH().home,o.offer.dest).length-1:0;
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} · 주말</span><h2>${DAYS[run.day]}은 어떻게 보낼까요?</h2>
    <p class="sub">현재 체력 <b>${Math.round(run.stamina)}</b> / ${maxSta()}. 쉬면 체력이 모두 회복됩니다. 약속에 나가면 포인트를 받지만 체력은 밤사이 일부만 회복됩니다.</p>
