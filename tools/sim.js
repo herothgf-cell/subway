@@ -30,8 +30,8 @@ function makeContext(seed){
 
 const PLAN=flags.includes("--plans");
 const BOTS={
-  "숙련":{patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["firm","asplanned","early","yield","quiet","nofake","eye","end"]},
-  "보통":{patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["early","yield","quiet","firm","asplanned"]},
+  "숙련":{patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},
+  "보통":{patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","early","giveway","yield","quiet","firm","asplanned"]},
   "초보":{patience:.7,react:.9,scan:.6,brace:.3,braceDepart:0,archRead:false,readsBoard:false,yields:false,planPolicy:PLAN?"random":null},
 };
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,f1=v=>v.toFixed(1),pct=v=>Math.round(v*100)+"%";

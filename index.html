@@ -175,6 +175,10 @@ const DPLANS=[
  {k:"early",n:"일찍 앉기",d:"3정거장 안에 착석",star:1,p:15},
  {k:"firm",n:"단단한 하체",d:"경고가 뜬 급정거에 한 번도 밀리지 않기",star:1,p:15},
  {k:"yield",n:"양보 한 번",d:"자리 양보 1회 (앉으면 양보할 일이 반드시 생김)",star:2,p:25},
+ {k:"giveway",n:"먼저 내리세요",d:"내리는 사람 앞에서 A/D로 몸을 돌려 길 터 주기 1회",star:1,p:15},
+ {k:"scan",n:"한 바퀴 훑기",d:"서로 다른 승객 5명을 0.5초 이상 살펴보기",star:1,p:15},
+ {k:"sitarrive",n:"앉아서 도착",d:"종점에 앉은 채로 도착 (배려석 제외)",star:1,p:15},
+ {k:"stamina",n:"체력 관리",d:"체력 50 이상으로 도착",star:1,p:15},
  {k:"asplanned",n:"계획대로 앉기",d:"찜한 자리에 낌새 전 착석 1회",star:2,p:25},
  {k:"quiet",n:"조용한 통근",d:"민폐 게이지 30 이하 유지",star:2,p:25},
  {k:"eye",n:"정확한 눈",d:"찜한 승객이 바로 다음 역에서 하차 1회",star:2,p:25},
@@ -206,7 +210,8 @@ function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const g=G;
   for(const k of["nobump","quiet","firm","nofake"])dpSet(k,true);
   dpSet("planA",g.claimN===1,g.claimN?"":"찜을 하지 않음");
-  for(const k of["asplanned","end","eye","early","stand"])dpSet(k,false);
+  dpSet("sitarrive",!!(g.pl.seat&&!g.pl.seat.pink),"서서 도착");dpSet("stamina",g.stamina>=50,"체력 50 미만");
+  for(const k of["asplanned","end","eye","early","stand","giveway","scan"])dpSet(k,false);
   const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
 }
 const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
@@ -321,7 +326,7 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
-    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,claims:[],claimN:0,eyeHits:0,yieldSeen:false,planPts:0,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
@@ -507,6 +512,7 @@ function standUp(p){
 }
 // 좌석 앞 사람은 내리는 사람을 위해 덜 붐비는 쪽으로 비켜 선다
 function turnBody(s,side){
+  dpSet("giveway",true);
   const P=G.pl;P.turn={s,side};P.turnRel=false;P.screen={s,side};P.face=side>0?0:Math.PI;P.x=s.fx+side*5;P.y=s.fy;P.vx=0;
   for(const q of G.ps)if(q.front===s&&Math.sign(q.x-s.fx)===side){q.hx=s.fx-side*28;q.hy=s.fy;}   // 그쪽에 비켜 있던 앞사람은 반대편으로
   sfx("tick");
@@ -842,6 +848,7 @@ function updateSight(rdt){
   }
   if(mouse.inside)best=hov&&hov.vis>.5&&hov.state!=="gone"?hov:null;
   if(best!==focus){focus=best;focusT=0;}else focusT+=rdt;
+  if(focus&&focusT>=.5&&dpGet("scan")){G.scanned.add(focus.id);if(G.scanned.size>=5)dpSet("scan",true);}
 }
 function drawCone(){
   const P=G.pl,R=sightRange();
@@ -1250,7 +1257,7 @@ function hud(){
   if(sk("excuse"))$("qhelp").style.opacity=g.excuseCd>0?.4:1;
   $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"));
   {const el=$("dplan"),on=mode==="play"&&g.dp.length>0;let h="";
-    if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}</span></div>`).join("");
+    if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="scan"&&d.status==="pending"?" ("+g.scanned.size+"/5)":""}</span></div>`).join("");
     if(el.innerHTML!==h)el.innerHTML=h;el.style.display=on?"block":"none";}
   // 승객 카드
   const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)?focus:null;
