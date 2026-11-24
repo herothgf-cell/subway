@@ -12,7 +12,7 @@ var __bot=(function(){
       dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,eyeN:g.eyeN||0,packHits:g.packHits||0,narrowSat:g.narrowSat||0,sweeps:g.sweeps||0,combo:run.combo||0};
     _endLeg(fail);
     last.dp=(g.dp||[]).map(d=>[d.k,d.status]);last.planPts=g.planPts||0;last.planDone=g.planDone||0;last.planN=g.planN||0;last.combo=run?run.combo:0;
-    last.gained=run?run.points-b:profile.points-pb-b;
+    last.gained=(run?run.points:0)+profile.points-b-pb;   // 금요일 정산으로 run.points가 프로필로 옮겨 가도 같게 센다
   };
   // 계획표: smart는 봇이 지킬 만한 계획만, random은 아무거나 3개 적는다
   function botPickPlans(cfg){
@@ -120,6 +120,7 @@ var __bot=(function(){
           if(pol==="random")k=pick(o);else if(pol==="rest")k=o.slice().sort((a,b)=>cardGain(deck.find(c=>c.k===b),work).sta-cardGain(deck.find(c=>c.k===a),work).sta)[0];
           else if(pol==="quiet"){const q=o.find(x=>{const cc=deck.find(c=>c.k===x);return cc.fx&&cc.fx.crowd;});if(q)k=q;}
           info.card=k;chooseCard(k);}
+        else if(run.day>=5){restWeekend();if(run.week<=maxWeeks)showPlatform();}   // 주말은 쉰다 (04)
         else showPlatform();
       }
     }
