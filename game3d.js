@@ -92,6 +92,7 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
     if(T.habit)T.habit(p3,time,u.k>.5?2:1);
     if(T.key==="sleeper"){if(u.k<.5)p3.eyes("closed");}else p3.eyes(p3.o.eyes||"open");
     if(hn.stage===.5)p3.neck.rotation.y+=Math.sin(time*3+p.ph)*.5;                                            // 고개를 들어 두리번
+    if(p.sens==="edgy"&&hn.stage<.5){const cy=(time+p.ph*2)%5.5;if(cy<1.1)p3.neck.rotation.y+=Math.sin(cy/1.1*Math.PI*2)*.95;}   // 예민한 승객: 가끔 빠르게 좌우를 살핀다
     if(hn.stage>=2){p3.root.position.y+=.05+Math.sin(time*9)*.008;p3.torso.rotation.x+=.18;}                   // 일어서려고 엉덩이를 든다
     u.lx=p.x;u.ly=p.y;if(u.gh>0){u.gh=0;ghost(u,0);}
   }else{
@@ -145,6 +146,16 @@ function overlay(g,time){
   // 보고 있는 승객
   if(focus&&focus.state!=="gone"&&g.ps.includes(focus)){const sx=focus.seat?focus.seat.x:focus.x,sy=focus.seat?focus.seat.y:focus.y,q=proj(X(sx),focus.seat?1.12:1.3,Z(sy));
     if(q){const r=34+Math.sin(time*6)*2;ctx.strokeStyle="rgba(31,42,68,.85)";ctx.lineWidth=3;for(const [a,b] of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.beginPath();ctx.moveTo(q[0]+a*r-a*11,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r-b*11);ctx.stroke();}}}
+  // 시선 눈치: 화면 가운데의 옅은 원이 정면 범위(대략). 정면으로 본 승객 머리 위에 눈 게이지가 차오르고, 원 밖에 두면 곁눈질이다
+  if(typeof GAZE!=="undefined"&&GAZE){
+    ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(W/2,H/2,113,0,TAU);ctx.stroke();ctx.setLineDash([]);
+    for(const p of g.ps){if(p.state!=="seated"||!(p.gz>.05)||(p.vis||0)<.3)continue;const q=proj(X(p.seat.x),1.62,Z(p.seat.y));if(!q)continue;
+      const f=Math.min(1,p.gz/3),hot=p.gz>=1.5,cy=q[1]-4;ctx.lineWidth=6;ctx.strokeStyle="rgba(31,42,68,.4)";ctx.beginPath();ctx.arc(q[0],cy,15,0,TAU);ctx.stroke();
+      ctx.strokeStyle=p.gz>=3?"#E5484D":hot?"#F2B705":"#fff";ctx.beginPath();ctx.arc(q[0],cy,15,-Math.PI/2,-Math.PI/2+TAU*f);ctx.stroke();
+      if(hot){ctx.fillStyle="#fff";ctx.strokeStyle="#1f2a44";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(q[0],cy,9,5.5,0,0,TAU);ctx.fill();ctx.stroke();ctx.fillStyle="#1f2a44";ctx.beginPath();ctx.arc(q[0],cy,3,0,TAU);ctx.fill();}}
+    if(focus&&focus.state==="seated"&&g.ps.includes(focus)&&!stareCenter(focus)){const q=proj(X(focus.seat.x),1.12,Z(focus.seat.y));
+      if(q){ctx.font="800 13px "+FONT;ctx.textAlign="center";ctx.fillStyle="rgba(31,42,68,.85)";ctx.fillText("곁눈질",q[0],q[1]+52);}}
+  }
   // 앉을 수 있는 자리
   const can=!P.seat?nearestFreeSeat():null;
   if(can){const q=proj(X(can.x),.62,Z(can.y));if(q){ctx.fillStyle="#00A84D";ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q[0],q[1],19,0,TAU);ctx.fill();ctx.stroke();

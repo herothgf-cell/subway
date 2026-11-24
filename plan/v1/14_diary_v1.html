@@ -59,7 +59,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </ul>
 
 <h2>3. 사건 목록</h2>
-<p>우선순위 숫자가 작을수록 먼저 고른다. 자주 나오는 사건은 문장 틀 10개, 드문 사건은 3개를 둔다. 사건 18종, 사건 문장 89개, 머리말 12개, 맺음말 14개.</p>
+<p>우선순위 숫자가 작을수록 먼저 고른다. 자주 나오는 사건은 문장 틀 10개, 드문 사건은 3개를 둔다. 사건 20종, 사건 문장 95개, 머리말 12개, 맺음말 15개.</p>
 <div class="tw"><table>
 <tr><th>우선순위</th><th>사건</th><th>기록되는 때</th><th>문장 틀</th></tr>
 <tr><td>1</td><td>탈락: 체력 0</td><td>체력이 바닥난 순간</td><td>3</td></tr>
@@ -77,6 +77,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>4</td><td>페이크에 속음</td><td>페이크 동작 중인 승객을 찜한 순간</td><td>3</td></tr>
 <tr><td>4</td><td>물살 타기</td><td>S등급 환승역을 서서 충돌 없이 지나 출발하는 순간</td><td>3</td></tr>
 <tr><td>4</td><td>찜 없이 착석</td><td>찜하지 않은 빈자리에 앉는 순간</td><td>3</td></tr>
+<tr><td>4</td><td>눈 마주침</td><td>앉은 승객을 정면으로 오래 봐서 눈이 마주친 순간 (07)</td><td>3</td></tr>
+<tr><td>4</td><td>"뭘 보세요?"</td><td>눈이 마주친 뒤에도 계속 봐서 한마디 들은 순간 (07)</td><td>3</td></tr>
 <tr><td>5</td><td>끝까지 서서 감</td><td>도착 때 한 번도 앉지 못했으면</td><td>10</td></tr>
 <tr><td>5</td><td>충돌</td><td>도착 때 충돌이 1회 이상이면 (횟수와 처음 부딪힌 역)</td><td>10</td></tr>
 <tr><td>5</td><td>무충돌</td><td>도착 때 충돌이 0회면</td><td>3</td></tr>
@@ -245,6 +247,18 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li><code>{time}</code>, <code>{st}</code>. 찜하지 않은 자리에 앉았다.</li>
 <li>운이 좋았다. <code>{st}</code>에서 앉았다.</li>
 </ol>
+<h3>눈 마주침 (3개)</h3>
+<ol>
+<li>눈이 마주쳤다. 창밖을 본 척했지만 지하였다.</li>
+<li><code>{arch}</code> 쪽을 너무 오래 봤다. <code>{time}</code>, 눈이 마주쳤다.</li>
+<li><code>{st}</code> 가는 길에 눈이 한 번 마주쳤다. 노선도를 보는 척했다.</li>
+</ol>
+<h3>"뭘 보세요?" (3개)</h3>
+<ol>
+<li>"뭘 보세요?"라는 말을 들었다. 자리를 보고 있었다고는 하지 못했다.</li>
+<li><code>{arch}</code><i>(이/가)</i> 나를 봤다. 내가 먼저 보고 있었기 때문이다.</li>
+<li><code>{time}</code>, 관찰이 관찰당했다. 계획에 없던 대화였다.</li>
+</ol>
 <h3>무충돌 (3개)</h3>
 <ol>
 <li>한 번도 부딪히지 않았다. 사과할 일이 없는 통근이었다.</li>
@@ -252,7 +266,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>아무에게도 닿지 않고 <code>{to}</code>에 도착했다.</li>
 </ol>
 
-<h2>5-3. 맺음말 (14개)</h2>
+<h2>5-3. 맺음말 (15개)</h2>
 <p>그날 가장 아팠던 일 하나에 대한 다짐을 쓴다. 고르는 순서: 탈락 → 쓸려 내림 → 멘붕 → 자리 뺏김 → 계획표 전부 실패 → 페이크에 속음 → 끝까지 서서 감 → 충돌 3회 이상. 잘 풀린 날(계획대로 착석, 계획표 전부 달성, 무충돌 등)에는 서서 간 것이나 충돌 몇 번으로 다짐하지 않는다.</p>
 <div class="tw"><table><tr><th>상황</th><th>문장</th></tr>
 <tr><td>쓸려 내림</td><td>내일은 <code>{st}</code> 전에 문 앞을 비운다.</td></tr>
@@ -261,6 +275,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>자리 뺏김</td><td>내일은 찜한 자리 앞을 먼저 차지한다.</td></tr>
 <tr><td>페이크에 속음</td><td>내일은 손이 아니라 엉덩이가 들리는 것을 본다.</td></tr>
 <tr><td>멘붕</td><td>내일은 지킬 만큼만 적는다.</td></tr>
+<tr><td>"뭘 보세요?"를 들음</td><td>내일은 3초 넘게 보지 않는다.</td></tr>
 <tr><td>계획표 전부 실패</td><td>내일은 지킬 만큼만 적는다.</td></tr>
 <tr><td>탈락 (체력)</td><td>다음 주에 다시 적는다.</td></tr>
 <tr><td>탈락 (민폐)</td><td>다음 주에 다시 적는다.</td></tr>

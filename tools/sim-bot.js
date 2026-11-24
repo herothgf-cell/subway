@@ -9,7 +9,7 @@ var __bot=(function(){
   endLeg=function(fail){
     const b=run.points,pb=profile.points,g=G;
     last={fail:fail||null,stamina:g.stamina,nuis:g.nuis,bumps:g.bumps,seatStops:g.seatStops,planHits:g.planHits,yields:g.yields,st:g.st,
-      dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,sweeps:g.sweeps||0,combo:run.combo||0};
+      dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,eyeN:g.eyeN||0,sweeps:g.sweeps||0,combo:run.combo||0};
     _endLeg(fail);
     last.dp=(g.dp||[]).map(d=>[d.k,d.status]);last.planPts=g.planPts||0;last.planDone=g.planDone||0;last.planN=g.planN||0;last.combo=run?run.combo:0;
     last.gained=run?run.points-b:profile.points-pb-b;
@@ -41,7 +41,7 @@ var __bot=(function(){
     if(P.seat){if(g.yieldEv&&g.yieldEv.active&&cfg.yields&&g.yieldEv.t>1)trySit(null);return;}
     // 시선: 0.35초마다 주변 좌석을 훑는다. 목표가 있으면 절반은 목표를 본다
     st.lookT=(st.lookT||0)-DT;
-    if(st.lookT<=0){st.lookT=cfg.scan;
+    if(st.lookT<=0){st.lookT=(cfg.stare||cfg.scan)*rand(.5,1.5);   // 한 번 볼 때 머무는 시간. 사람처럼 한 곳을 오래 보면 시선 게이지가 쌓인다
       const near=g.seats.filter(s=>hyp(s.x-P.x,s.y-P.y)<300);
       st.look=st.target&&Math.random()<.5?st.target:(near.length?pick(near):null);}
     if(st.look){mouse.inside=true;mouse.x=st.look.x;mouse.y=st.look.y;}else mouse.inside=false;

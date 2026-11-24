@@ -139,7 +139,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
     <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div>
     <div id="bottom">
       <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
-      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지</span>
+      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span><kbd>R</kbd>휴대폰 보는 척</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지</span>
       <span id="planslots"></span>
     </div>
   </div>
@@ -194,6 +194,7 @@ const DPLANS=[
  {k:"quiet",n:"조용한 통근",d:"민폐 게이지 30 이하 유지",star:2,p:25},
  {k:"eye",n:"정확한 눈",d:"찜한 승객이 바로 다음 역에서 하차 1회",star:2,p:25},
  {k:"stand",n:"서서 가기",d:"",star:2,p:25},
+ {k:"unseen",n:"들키지 않기",d:"눈 마주침 0회",star:2,p:25},
  {k:"xfer",n:"환승역 노리기",d:"환승역(사당·교대)에 정차한 동안 빈자리에 착석",star:2,p:25},
  {k:"end",n:"끝자리",d:"끝자리에 착석 (배려석 제외)",star:3,p:40},
  {k:"nobump",n:"무접촉 통근",d:"충돌 0회",star:3,p:40},
@@ -237,7 +238,7 @@ function dpSet(k,ok,why){   // 달성·실패는 확정되는 즉시 알린다
 }
 function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const g=G;
-  for(const k of["nobump","quiet","firm","nofake"])dpSet(k,true);
+  for(const k of["nobump","quiet","firm","nofake","unseen"])dpSet(k,true);
   dpSet("planA",g.claimN===1,g.claimN?"":"찜을 하지 않음");
   dpSet("sitarrive",!!(g.pl.seat&&!g.pl.seat.pink),"서서 도착");dpSet("stamina",g.stamina>=50,"체력 50 미만");
   for(const k of["asplanned","end","eye","early","stand","giveway","scan","xfer"])dpSet(k,false);
@@ -318,6 +319,8 @@ const DIARY={
  fake:{pr:4,t:["{arch}{이} 가방을 챙기길래 찜했다. 립밤을 꺼낸 것이었다.","{st} 앞에서 {arch}의 몸짓에 속았다. 내리지 않았다.","짐을 챙기는 것과 내리는 것은 다른 일이다. 오늘 배웠다."]},
  surf:{pr:4,t:["{st}의 인파를 부딪히지 않고 지나 보냈다.","{st}에서는 통로 안쪽에 서 있었다. 아무 일도 없었다.","{st} 물갈이를 서서 넘겼다. 한 번도 닿지 않았다."]},
  sat:{pr:4,t:["{st}에서 빈자리가 났다. 계획은 아니었지만 앉았다. {time}.","{time}, {st}. 찜하지 않은 자리에 앉았다.","운이 좋았다. {st}에서 앉았다."]},
+ eye:{pr:4,t:["눈이 마주쳤다. 창밖을 본 척했지만 지하였다.","{arch} 쪽을 너무 오래 봤다. {time}, 눈이 마주쳤다.","{st} 가는 길에 눈이 한 번 마주쳤다. 노선도를 보는 척했다."]},
+ caught:{pr:4,t:["\"뭘 보세요?\"라는 말을 들었다. 자리를 보고 있었다고는 하지 못했다.","{arch}{이} 나를 봤다. 내가 먼저 보고 있었기 때문이다.","{time}, 관찰이 관찰당했다. 계획에 없던 대화였다."]},
  nobump:{pr:5,t:["한 번도 부딪히지 않았다. 사과할 일이 없는 통근이었다.","충돌 0회. 틈이 보일 때까지 기다린 보람이 있다.","아무에게도 닿지 않고 {to}에 도착했다."]},
 };
 const DIARY_HEAD={   // 머리말: 요일·출퇴근·출발 시각 뒤에 그날의 변수 한 줄
@@ -328,11 +331,11 @@ const DIARY_HEAD={   // 머리말: 요일·출퇴근·출발 시각 뒤에 그�
 };
 const DIARY_TAIL={   // 맺음말: 그날 가장 아팠던 일에 대한 내일의 다짐. 없으면 good 또는 plain
  swept:["내일은 {st} 전에 문 앞을 비운다."],bump:["내일은 틈이 생길 때까지 기다린다."],stood:["내일은 찜할 사람을 한 정거장 일찍 정한다."],
- stolen:["내일은 찜한 자리 앞을 먼저 차지한다."],fake:["내일은 손이 아니라 엉덩이가 들리는 것을 본다."],melt:["내일은 지킬 만큼만 적는다."],planNone:["내일은 지킬 만큼만 적는다."],
+ stolen:["내일은 찜한 자리 앞을 먼저 차지한다."],fake:["내일은 손이 아니라 엉덩이가 들리는 것을 본다."],melt:["내일은 지킬 만큼만 적는다."],caught:["내일은 3초 넘게 보지 않는다."],planNone:["내일은 지킬 만큼만 적는다."],
  exhaust:["다음 주에 다시 적는다."],nuis:["다음 주에 다시 적는다."],
  good:["내일도 같은 문, 같은 시각.","수정할 계획이 없다.","오늘도 계획대로."],plain:["내일의 계획표는 내일 아침에 적는다.","이만하면 계획의 범위 안이다."],
 };
-const DIARY_BAD=["exhaust","nuis","swept","melt","stolen","planNone","fake","stood","bump"],DIARY_GOOD=["planAll","planned","xferPlanned","nobump"];
+const DIARY_BAD=["exhaust","nuis","swept","melt","stolen","planNone","caught","fake","stood","bump"],DIARY_GOOD=["planAll","planned","xferPlanned","nobump"];
 const CLOCK0={am:7*60+14,pm:18*60+32};   // 가상 시각: 출근 07:14, 퇴근 18:32 출발. 역 사이 2분
 function clock(){const g=G,m=Math.round(CLOCK0[g.legKey]+2*(g.st+(g.phase==="run"?Math.min(1,g.t/T_RUN):0)));return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
 function ev(k,o){const g=G;if(!g||!g.log)return;g.log.push(Object.assign({k,st:g.route[Math.min(g.N,g.st+(g.phase==="run"&&(k==="exhaust"||k==="nuis")?1:0))],time:clock()},o||{}));}
@@ -549,7 +552,7 @@ function makePerson(arch,from){
     shirt:arch==="plain"?pick(["#5d7a99","#7d6f8f","#4f7f73","#946a57","#55606e"]):ARCH[arch].shirt,
     hair:arch==="hiker"||arch==="elder"?"#c9c5bd":pick(HAIR),skin:pick(SKIN),jit:rand(0,.14),tell:pick(TELLS),
     fakeT:0,hx:0,hy:0,wt:rand(1,5),ph:rand(0,TAU),delay:null,step:0,bubble:null,bt:0};
-  assignHints(p);return p;
+  assignHints(p);p.sens=arch==="sleeper"?"asleep":rollSens();p.gz=0;p.caught=0;p.hide=0;return p;
 }
 function freeSpot(zone){
   for(let n=0;n<40;n++){
@@ -569,7 +572,7 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
-    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,cfx:run.fx||{},log:[],bump1:null,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,cfx:run.fx||{},eyeN:0,log:[],bump1:null,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
@@ -743,7 +746,7 @@ function finishRun(why,rows,total){
 function tellAt(p){return ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit;}
 const NOH={stage:0,icon:null,real:false};
 function hint(p){ // 좌석 승객이 지금 보이는 낌새
-  if(p.state!=="seated"||p.rush)return NOH;
+  if(p.state!=="seated"||p.rush||p.hide>0)return NOH;   // 눈이 마주친 승객은 잠시 낌새를 감춘다
   const g=G;
   if(p.dest===g.st&&g.phase==="dwell"&&p.delay!=null)return {stage:2,icon:"stand",real:true};
   if(g.phase!=="run")return NOH;
@@ -1011,7 +1014,7 @@ function update(rdt){
         if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");dpSet("yield",false,"양보하지 않음");}}
     }
   }
-  prompt(g.melt>0&&!pl.seat?"멘붕! 가만히 서서 심호흡 "+Math.max(0,3-g.breath).toFixed(1)+"초 (또는 자리에 앉기)":g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":null);
+  prompt(g.melt>0&&!pl.seat?"멘붕! 가만히 서서 심호흡 "+Math.max(0,3-g.breath).toFixed(1)+"초 (또는 자리에 앉기)":g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":pl.phone?"휴대폰 보는 척 (눈에 덜 띄지만 시야가 좁고 걸음이 느립니다)":null);
   // 플레이어
   let touching=false;
   if(!pl.seat){
@@ -1021,7 +1024,7 @@ function update(rdt){
     if(pl.brace)ix=iy=0;
     if(pl.turn){if(!keys.KeyA&&!keys.KeyD&&!keys.KeyW&&!keys.KeyS)pl.turnRel=true;
       if(!pl.turnRel)ix=iy=0;else if(ix||iy){pl.turn=null;pl.screen=null;}}
-    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1),ik=g.cfx.tipsy?Math.min(1,rdt*4):1;   // 회식 뒤에는 걸음에 관성이 붙는다
+    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1)*(pl.phone?.7:1),ik=g.cfx.tipsy?Math.min(1,rdt*4):1;   // 회식 뒤에는 걸음에 관성이 붙는다
     pl.wx=(pl.wx||0)+(ix/m*sp-(pl.wx||0))*ik;pl.wy=(pl.wy||0)+(iy/m*sp-(pl.wy||0))*ik;
     const mvx=pl.wx+pl.vx,mvy=pl.wy;
     pl.vx*=Math.pow(.012,rdt);if(Math.abs(pl.vx)<3)pl.vx=0;
@@ -1077,7 +1080,8 @@ function update(rdt){
   if(pl.screen){const s=pl.screen.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>46||Math.abs(pl.y-s.fy)>30)pl.screen=null;}
   if(!pl.screen&&!pl.seat)for(const s of g.seats){   // 내리는 사람이 있는 좌석 옆 앞줄에 서 있으면 자동으로 그쪽을 막는다
     const dx=pl.x-s.fx;if(s.exiting&&Math.abs(dx)>=8&&Math.abs(dx)<46&&Math.abs(pl.y-s.fy)<22){pl.screen={s,side:Math.sign(dx)};break;}}
-  updateGaze(rdt);updateSight(rdt);
+  pl.phone=!!keys.KeyR;   // 휴대폰 보는 척: 게이지 ×0.3, 시야각 -50%, 이동 -30%
+  updateGaze(rdt);updateSight(rdt);updateStare(rdt);
   if(!touching&&!(pl.seat&&pl.seat.pink)&&!(g.yieldEv&&g.yieldEv.active))g.nuis=Math.max(0,g.nuis-1.3*rdt);
   if(pl.bt>0){pl.bt-=rdt;if(pl.bt<=0)pl.bubble=null;}
   for(let i=g.fx.length-1;i>=0;i--){g.fx[i].t+=rdt;if(g.fx[i].t>1.3)g.fx.splice(i,1);}
@@ -1100,7 +1104,7 @@ function update(rdt){
 }
 /* ========== 시야 ========== */
 // 마우스가 가리키는 쪽을 본다. 방향키로도 돌릴 수 있다(2초 유지).
-const sightHalf=()=>SIGHT_HALF*(G&&G.melt>0?.6:1);   // 멘붕 중에는 시야각 -40%
+const sightHalf=()=>SIGHT_HALF*(G&&G.melt>0?.6:1)*(G&&G.pl.phone?.5:1);   // 멘붕 중에는 시야각 -40%
 const SIGHT_HALF=.7;                                    // 시야 반각 (약 40도)
 function sightRange(){return 300+25*sk("obs");}
 function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d;}
@@ -1128,6 +1132,26 @@ function seesRaw(p){
   return !blocked(P.x,P.y,p.x,p.y,p);
 }
 let focus=null,focusT=0;
+/* ========== 시선 눈치 (추가 기획서 07) ========== */
+// 앉은 승객을 정면(시야 가운데 1/3)으로 오래 보면 시선 게이지가 쌓여 눈이 마주친다. 가장자리에 두는 곁눈질은 쌓이지 않는다.
+let GAZE=true;   // 시뮬레이션에서 규칙을 끄고 비교할 때 쓴다
+const SENS_MUL={calm:.6,normal:1,edgy:1.6,asleep:0};   // 무던함, 보통, 예민함, 잠듦
+function rollSens(){const r=Math.random(),w=G&&G.L<1?[.5,.9]:[.33,.83];return r<w[0]?"calm":r<w[1]?"normal":"edgy";}   // 월요일 출근은 무던한 쪽으로
+function stareCenter(p){const P=G.pl;return !!p&&p.state==="seated"&&(p.vis||0)>.6&&Math.abs(angDiff(Math.atan2(p.y-P.y,p.x-P.x),P.gaze))<SIGHT_HALF/3;}
+function updateStare(rdt){
+  const g=G,P=g.pl,tgt=GAZE&&stareCenter(focus)?focus:null;
+  for(const p of g.ps){
+    if(p.hide>0)p.hide-=rdt;
+    if(p!==tgt){if(p.gz>0){p.gz=Math.max(0,p.gz-.5*rdt);if(p.gz<1)p.caught=0;}p.pk=0;continue;}   // 시선을 떼면 초당 0.5씩 줄어든다
+    const peeking=p.peek&&!p.known&&hyp(p.x-P.x,p.y-P.y)<=120;   // 어깨너머 화면: 가까이서 2초 연속 주시, 그동안 게이지 2배
+    if(peeking){p.pk=(p.pk||0)+rdt;if(p.pk>=2)p.known=true;}else p.pk=0;
+    p.gz=Math.min(6,p.gz+SENS_MUL[p.sens]*(p.touchy?1.6:1)*(P.phone?.3:1)*(peeking?2:1)*rdt);
+    if(p.gz>=3&&p.caught<1){p.caught=1;p.hide=5;g.eyeN++;const n=(peeking?20:4)*(1-.2*sk("face"));g.nuis+=n;if(peeking)p.pk=0;   // 눈이 마주침: 낌새가 5초 가려진다
+      say(p,pick(["…","(자세를 고쳐 앉는다)","(헛기침)"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"눈 마주침 · 민폐 +"+Math.round(n)});sfx("bump");ev("eye",{arch:p.arch});dpSet("unseen",false,"눈이 마주침");}
+    if(p.gz>=4.5&&p.caught<2){p.caught=2;p.touchy=true;const n=12*(1-.2*sk("face"));g.nuis+=n;   // 이 승객은 통근 내내 예민해진다
+      say(p,"…뭘 보세요?");p.bt=2.4;g.fx.push({x:P.x,y:P.y-26,t:0,txt:"민폐 +"+Math.round(n)});sfx("bad");ev("caught",{arch:p.arch});}
+  }
+}
 function updateSight(rdt){
   const P=G.pl;let best=null,bs=1e9;
   const hov=mouse.inside?personAt(mouse.x,mouse.y):null;   // 마우스로 가리킨 사람이 보이면 그 사람을 본다
@@ -1149,6 +1173,7 @@ function drawCone(){
   const top=view==="q"?CAR.y-WALL+6:CAR.y;
   ctx.save();ctx.beginPath();ctx.rect(CAR.x,top,CAR.w,CAR.y+CAR.h-top);ctx.clip();   // 객차 안쪽만
   ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R,P.gaze-sightHalf(),P.gaze+sightHalf());ctx.closePath();ctx.fill();
+  if(GAZE){ctx.fillStyle="rgba(255,236,150,.16)";ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R,P.gaze-SIGHT_HALF/3,P.gaze+SIGHT_HALF/3);ctx.closePath();ctx.fill();}   // 가운데 1/3: 여기 든 승객은 게이지가 오른다
   ctx.restore();
 }
 function drawFocus(time,q){ // 보고 있는 승객 표시
@@ -1156,6 +1181,9 @@ function drawFocus(time,q){ // 보고 있는 승객 표시
   ctx.strokeStyle="#14181c";ctx.lineWidth=2.5;
   for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const cx=p.x+sx*(r+k),cy=y+sy*(r+k);
     ctx.beginPath();ctx.moveTo(cx-sx*8,cy);ctx.lineTo(cx,cy);ctx.lineTo(cx,cy-sy*8);ctx.stroke();}
+  for(const o of G.ps){if(o.state!=="seated"||!(o.gz>.05)||(o.vis||0)<.3)continue;   // 시선 게이지
+    const f=Math.min(1,o.gz/3),gy=o.seat.side==="top"?o.y-30:o.y+30;ctx.lineWidth=4;ctx.strokeStyle="rgba(20,24,28,.25)";ctx.beginPath();ctx.arc(o.x,gy,8,0,TAU);ctx.stroke();
+    ctx.strokeStyle=o.gz>=3?"#E5484D":o.gz>=1.5?"#F2B705":"#fff";ctx.beginPath();ctx.arc(o.x,gy,8,-Math.PI/2,-Math.PI/2+TAU*f);ctx.stroke();}
 }
 function steer(p,tx,ty,sp,dt,movers,sep){
   let dx=tx-p.x,dy=ty-p.y,d=hyp(dx,dy),vx=0,vy=0;
@@ -1553,15 +1581,15 @@ function hud(){
     if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="scan"&&d.status==="pending"?" ("+g.scanned.size+"/5)":""}</span></div>`).join("");
     if(el.innerHTML!==h)el.innerHTML=h;el.style.display=on?"block":"none";}
   // 승객 카드
-  const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)?focus:null;
+  const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)&&(!GAZE||focus.state!=="seated"||stareCenter(focus))?focus:null;   // 곁눈질로는 차림새 카드가 뜨지 않는다
   if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
   if(o>=1){const l=likelyStops(p);h+=`<div class="hint">이런 차림은 보통: ${l||"한참 더 감"}</div>`;}
   // 낌새와 하는 일은 카드에 쓰지 않는다. 승객의 몸짓을 직접 보고 판단
   if(p.peek&&p.state==="seated"){
-    if(hyp(p.x-g.pl.x,p.y-g.pl.y)>120)h+=`<div class="peek">휴대폰을 보고 있다. 더 가까이 가면 화면이 보일 것 같다.</div>`;
-    else if(focusT<.9)h+=`<div class="peek">어깨너머로 화면을 보는 중…</div>`;
-    else h+=`<div class="peek">화면: ${p.dest===99?"웹툰 정주행 중. 내릴 기색이 없다.":"‘"+g.route[p.dest]+"역 출구’ 검색 중."}</div>`;
+    if(p.known)h+=`<div class="peek">화면: ${p.dest===99?"웹툰 정주행 중. 내릴 기색이 없다.":"‘"+g.route[p.dest]+"역 출구’ 검색 중."}</div>`;
+    else if(hyp(p.x-g.pl.x,p.y-g.pl.y)>120)h+=`<div class="peek">휴대폰을 보고 있다. 더 가까이 가면 화면이 보일 것 같다.</div>`;
+    else h+=`<div class="peek">어깨너머로 화면을 보는 중… ${Math.max(0,2-(p.pk||0)).toFixed(1)}초 (들키면 민폐 +20)</div>`;
   }
   if(o>=3&&p.state==="seated"&&p.dest>g.st&&p.dest-g.st<=2)h+=`<div class="hint">곧 내릴 것 같다</div>`;
   if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act">클릭 또는 <kbd>F</kbd> ${g.plans.some(x=>x.seat===p.seat)?"찜 취소":"이 자리 찜하기"}</div>`;
