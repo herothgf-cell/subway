@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>인트로 시안 · 계획대로, 2호선</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+:root{--line:#00A84D;--line-d:#007a38;--ink:#14181c;--paper:#F3F0E8;--card:#fffdf7;--mute:#7b8187;--hl:#fff27a;--red:#E5484D;
+  --font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;--hand:"Nanum Pen Script",cursive}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--font);padding:20px 16px 32px}
+.wrap{max-width:1040px;margin:0 auto}
+h1{font-size:22px;margin:0 0 4px}h1 span{color:var(--line)}
+.sub{color:#b9bcbf;font-size:13.5px;line-height:1.55;margin:0 0 14px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+button,select{font-family:inherit;font-weight:800;font-size:13px;border:2px solid #3a4148;background:#20262c;color:var(--paper);border-radius:9px;padding:7px 12px;cursor:pointer}
+button.on{background:var(--line);border-color:var(--line);color:#fff}
+.sp{flex:1}
+/* 무대 16:9 */
+.stage{position:relative;aspect-ratio:16/9;width:100%;border-radius:14px;overflow:hidden;background:#000;cursor:pointer;user-select:none;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.cut{position:absolute;inset:0;opacity:0;transition:opacity .45s;pointer-events:none}
+.cut.on{opacity:1;pointer-events:auto}
+.cap{position:absolute;left:0;right:0;bottom:7%;text-align:center;font-size:clamp(16px,2.6vw,28px);font-weight:800;letter-spacing:-.5px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.hint{position:absolute;right:14px;bottom:10px;font-size:11.5px;color:rgba(255,255,255,.55)}
+.no{position:absolute;left:14px;top:10px;font-size:12px;font-weight:800;background:rgba(0,0,0,.45);border-radius:6px;padding:3px 8px}
+/* ① 알람 */
+#c1{background:radial-gradient(ellipse at 50% 70%,#1b2330 0%,#07090c 70%)}
+.phone{position:absolute;left:50%;top:50%;width:18%;aspect-ratio:9/17;transform:translate(-50%,-50%) rotate(-8deg);background:#0c0f14;border:3px solid #2a3240;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6%}
+.phone .t{font-size:clamp(20px,4.2vw,46px);font-weight:900;color:#e9f1ff;letter-spacing:-1px}
+.phone .a{font-size:clamp(9px,1.2vw,13px);color:#8fa3bf}
+.phone .off{width:56%;padding:5% 0;border-radius:999px;background:#E5484D;color:#fff;font-weight:800;font-size:clamp(9px,1.2vw,13px);text-align:center}
+.hand{position:absolute;left:62%;top:60%;width:16%;height:22%;background:#e8b98f;border-radius:40% 40% 30% 30%;border:3px solid #14181c;transform:rotate(-30deg);transition:left .6s ease-in,top .6s ease-in}
+#c1.on .hand{animation:press 3s forwards}
+@keyframes press{0%{left:70%;top:72%}55%{left:50%;top:55%}100%{left:50%;top:55%}}
+#c1.on .phone .off{animation:offbtn 3s forwards}@keyframes offbtn{0%,54%{background:#E5484D}56%,100%{background:#3a4148}}
+#c1.on .phone .t{animation:dim 3s forwards}@keyframes dim{0%,56%{opacity:1}100%{opacity:.25}}
+.zz{position:absolute;left:12%;top:20%;font-size:13px;color:#56627a;line-height:1.6}
+/* ② 플래너 */
+#c2{background:#efe6d2}
+.planner{position:absolute;left:12%;top:8%;width:76%;height:84%;background:#fffdf3;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.25);
+  background-image:repeating-linear-gradient(#fffdf3 0 calc(9.5% - 2px),#c9dbe8 calc(9.5% - 2px) 9.5%);padding:3% 5% 3% 12%;font-family:var(--hand);color:#1f2a44}
+.planner:before{content:"";position:absolute;left:8%;top:0;bottom:0;width:2px;background:#f0a0a0}
+.planner h3{margin:0 0 1%;font-size:clamp(20px,3.4vw,38px);font-weight:400}
+.planner .row{font-size:clamp(17px,2.7vw,31px);line-height:1.62;white-space:nowrap}
+.planner .row b{font-weight:400;display:inline-block;width:5.2em}
+.planner .mk{background:linear-gradient(transparent 55%,var(--hl) 55%);background-size:0 100%;background-repeat:no-repeat}
+#c2.on .planner .mk{animation:mark 1.1s 1.2s forwards}@keyframes mark{to{background-size:100% 100%}}
+.planner .say{position:absolute;right:6%;bottom:8%;font-size:clamp(22px,3.6vw,42px);color:var(--line-d);transform:rotate(-4deg)}
+/* ③ 승강장 + 타이틀 */
+#c3,#t0{background:linear-gradient(#2a3038 0 18%,#c8cdd2 18% 70%,#8b9097 70%)}
+.psd{position:absolute;left:4%;right:4%;top:22%;height:46%;display:flex;gap:2%}
+.psd i{flex:1;border:4px solid #5c646d;background:rgba(160,200,230,.35);border-radius:4px;position:relative;overflow:hidden}
+.train{position:absolute;top:24%;height:42%;width:140%;left:110%;background:linear-gradient(#e9edf0 0 70%,#00A84D 70% 82%,#e9edf0 82%);border-radius:10px;
+  background-image:repeating-linear-gradient(90deg,transparent 0 6%,#2a3a48 6% 13%,transparent 13% 16%);mix-blend-mode:normal;opacity:.95}
+.train:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 0 68%,#00A84D 68% 80%,transparent 80%)}
+#c3.on .train{animation:arrive 3.6s cubic-bezier(.2,.7,.3,1) forwards}@keyframes arrive{from{left:110%}to{left:-20%}}
+#t0.on .train{animation:pass 7s linear infinite}@keyframes pass{0%{left:110%}45%,100%{left:-150%}}
+.led{position:absolute;left:30%;right:30%;top:5%;height:9%;background:#0b0d10;border:3px solid #3a4148;border-radius:6px;overflow:hidden;display:flex;align-items:center}
+.led span{white-space:nowrap;color:#ffb22e;font-weight:800;font-size:clamp(11px,1.7vw,19px);padding-left:100%;animation:scroll 6s linear infinite}
+@keyframes scroll{to{transform:translateX(-100%)}}
+.queue{position:absolute;left:6%;right:6%;bottom:10%;height:18%;display:flex;justify-content:space-around;align-items:flex-end}
+.queue b{width:3.4%;height:85%;border-radius:40% 40% 10% 10%;background:var(--c);border:2px solid #14181c}
+.logo{position:absolute;left:0;right:0;top:36%;text-align:center;font-size:clamp(30px,6.4vw,74px);font-weight:900;color:var(--ink);letter-spacing:-2px;opacity:0;text-shadow:0 3px 0 #fff}
+.logo span{color:var(--line)}
+#c3.on .logo{animation:logo 4s forwards}@keyframes logo{0%,55%{opacity:0;transform:scale(.96)}75%,100%{opacity:1;transform:scale(1)}}
+/* ④ 문 열림 */
+#c4{background:#20262c}
+.car{position:absolute;inset:8% 10% 14%;background:#c7d4dd;border-radius:8px;overflow:hidden}
+.crowd{position:absolute;inset:0;display:flex;flex-wrap:wrap;align-content:flex-end;justify-content:center;gap:1%;padding:3%}
+.crowd b{width:7.4%;aspect-ratio:1/2.1;border-radius:45% 45% 12% 12%;background:var(--c);border:2px solid #14181c}
+.dl,.dr{position:absolute;top:0;bottom:0;width:50%;background:#dfe6ea;border:4px solid #8b949d;z-index:2}
+.dl{left:0}.dr{right:0}
+#c4.on .dl{animation:dl 1.2s .2s forwards}#c4.on .dr{animation:dr 1.2s .2s forwards}
+@keyframes dl{to{transform:translateX(-96%)}}@keyframes dr{to{transform:translateX(96%)}}
+.memo{position:absolute;right:5%;top:8%;width:28%;background:#fffdf3;transform:rotate(3deg);border-radius:4px;padding:2% 3%;font-family:var(--hand);color:#1f2a44;font-size:clamp(18px,2.6vw,30px);z-index:3;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.memo .crack{position:relative;display:inline-block}
+.memo .crack:after{content:"";position:absolute;left:-4%;right:-4%;top:50%;height:3px;background:var(--red);transform:scaleX(0);transform-origin:left;}
+#c4.on .memo .crack:after{animation:crack .5s 1.6s forwards}@keyframes crack{to{transform:scaleX(1) rotate(-3deg)}}
+/* ⑤ 캐릭터 선택 */
+#c5{background:var(--paper);color:var(--ink)}
+#c5 h2{position:absolute;left:0;right:0;top:6%;margin:0;text-align:center;font-size:clamp(16px,2.6vw,28px)}
+.ids{position:absolute;left:5%;right:5%;top:20%;bottom:8%;display:flex;gap:2%}
+.idc{flex:1;background:var(--card);border:3px solid #d8dcd8;border-radius:12px;padding:3% 2.5%;display:flex;flex-direction:column;gap:4%;font-size:clamp(9px,1.15vw,13px);position:relative}
+.idc:before{content:"";position:absolute;left:50%;top:-6%;width:14%;height:9%;margin-left:-7%;background:#8b949d;border-radius:3px}
+.idc.on{border-color:var(--line);box-shadow:0 0 0 3px var(--line)}
+.idc .ph{width:44%;aspect-ratio:4/5;border-radius:8px;align-self:center;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:clamp(16px,3vw,34px)}
+.idc b{font-size:clamp(12px,1.7vw,19px)}.idc .st{color:#c9a227}
+.idc.lock{opacity:.5}.idc.lock .ph{background:#9aa0a6!important}
+/* 타이틀 메뉴 */
+.sign{position:absolute;left:50%;top:30%;transform:translateX(-50%);background:#fff;border:4px solid #14181c;border-radius:10px;padding:1.4% 2.4%;display:flex;flex-direction:column;align-items:center;gap:.4em;min-width:36%;z-index:2}
+.sign .nm{font-size:clamp(18px,3.4vw,40px);font-weight:900;color:var(--ink);letter-spacing:-1px}.sign .nm span{color:var(--line)}
+.sign .menu{display:flex;flex-wrap:wrap;gap:.4em;justify-content:center}
+.sign .menu i{font-style:normal;background:var(--line);color:#fff;border-radius:999px;padding:.25em .9em;font-weight:800;font-size:clamp(10px,1.4vw,15px)}
+.sign .menu i.sec{background:#3a4148}
+/* 노트 */
+.notes{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:760px){.notes{grid-template-columns:1fr}}
+.box{background:#1d2328;border:1px solid #333b43;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.6}
+.box h3{margin:0 0 6px;font-size:14.5px;color:#fff}.box ul{margin:4px 0;padding-left:18px}.box li{margin:2px 0}
+.box .k{color:#ffb22e;font-weight:800}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #333b43;padding:5px 6px;text-align:left;vertical-align:top}th{color:#9aa3ab;font-weight:700}
+tr.cur td{background:#24303a}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>인트로 시안 <span>· 01</span></h1>
+<p class="sub">컷 ①~⑤와 타이틀 화면을 이어 붙인 클릭형 스토리보드입니다. 게임 코드와 분리된 단독 파일이고, 확인용입니다. 화면을 클릭하거나 아무 키(→, Space)나 누르면 다음 컷으로 넘어갑니다. "자동 재생"은 기획서의 컷 길이대로 넘깁니다.</p>
+<div class="bar">
+ <div class="chips" id="chips"></div><span class="sp"></span>
+ <label style="font-size:13px;font-weight:700">캐릭터 <select id="who"><option value="han">한계획</option><option value="oh">오신입</option><option value="yu">유감각</option><option value="jung">정부장</option></select></label>
+ <button id="auto">자동 재생</button><button id="again">두 번째 실행 보기</button>
+</div>
+
+<div class="stage" id="stage">
+ <!-- ① 알람 -->
+ <div class="cut" id="c1"><div class="no">① 알람 · 3초</div>
+  <div class="zz">새벽.<br>방은 아직 어둡다.</div>
+  <div class="phone"><div class="t" id="alarmT">06:30</div><div class="a">알람 · 출근</div><div class="off">끄기</div></div>
+  <div class="hand"></div>
+  <div class="cap" style="color:#7b8187;font-size:14px;font-weight:600">(무음) 알람이 울리기 1초 전에 손이 먼저 끈다</div></div>
+ <!-- ② 플래너 -->
+ <div class="cut" id="c2"><div class="no" style="color:#fff">② 플래너 · 5초</div>
+  <div class="planner"><h3 id="pDate">11월 24일 (월)</h3><div id="pRows"></div><div class="say">"오늘도 계획대로."</div></div></div>
+ <!-- ③ 승강장 -->
+ <div class="cut" id="c3"><div class="no">③ 승강장 · 4초</div>
+  <div class="led"><span id="ledTxt">이번 열차  신림  ·  강남 방면  ·  계획대로, 2호선</span></div>
+  <div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
+  <div class="queue" id="q1"></div>
+  <div class="logo">계획대로<span>,</span> 2호선</div></div>
+ <!-- ④ 문 열림 -->
+ <div class="cut" id="c4"><div class="no">④ 문 열림 · 3초</div>
+  <div class="car"><div class="crowd" id="crowd"></div><div class="dl"></div><div class="dr"></div></div>
+  <div class="memo" id="memo"></div>
+  <div class="cap">"…계획에 없던 인파다."</div></div>
+ <!-- ⑤ 캐릭터 선택 -->
+ <div class="cut" id="c5"><div class="no" style="color:#fff">⑤ 캐릭터 선택 · 조작</div>
+  <h2>누구의 출근길인가요?</h2><div class="ids" id="ids"></div></div>
+ <!-- 타이틀 -->
+ <div class="cut" id="t0"><div class="no">타이틀 화면 · 대기</div>
+  <div class="led"><span>최장 개근 3주차 · 한계획 · 다음 열차 곧 도착 · 승강장과 열차 사이가 넓으니 발밑을 조심하세요</span></div>
+  <div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
+  <div class="sign"><div class="nm">계획대로<span>,</span> 2호선</div><div class="menu"><i>출근하기 (이어하기)</i><i class="sec">새 주 시작</i><i class="sec">캐릭터</i><i class="sec">스킬</i><i class="sec">기록</i></div></div>
+  <div class="queue" id="q2"></div></div>
+ <div class="hint">클릭 또는 아무 키 → 다음</div>
+</div>
+
+<div class="notes">
+ <div class="box"><h3 id="nTitle"></h3><div id="nBody"></div></div>
+ <div class="box"><h3>흐름 한눈에</h3><table id="flow"></table>
+  <p style="margin:8px 0 0;color:#9aa3ab">두 번째 실행부터는 ③ 타이틀(로고가 흐르는 승강장)만 보여 주고 바로 타이틀 화면으로 갑니다. ⑤ 뒤에는 1주차 월요일 출근(튜토리얼)으로 끊김 없이 이어집니다.</p></div>
+</div>
+<div class="box" style="margin-top:12px"><h3>정해 주셨으면 하는 것 (01 미결 사항)</h3>
+ <ul>
+  <li><span class="k">연출 방식</span>: 이 시안처럼 <b>정지 그림 + 간단한 움직임</b>(손이 알람을 끔, 형광펜, 열차 진입, 문 열림)으로 충분한지, 게임의 3D 화면을 그대로 쓸지. 시안 쪽이 만들기 쉽고 첫 로딩이 가볍습니다. 3D는 실제 게임과 이어지는 느낌이 큽니다.</li>
+  <li><span class="k">효과음·안내방송</span>: 제안은 ① 무음(알람 진동 소리만 아주 짧게), ③ 열차 진입음 + "이번 열차는 강남 방면…" 안내방송 한 줄, ④ 문 열림 소리. 나머지는 무음.</li>
+  <li><span class="k">문구·길이</span>: 각 컷의 대사와 길이(3·5·4·3초)가 괜찮은지, 바꿀 문구가 있는지.</li>
+ </ul></div>
+</div>
+
+<script>
+const CH={
+ han:{n:"한계획",job:"마케팅팀 대리",home:"신림",work:"강남",dir:"강남 방면",door:"3-2",c:"#2fbf71",t:["06:30","07:12","07:14","07:16"],seat:"서울대입구 과잠 앞"},
+ oh:{n:"오신입",job:"개발팀 신입",home:"구로디지털단지",work:"역삼",dir:"신림 방면",door:"6-1",c:"#4a7fd6",t:["06:20","07:05","07:07","07:13"],seat:"신림에서 내리는 사람 앞"},
+ yu:{n:"유감각",job:"디자이너",home:"합정",work:"시청",dir:"시청 방면",door:"2-4",c:"#e8843c",t:["07:40","08:21","08:23","08:24"],seat:"홍대입구 캐리어 옆"},
+ jung:{n:"정부장",job:"영업부장",home:"잠실",work:"시청",dir:"성수 방면",door:"8-3",c:"#3b3f46",t:["05:50","06:40","06:42","06:51"],seat:"건대입구 정장 앞"},
+};
+const CUTS=[
+ {id:"c1",n:"① 알람",len:3,title:"① 알람 (3초, 무음)",body:"<ul><li>어두운 방, 휴대폰 알람. 알람이 울리기 1초 전에 손이 먼저 끈다.</li><li>설명 없이 \"알람보다 먼저 일어나는 사람\"으로 J 성격을 보여 준다.</li><li>시각은 캐릭터마다 다르다 (위 선택 상자로 바꿔 보기).</li></ul>"},
+ {id:"c2",n:"② 플래너",len:5,title:"② 플래너 (5초)",body:"<ul><li>분 단위 다이어리. 기상 → 승강장 → 탑승 → 착석. <b>착석</b> 줄에 형광펜이 그어진다.</li><li>대사: \"오늘도 계획대로.\"</li><li>손글씨는 출근 일기(14)와 같은 글꼴.</li></ul>"},
+ {id:"c3",n:"③ 승강장",len:4,title:"③ 승강장 (4초)",body:"<ul><li>줄 선 사람들, 열차가 들어오며 전광판에 타이틀이 흐르고 로고가 뜬다.</li><li>두 번째 실행부터는 이 컷만 보여 주고 타이틀 화면으로 간다.</li></ul>"},
+ {id:"c4",n:"④ 문 열림",len:3,title:"④ 문 열림 (3초)",body:"<ul><li>문이 열리면 꽉 찬 객차. 플래너 쪽지의 <b>착석</b> 줄에 빨간 금이 간다.</li><li>대사: \"…계획에 없던 인파다.\"</li><li>여기서 게임의 목표(계획한 자리에 앉기)와 위기(서서 가면 하루가 무너짐)를 함께 보여 준다.</li></ul>"},
+ {id:"c5",n:"⑤ 캐릭터",len:0,title:"⑤ 캐릭터 선택 (조작)",body:"<ul><li>게임의 사원증 카드 선택 화면(02)과 같은 모양. 처음에는 한계획만 열려 있다.</li><li>고르면 1주차 월요일 출근(튜토리얼)으로 바로 이어진다.</li></ul>"},
+ {id:"t0",n:"타이틀",len:0,title:"타이틀 화면",body:"<ul><li>스크린도어 너머로 열차가 주기적으로 지나간다. 역명판이 메뉴.</li><li>메뉴: 출근하기(이어하기) / 새 주 시작 / 캐릭터 / 스킬 / 기록.</li><li>도착 안내 전광판에 최고 기록(최장 개근 주차)이 흐른다.</li></ul>"},
+];
+let cur=0,auto=false,timer=null,second=false;
+const $=id=>document.getElementById(id);
+const hues=["#5d7a99","#3b3f46","#d0562b","#27408b","#7a4fa3","#c9a227","#2f6f5e","#946a57","#8a8f98","#55606e"];
+function people(el,n,h){el.innerHTML=Array.from({length:n},(_,i)=>`<b style="--c:${hues[(i*7+3)%hues.length]};${h?`height:${60+((i*37)%40)}%`:""}"></b>`).join("");}
+function fill(){
+ const c=CH[$("who").value];
+ $("alarmT").textContent=c.t[0];
+ const rows=[[c.t[0],"기상"],[c.t[1],c.home+"역 "+c.door+" 승강장"],[c.t[2],"탑승 ("+c.dir+")"],[c.t[3],"착석 · "+c.seat,true],["",c.work+" 도착 → 커피"]];
+ $("pRows").innerHTML=rows.map(r=>`<div class="row"><b>${r[0]}</b><span class="${r[2]?"mk":""}">${r[1]}</span></div>`).join("");
+ $("ledTxt").textContent=`이번 열차  ${c.home}  ·  ${c.dir}  ·  계획대로, 2호선`;
+ $("memo").innerHTML=`${c.t[2]} 탑승 ✔<br><span class="crack">${c.t[3]} 착석</span>`;
+ $("ids").innerHTML=Object.entries(CH).map(([k,v],i)=>`<div class="idc${k===$("who").value?" on":""}${i&&k!==$("who").value?" lock":""}"><div class="ph" style="background:${v.c}">${i&&k!==$("who").value?"?":v.n[0]}</div><b>${i&&k!==$("who").value?"잠김":v.n}</b><span>${i&&k!==$("who").value?["","한 주 개근 1회","‘계획대로!’ 30회","4주차 도달"][i]:v.job}</span><span>${v.home} → ${v.work}</span><span class="st">${"★".repeat([1,2,2,3][i])}</span></div>`).join("");
+}
+function show(i){
+ cur=(i+CUTS.length)%CUTS.length;
+ document.querySelectorAll(".cut").forEach(e=>e.classList.remove("on"));
+ const el=$(CUTS[cur].id);void el.offsetWidth;el.classList.add("on");
+ // 애니메이션 다시 재생
+ el.querySelectorAll("*").forEach(x=>{x.style.animation="none";void x.offsetWidth;x.style.animation="";});
+ $("chips").querySelectorAll("button").forEach((b,k)=>b.classList.toggle("on",k===cur));
+ $("nTitle").textContent=CUTS[cur].title;$("nBody").innerHTML=CUTS[cur].body;
+ $("flow").querySelectorAll("tr").forEach((r,k)=>r.classList.toggle("cur",k-1===cur));
+ clearTimeout(timer);if(auto&&CUTS[cur].len)timer=setTimeout(()=>next(),CUTS[cur].len*1000);
+}
+function next(){if(second&&cur===2){show(5);return;}show(cur+1);}
+$("chips").innerHTML=CUTS.map((c,i)=>`<button data-i="${i}">${c.n}</button>`).join("");
+$("chips").querySelectorAll("button").forEach(b=>b.onclick=e=>{e.stopPropagation();second=false;show(+b.dataset.i);});
+$("flow").innerHTML="<tr><th>컷</th><th>길이</th><th>문구</th></tr>"+CUTS.map(c=>`<tr><td>${c.n}</td><td>${c.len?c.len+"초":"조작"}</td><td>${{c1:"(무음)",c2:"\"오늘도 계획대로.\"",c3:"계획대로, 2호선",c4:"\"…계획에 없던 인파다.\"",c5:"누구의 출근길인가요?",t0:"메뉴"}[c.id]}</td></tr>`).join("");
+$("stage").onclick=next;
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;if(e.key==="ArrowLeft")show(cur-1);else{e.preventDefault();next();}});
+$("who").onchange=()=>{fill();show(cur);};
+$("auto").onclick=e=>{e.stopPropagation();auto=!auto;$("auto").classList.toggle("on",auto);show(cur);};
+$("again").onclick=e=>{e.stopPropagation();second=true;show(2);};
+people($("q1"),16,true);people($("q2"),12,true);people($("crowd"),36,false);
+fill();show(0);
+</script>
+</body>
+</html>
