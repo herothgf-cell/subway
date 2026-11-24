@@ -185,7 +185,28 @@ let profile=loadProfile();
 const sk=k=>profile.skills[k]||0;
 
 /* ========== 데이터 ========== */
-const STATIONS=["신림","봉천","서울대입구","낙성대","사당","방배","서초","교대","강남"];
+const STATIONS=["신림","봉천","서울대입구","낙성대","사당","방배","서초","교대","강남"];   // 한계획 구간 (승객 가중치의 기준 구간)
+/* ========== 2호선 순환선 (추가 기획서 03). 내선 순서. 지선(성수·신정)은 넣지 않는다. 역 이름·환승 정보는 최종 검수 필요 ========== */
+// tr: 환승 노선, grade: 환승 등급(05), zone: 구간(승객 유형 가중치), gap: 다음 역(내선 방향)까지 구간 길이 배수
+const ZONES={seonam:"서남",gwanak:"관악·사당",gangnam:"강남",jamsil:"잠실",seongsu:"성수·왕십리",dosim:"도심",sinchon:"신촌·홍대",seobu:"서부"};
+const LINE2=[
+ ["시청","dosim",["1호선"],"A"],["을지로입구","dosim"],["을지로3가","dosim",["3호선"],"B"],["을지로4가","dosim",["5호선"],"B"],["동대문역사문화공원","dosim",["4호선","5호선"],"B"],
+ ["신당","dosim",["6호선"],"B"],["상왕십리","seongsu"],["왕십리","seongsu",["5호선","경의중앙선","수인분당선"],"S"],["한양대","seongsu"],["뚝섬","seongsu"],["성수","seongsu"],
+ ["건대입구","seongsu",["7호선"],"A"],["구의","jamsil"],["강변","jamsil",[],null,1.6],["잠실나루","jamsil"],["잠실","jamsil",["8호선"],"S"],["잠실새내","jamsil"],["종합운동장","jamsil",["9호선"],"B"],
+ ["삼성","gangnam"],["선릉","gangnam",["수인분당선"],"A"],["역삼","gangnam"],["강남","gangnam",["신분당선"],"S"],["교대","gangnam",["3호선"],"A"],["서초","gangnam"],["방배","gangnam"],
+ ["사당","gwanak",["4호선"],"S"],["낙성대","gwanak"],["서울대입구","gwanak"],["봉천","gwanak"],["신림","gwanak",["신림선"],"B"],
+ ["신대방","seonam"],["구로디지털단지","seonam"],["대림","seonam",["7호선"],"B"],["신도림","seonam",["1호선"],"S"],["문래","seobu"],["영등포구청","seobu",["5호선"],"B"],["당산","seobu",["9호선"],"A",1.6],
+ ["합정","sinchon",["6호선"],"A"],["홍대입구","sinchon",["공항철도","경의중앙선"],"S"],["신촌","sinchon"],["이대","sinchon"],["아현","dosim"],["충정로","dosim",["5호선"],"B"],
+].map(([n,zone,tr,grade,gap])=>({n,zone,tr:tr||[],grade:grade||null,gap:gap||1}));   // 당산→합정(당산철교), 강변→잠실나루(잠실철교)는 한강을 건넌다
+const ST=Object.fromEntries(LINE2.map((o,i)=>[o.n,Object.assign(o,{i})]));
+const CORE=new Set(STATIONS);   // 기존 구간: 승객 유형의 역별 가중치를 그대로 쓴다
+function routeBetween(a,b){   // 순환선에서 짧은 방향으로 a → b. 같은 거리면 내선
+  const L=LINE2.length,ia=ST[a].i,ib=ST[b].i,f=(ib-ia+L)%L,dir=f<=L-f?1:-1,n=Math.min(f,L-f),r=[];
+  for(let k=0;k<=n;k++)r.push(LINE2[(ia+dir*k+L*2)%L].n);
+  return r;
+}
+const segGap=(a,b)=>{const A=ST[a],B=ST[b],L=LINE2.length;if(!A||!B)return 1;return (A.i+1)%L===B.i?A.gap:(B.i+1)%L===A.i?B.gap:1;};   // 두 역 사이 구간 길이 배수
+const isRiver=(a,b)=>segGap(a,b)>1;   // 한강 구간: 길지만 덜컹거림이 없는 숨 고르기 구간
 const DAYS=["월요일","화요일","수요일","목요일","금요일"];
 const SKILLS=[   // 비용: 1단계는 처음 값 그대로, 2·3단계는 2배 (09, 2026-11-24)
  {k:"obs",n:"관찰력",line:"eye",cost:[40,180,320],d:["승객 카드에 ‘자주 내리는 역 후보 2곳’ 표시, 내릴 낌새가 더 일찍 보임","페이크 동작을 간파, 낌새가 한층 더 일찍 보임","2정거장 안에 내릴 승객에 ‘곧 내릴 것 같다’ 표시 (몇 정거장인지는 알 수 없음)"]},
@@ -268,7 +289,7 @@ const DP=k=>DPLANS.find(d=>d.k===k);
 const COMBO_MAX=5;
 const comboMax=()=>COMBO_MAX+(sk("routine")>=2?2:0);   // 칼각 루틴 2단계
 /* ========== 환승역 물갈이 (추가 기획서 05) ========== */
-const XFER={"사당":"S","교대":"A"};   // 현재 구간의 환승 등급. 강남은 늘 출발역이거나 종점이라 물갈이가 없다
+const XFER=Object.fromEntries(LINE2.filter(o=>o.grade).map(o=>[o.n,o.grade]));   // 환승 등급 (05). 출발역·종점에서는 물갈이가 없다
 const XG={S:{stand:.40,seat:.30,board:1.10,dwell:13},A:{stand:.25,seat:.20,board:1.00,dwell:10},B:{stand:.15,seat:.12,board:.90,dwell:7.5}};
 const xferAt=i=>G&&i>0&&i<G.N?XG[XFER[G.route[i]]]||null:null;
 function xferPrep(tx){   // 환승역 2정거장 전: 비율에 모자란 만큼 목적지를 그 역으로 다시 지정한다 (유형을 가리지 않고 섞는다)
@@ -343,6 +364,15 @@ const ARCH={
  mom:{label:"임산부 배지를 단 승객",desc:"가방에 분홍색 배지가 달려 있다.",shirt:"#e58fb1",prop:"bag",am:{any:3,beyond:6},pm:{any:3,beyond:6}},
  elder:{label:"지팡이를 짚은 어르신",desc:"손잡이를 잡은 손이 떨린다.",shirt:"#9c8f7a",prop:"stick",am:{beyond:1},pm:{beyond:1}},
 };
+// 기존 구간 밖의 역은 구간(zone)별 가중치로 정한다. 특정 역 예외는 역 이름으로 적는다 (03)
+const ARCH_Z={
+ student:{am:{sinchon:2,seongsu:1.5,"이대":3,"신촌":3,"건대입구":3,"한양대":2},pm:{seonam:1,sinchon:.8,seobu:.8}},
+ office:{am:{gangnam:3,dosim:2.5,seonam:1.5,seobu:1,"역삼":4,"선릉":4,"삼성":3,"시청":4,"을지로입구":3,"구로디지털단지":3},pm:{seonam:1.5,seobu:1.5,jamsil:1.2,sinchon:1,seongsu:1}},
+ hiker:{am:{seongsu:.6,dosim:.4},pm:{seonam:1,seobu:.6}},
+ lawyer:{am:{dosim:2,gangnam:1,"시청":3},pm:{seobu:1,seonam:1,jamsil:.6}},
+ teen:{am:{seonam:.8,seobu:.8,jamsil:.8,seongsu:.8,sinchon:.6,dosim:.4},pm:{seonam:.8,seobu:.8,jamsil:.8,seongsu:.8}},
+ shopper:{am:{gangnam:2,jamsil:2,sinchon:1.5,dosim:1.5,"잠실":3,"홍대입구":2},pm:{seonam:1,seobu:1,jamsil:1}},
+};
 const ARCH_POOL=["student","office","office","hiker","lawyer","transfer","sleeper","teen","shopper","plain","plain"];
 const TELLS=["가방끈을 고쳐 멘다","휴대폰을 주머니에 넣는다","전광판을 올려다본다","엉덩이를 들썩인다","이어폰을 정리한다"];
 const KIND_BY_PROP={pack:["bag","book"],brief:["bag","look"],phone:["phone","look"],bag:["bag","look"],stick:["bag","look"],none:["look"]};
@@ -406,7 +436,7 @@ const DIARY_TAIL={   // 맺음말: 그날 가장 아팠던 일에 대한 내일�
 };
 const DIARY_BAD=["exhaust","nuis","swept","melt","stolen","planNone","caught","packhit","fake","stood","bump"],DIARY_GOOD=["planAll","planned","xferPlanned","nobump"];
 const CLOCK0={am:7*60+14,pm:18*60+32};   // 가상 시각: 출근 07:14, 퇴근 18:32 출발. 역 사이 2분
-function clock(){const g=G,m=Math.round(CLOCK0[g.legKey]+2*(g.st+(g.phase==="run"?Math.min(1,g.t/T_RUN):0)));return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
+function clock(){const g=G,m=Math.round(CLOCK0[g.legKey]+2*(g.st+(g.phase==="run"?Math.min(1,g.t/runT()):0)));return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
 function ev(k,o){const g=G;if(!g||!g.log)return;g.log.push(Object.assign({k,st:g.route[Math.min(g.N,g.st+(g.phase==="run"&&(k==="exhaust"||k==="nuis")?1:0))],time:clock()},o||{}));}
 function josa(s){return s.replace(/(.)(」?)\{(은|이|을)\}/g,(m,ch,q,j)=>{const c=ch.charCodeAt(0),b=c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28>0;return ch+q+{은:b?"은":"는",이:b?"이":"가",을:b?"을":"를"}[j];});}
 function diaryPick(key,arr){   // 최근에 쓴 틀은 피한다 (틀 수의 절반까지 기억)
@@ -641,6 +671,7 @@ function makeSeats(){
 let run=null, G=null, paused=false, mode="menu";
 const keys={}; const mouse={x:-99,y:-99,inside:false};
 const T_RUN=14,T_DWELL=7.5;
+const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구간은 길다)
 
 function level(){return (run.week-1)*4+run.day+(run.leg==="pm"?.5:0);}
 function startRun(){
@@ -648,21 +679,25 @@ function startRun(){
     arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null};
   profile.runs++;saveProfile();showPlatform();
 }
+function destW(arch,legKey,name){   // 이 유형이 이 역에서 내릴 가중치. 기존 구간은 원래 값, 그 밖은 예외 역 → 구간 → 환승 등급
+  const w=ARCH[arch][legKey]||ARCH[arch].pm;if(w[name]!=null)return w[name];if(CORE.has(name))return 0;
+  const z=(ARCH_Z[arch]||{})[legKey]||{};if(z[name]!=null)return z[name];
+  if(arch==="transfer"){const gr=XFER[name];return gr==="S"?5:gr==="A"?3:gr==="B"?1.5:0;}   // 환승 검색: 환승역일수록
+  return z[ST[name]&&ST[name].zone]||0;
+}
 function sampleDest(arch,legKey,route,from){
-  const w=ARCH[arch][legKey],opts=[];
-  for(const k in w){
-    if(k==="beyond")opts.push([99,w[k]]);
-    else if(k==="any"){for(let i=from+1;i<route.length;i++)opts.push([i,w[k]/(route.length-1)]);}
-    else{const i=route.indexOf(k);if(i>from)opts.push([i,w[k]]);}
-  }
+  const w=ARCH[arch][legKey]||ARCH[arch].pm,opts=[];
+  for(let i=from+1;i<route.length;i++){const v=destW(arch,legKey,route[i]);if(v>0)opts.push([i,v]);}
+  if(w.any)for(let i=from+1;i<route.length;i++)opts.push([i,w.any/(route.length-1)]);
+  if(w.beyond)opts.push([99,w.beyond]);
   if(!opts.length)return 99;
   let t=0;for(const o of opts)t+=o[1];let r=Math.random()*t;
   for(const o of opts){r-=o[1];if(r<=0)return o[0];}
   return 99;
 }
 function likelyStops(p){   // 관찰력 1단계 카드: 이 유형이 자주 내리는 역 후보 2곳 (노선 순서로, 어느 쪽이 더 유력한지는 알려 주지 않는다)
-  const w=ARCH[p.arch][G.legKey],c=[];
-  for(const k in w)if(k!=="beyond"&&k!=="any"){const i=G.route.indexOf(k);if(i>G.st)c.push([i,w[k]]);}
+  const w=ARCH[p.arch][G.legKey]||ARCH[p.arch].pm,c=[];
+  for(let i=G.st+1;i<G.route.length;i++){const v=destW(p.arch,G.legKey,G.route[i]);if(v>0)c.push([i,v]);}
   if(!c.length)return null;
   const top=c.sort((a,b)=>b[1]-a[1]).slice(0,2).sort((a,b)=>a[0]-b[0]).map(x=>G.route[x[0]]);
   return top.length>1?top.join(" 또는 "):top[0]+(w.beyond?" 또는 더 멀리":" 쪽");
@@ -691,9 +726,11 @@ function freeSpot(zone){
   }
   const p={x:rand(CAR.x+30,CAR.x+CAR.w-30),y:rand(AY0,AY1)};constrain(p);return p;
 }
+function legRoute(){const h=homeSt(),w=workSt();return run.leg==="am"?routeBetween(h,w):routeBetween(w,h);}
+const homeSt=()=>"신림",workSt=()=>"강남";
 function startLeg(doorIdx){
   const am=run.leg==="am",L=level();
-  const route=am?STATIONS.slice():STATIONS.slice().reverse();
+  const route=legRoute();
   G={route,legKey:run.leg,N:route.length-1,st:0,phase:"dwell",t:T_DWELL-3.2,door:1,doorOpen:true,
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
@@ -778,10 +815,12 @@ function depart(){
   g.ps=g.ps.filter(p=>p.state!=="gone");
   for(const p of g.ps)if(p.state==="seated"&&p.dest!==g.st+1&&p.arch!=="sleeper"&&Math.random()<.04+g.fakeRate*.4)p.fg=g.st;
   if(g.st>=3)dpSet("early",false,"3정거장이 지남");
+  g.tRun=T_RUN*segGap(g.route[g.st],g.route[g.st+1]);const river=isRiver(g.route[g.st],g.route[g.st+1]);
   g.jolts=[{at:.35,dir:-1,warn:0,msg:null}];
-  if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
-  if(g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
-  g.jolts.push({at:T_RUN-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
+  if(river)toast("한강을 건넙니다. 덜컹거림 없이 길게 달리는 구간입니다.");
+  else if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
+  if(!river&&g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
+  g.jolts.push({at:g.tRun-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
   xferPrep(g.st+2);
   g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다."+(xferAt(g.st+2)?"   ·   다음다음 역 "+g.route[g.st+2]+" 환승":"");
   sfx("close");
@@ -879,14 +918,14 @@ function finishRun(why,rows,total){
 }
 
 /* ========== 승객 판단 ========== */
-function tellAt(p){return (ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit)+(eq("shades")?.3/T_RUN:0);}   // 선글라스: 0.3초 늦게
+function tellAt(p){return (ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit)+(eq("shades")?.3/runT():0);}   // 선글라스: 0.3초 늦게
 const NOH={stage:0,icon:null,real:false};
 function hint(p){ // 좌석 승객이 지금 보이는 낌새
   if(p.state!=="seated"||p.rush||p.hide>0)return NOH;   // 눈이 마주친 승객은 잠시 낌새를 감춘다
   const g=G;
   if(p.dest===g.st&&g.phase==="dwell"&&p.delay!=null)return {stage:2,icon:"stand",real:true};
   if(g.phase!=="run")return NOH;
-  const prog=g.t/T_RUN;
+  const prog=g.t/runT();
   if(p.preTell&&p.dest>g.st)return {stage:1,icon:p.kind,real:true};   // 눈치 계열 7단계: 처음부터 보이는 낌새
   if(p.dest===g.st+1){
     const a=tellAt(p);
@@ -1043,7 +1082,7 @@ function update(rdt){
   const dt=rdt*((pl.seat&&!g.yieldEv)?3:1);
   g.t+=dt;g.bumpCd-=rdt;g.excuseCd=Math.max(0,g.excuseCd-rdt);g.shake=Math.max(0,g.shake-rdt);
   g.door+=((g.doorOpen?1:0)-g.door)*Math.min(1,rdt*6);
-  if(g.phase==="run")g.scroll+=dt*clamp(Math.min(g.t,T_RUN-g.t)*1.2,0,1)*520;
+  if(g.phase==="run")g.scroll+=dt*clamp(Math.min(g.t,runT()-g.t)*1.2,0,1)*520;
   for(let i=g.timers.length-1;i>=0;i--){g.timers[i].t-=dt;if(g.timers[i].t<=0){const f=g.timers[i].fn;g.timers.splice(i,1);f();}}
   if(g.ending!=null){g.ending-=rdt;if(g.ending<=0){endLeg(null);return;}}
   else if(g.phase==="run"){
@@ -1057,13 +1096,13 @@ function update(rdt){
       }
     }
     banner(ban);
-    if(!g.xferMoved&&g.t>T_RUN*.5&&xferAt(g.st+1)){g.xferMoved=true;   // 환승역 직전: 서 있는 하차 예정자가 문 쪽으로 모인다
+    if(!g.xferMoved&&g.t>runT()*.5&&xferAt(g.st+1)){g.xferMoved=true;   // 환승역 직전: 서 있는 하차 예정자가 문 쪽으로 모인다
       for(const q of g.ps)if(q.state==="standing"&&q.dest===g.st+1&&q.delay==null&&!q.elder){
         dropSlot(q);let d=DOORS[0];for(const o of DOORS)if(Math.abs(o.cx-q.x)<Math.abs(d.cx-q.x))d=o;
         const h={x:d.cx+rand(-34,34),y:BY1-rand(4,34)};constrain(h);q.hx=h.x;q.hy=h.y;q.wt=99;q.cool=30;}
-      if(XFER[g.route[g.st+1]]==="S"){toast("곧 "+g.route[g.st+1]+"역(환승). 문 앞에 서 있으면 하차 인파에 쓸려 내릴 수 있습니다.");
+      if(g.st+1<g.N&&XFER[g.route[g.st+1]]==="S"){toast("곧 "+g.route[g.st+1]+"역(환승). 문 앞에 서 있으면 하차 인파에 쓸려 내릴 수 있습니다.");
         if(!pl.seat&&pl.y>AY1)say(pl,g.route[g.st+1]+"이다. 문 앞은 위험해.");}}
-    if(g.t>=T_RUN){arrive();}
+    if(g.t>=runT()){arrive();}
   }else{
     banner(null);
     if(g.t>g.dwell-1.9&&g.doorOpen){g.doorOpen=false;sfx("close");}
@@ -1205,7 +1244,7 @@ function update(rdt){
     constrain(pl);
     // 환승역 하차 인파: S등급 역에서 문이 열려 있는 동안, 문 폭 1.5배 범위에 서 있으면 문 쪽으로 떠밀린다
     g.inFlow=false;if(g.sweepSafe>0)g.sweepSafe-=rdt;
-    if(g.phase==="dwell"&&g.doorOpen&&g.st<g.N&&XFER[g.route[g.st]]==="S"&&!pl.into){
+    if(g.phase==="dwell"&&g.doorOpen&&g.st>0&&g.st<g.N&&XFER[g.route[g.st]]==="S"&&!pl.into){
       let dr=DOORS[0];for(const o of DOORS)if(Math.abs(o.cx-pl.x)<Math.abs(dr.cx-pl.x))dr=o;
       const adx=Math.abs(pl.x-dr.cx),zone=DOOR_W*.75;
       if(adx<zone&&pl.y>AY1-20){
@@ -1358,7 +1397,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   const sh=g.shake>0?(Math.random()-.5)*g.shake*22:0;ctx.translate(sh,0);
   const moving=g.phase==="run",dir=g.legKey==="am"?-1:1;
   // 터널 / 승강장
-  const speed=moving?clamp(Math.min(g.t,T_RUN-g.t)*1.2,0,1):0;
+  const speed=moving?clamp(Math.min(g.t,runT()-g.t)*1.2,0,1):0;
   ctx.fillStyle="#161b20";ctx.fillRect(-20,120,W+40,H-120);
   ctx.fillStyle="#232a31";
   for(let i=0;i<9;i++){const x=((i*170+dir*g.scroll)%1530+1530)%1530-120;ctx.fillRect(x,150,6,H-200);}
@@ -1559,7 +1598,7 @@ function figure(x,y,p,mode,me,time){
 }
 function drawBG(g,time){
   const moving=g.phase==="run",dir=g.legKey==="am"?-1:1;
-  const speed=moving?clamp(Math.min(g.t,T_RUN-g.t)*1.2,0,1):0;
+  const speed=moving?clamp(Math.min(g.t,runT()-g.t)*1.2,0,1):0;
   ctx.fillStyle="#161b20";ctx.fillRect(-20,104,W+40,H-104);
   ctx.fillStyle="#232a31";
   for(let i=0;i<9;i++){const x=((i*170+dir*g.scroll)%1530+1530)%1530-120;ctx.fillRect(x,120,6,H-170);}
@@ -1708,7 +1747,8 @@ function drawIdle(time){
 /* ========== HUD ========== */
 function buildRoute(){
   const g=G;const am=run.leg==="am",goal=am?"회사":"집";
-  $("route").innerHTML=g.route.map((n,i)=>`<div class="stop ${i<g.st?"past":i===g.st?"now":""} ${i===g.N?"goal":""}"><i></i>${n}${i===g.N?"<em>"+goal+"</em>":""}</div>`).join("");
+  const lab=i=>g.N<=10||i===0||i===g.N||Math.abs(i-g.st)<=2||(i>g.st&&i<=g.st+4);   // 정거장이 많으면 가까운 역만 이름을 적는다
+  $("route").innerHTML=g.route.map((n,i)=>`<div class="stop ${i<g.st?"past":i===g.st?"now":""} ${i===g.N?"goal":""}"><i></i>${lab(i)?n:""}${i===g.N?"<em>"+goal+"</em>":""}</div>`).join("");
   $("daytxt").textContent=DAYS[run.day]+(run.leg==="am"?" 출근":" 퇴근");
   $("weektxt").textContent=g.st>=g.N?"도착":g.route[g.N]+"("+goal+")까지 "+(g.N-g.st)+"정거장";
 }
@@ -1827,9 +1867,9 @@ function rerollPlan(k){   // 칼각 루틴 3단계: 후보 1개를 같은 별 �
 }
 function showDoors(){
   const dv=run.dv,lab=v=>v<.85?["여유","c0"]:v<1.25?["보통","c1"]:["혼잡","c2"];
-  const am=run.leg==="am",from=am?"신림":"강남",to=am?"강남":"신림";
+  const am=run.leg==="am",rt=legRoute(),from=rt[0],to=rt[rt.length-1];
   sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${am?"출근":"퇴근"} · ${from} → ${to}</span>
-   <h2>목표: ${to}역(${am?"회사":"집"})까지 8정거장</h2>
+   <h2>목표: ${to}역(${am?"회사":"집"})까지 ${rt.length-1}정거장</h2>
    <p class="sub">${to}역에 도착할 때까지 체력을 지키면 성공입니다. 서 있으면 체력이 줄고 앉으면 회복됩니다.<br>${run.mod.name}. 현재 체력 <b>${Math.round(run.stamina)}</b>. 어느 문 앞에 설까요?<br>${sk("regular")?"단골 칸이라 안내판의 혼잡도가 정확합니다."+(run.doorSeats?" ‘곧 빌 자리’는 그 문 앞 좌석 중 2정거장 안에 비는 자리 수입니다.":""):"승강장 안내판의 칸 혼잡도는 대체로 맞지만, 항상 정확하진 않습니다."}</p>
    <div class="doors">${dv.map((v,i)=>`<button class="door" data-i="${i}"><span class="n">${i+1}</span>번 문<br><span class="c ${lab(v)[1]}">${lab(v)[0]}</span>${run.doorSeats?`<br><span class="seats">곧 빌 자리 ${run.doorSeats[i]}</span>`:""}</button>`).join("")}</div>`);
   document.querySelectorAll(".door").forEach(b=>b.onclick=()=>startLeg(+b.dataset.i));
@@ -1879,9 +1919,9 @@ function setPause(v){
 /* ========== 안내방송 (음성) ==========
    audio/announce/<역명>.mp3 파일이 있으면 그 녹음을 틀고, 없으면 브라우저 음성(TTS)으로 2호선 형식 안내를 읽는다.
    M 키로 켜고 끈다. */
-const ANN_EN={"신림":"Sillim","봉천":"Bongcheon","서울대입구":"Seoul National University","낙성대":"Nakseongdae","사당":"Sadang","방배":"Bangbae","서초":"Seocho","교대":"Seoul National University of Education","강남":"Gangnam"};
-const ANN_XFER={"신림":"신림선","사당":"4호선","교대":"3호선","강남":"신분당선"};
-const ANN_XFER_EN={"신림":"the Sillim Line","사당":"Line 4","교대":"Line 3","강남":"the Shinbundang Line"};
+const ANN_EN={"신림":"Sillim","봉천":"Bongcheon","서울대입구":"Seoul National University","낙성대":"Nakseongdae","사당":"Sadang","방배":"Bangbae","서초":"Seocho","교대":"Seoul National University of Education","강남":"Gangnam","역삼":"Yeoksam","선릉":"Seolleung","삼성":"Samseong","종합운동장":"Sports Complex","잠실새내":"Jamsilsaenae","잠실":"Jamsil","잠실나루":"Jamsillaru","강변":"Gangbyeon","구의":"Guui","건대입구":"Konkuk University","성수":"Seongsu","뚝섬":"Ttukseom","한양대":"Hanyang University","왕십리":"Wangsimni","상왕십리":"Sangwangsimni","신당":"Sindang","동대문역사문화공원":"Dongdaemun History and Culture Park","을지로4가":"Euljiro 4-ga","을지로3가":"Euljiro 3-ga","을지로입구":"Euljiro 1-ga","시청":"City Hall","충정로":"Chungjeongno","아현":"Ahyeon","이대":"Ewha Womans University","신촌":"Sinchon","홍대입구":"Hongik University","합정":"Hapjeong","당산":"Dangsan","영등포구청":"Yeongdeungpo-gu Office","문래":"Mullae","신도림":"Sindorim","대림":"Daerim","구로디지털단지":"Guro Digital Complex","신대방":"Sindaebang"};
+const ANN_XFER=Object.fromEntries(LINE2.filter(o=>o.tr.length).map(o=>[o.n,o.tr.join(", ")]));
+const ANN_XFER_EN={"신림":"the Sillim Line","사당":"Line 4","교대":"Line 3","강남":"the Shinbundang Line","시청":"Line 1","을지로3가":"Line 3","을지로4가":"Line 5","동대문역사문화공원":"Line 4 and Line 5","신당":"Line 6","왕십리":"Line 5, the Gyeongui-Jungang Line and the Suin-Bundang Line","건대입구":"Line 7","잠실":"Line 8","종합운동장":"Line 9","선릉":"the Suin-Bundang Line","대림":"Line 7","신도림":"Line 1","영등포구청":"Line 5","당산":"Line 9","합정":"Line 6","홍대입구":"the Airport Railroad and the Gyeongui-Jungang Line","충정로":"Line 5"};
 let annAudio=null,annVoices=[];
 function annLoadVoices(){try{annVoices=speechSynthesis.getVoices();}catch(e){}}
 if(window.speechSynthesis){annLoadVoices();speechSynthesis.onvoiceschanged=annLoadVoices;}
@@ -1944,6 +1984,7 @@ addEventListener("keydown",e=>{
   if(ga!=null&&G&&view!=="q"){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 탑뷰: 짧게 눌러도 바로 돌아보게
   if(e.code==="KeyF"&&focus&&focus.state==="seated")togglePlan(focus.seat);
   if(e.code==="KeyQ")excuse();
+  if(e.code==="KeyX"&&G&&G.pl.seat&&!G.yieldEv&&G.st<G.N-1){G.ff=!G.ff;toast(G.ff?"앉은 채 도착까지 건너뜁니다 (X로 멈춤). 양보할 일이 생기면 멈춥니다.":"건너뛰기를 멈췄습니다.");}
   if(e.code==="KeyT"&&eq("pack")&&G&&!G.pl.seat){G.pl.packFront=!G.pl.packFront;toast(G.pl.packFront?"가방을 앞으로 멨습니다 (이동 속도 -5%).":"가방을 다시 뒤로 멨습니다.");sfx("tick");}
   if(e.code==="KeyC"&&eq("coffee")&&G){if(G.coffeeUsed)toast("커피는 이미 다 마셨습니다.");else{G.coffeeUsed=true;G.coffeeT=30;G.stamina=Math.min(maxSta(),G.stamina+10);toast("커피 한 모금. 체력 +10. 30초 동안은 부딪히지 않게 조심.","good");sfx("good");}}
   if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false)annStop();toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
@@ -1976,7 +2017,9 @@ addEventListener("resize",fit);fit();
 let last=performance.now();
 function loop(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
-  if(mode==="play"&&!paused&&G)update(dt);
+  if(mode==="play"&&!paused&&G){
+    if(G.ff&&(!G.pl.seat||G.yieldEv||G.st>=G.N)){G.ff=false;if(G.yieldEv)toast("건너뛰기를 멈췄습니다. 앞에 양보할 분이 있습니다.");}
+    for(let i=0,n=G.ff?6:1;i<n&&mode==="play"&&G;i++)update(dt);}   // 앉은 채 도착 건너뛰기: 6배로 감는다 (앉으면 원래 3배)
   draw(now/1000);hud();
   requestAnimationFrame(loop);
 }
