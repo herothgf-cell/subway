@@ -497,15 +497,16 @@ const SP_INFO={
 const dex=k=>{const d=profile.dex||(profile.dex={});return d[k]||(d[k]={met:0,ok:0});};
 function spawnSpecials(){
   const g=G;if(!SPECIALS)return;
-  const n=Math.min(2,(Math.random()<.35+.12*g.L?1:0)+(Math.random()<.14*g.L?1:0));   // 월요일 출근 0~1명, 금요일 퇴근 2명 안팎
+  const n=1+(Math.random()<.3+.15*g.L?1:0);   // 매 통근 최소 1명. 둘 다 나올 확률: 월요일 출근 30%, 수요일 60%, 목요일 퇴근부터 거의 항상
   const kinds=Math.random()<.5?["backpack","sprawl"]:["sprawl","backpack"];
+  const P=g.pl,near=(c,r)=>{const m=c.filter(p=>hyp(p.x-P.x,p.y-P.y)<r);return m.length?m:c;};   // 마주칠 수 있게 내 주변에서 고른다
   for(let i=0;i<n;i++){
     if(kinds[i]==="backpack"){
-      const c=g.ps.filter(p=>p.state==="standing"&&!p.elder&&p.delay==null);if(!c.length)continue;
-      const p=pick(c);p.sp="backpack";p.bpT=rand(4,7);p.bpWarn=false;p.bpFront=false;
+      const c=g.ps.filter(p=>p.state==="standing"&&!p.elder&&p.delay==null&&hyp(p.x-P.x,p.y-P.y)>60);if(!c.length)continue;
+      const p=pick(near(c,260));p.sp="backpack";p.bpT=rand(4,7);p.bpWarn=false;p.bpFront=false;
     }else{
       const c=g.ps.filter(p=>{if(p.state!=="seated"||p.seat.pink||p.arch==="sleeper")return false;return !!sprawlSide(p.seat);});if(!c.length)continue;
-      const p=pick(c);p.sp="sprawl";p.asked=false;sprawlSide(p.seat).narrow=p;
+      const p=pick(near(c,360));p.sp="sprawl";p.asked=false;sprawlSide(p.seat).narrow=p;
     }
   }
 }
