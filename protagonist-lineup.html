@@ -38,7 +38,7 @@ button.on{background:var(--hl)}
 <body>
 <div class="wrap">
 <h1><span>주인공 시안</span></h1>
-<p class="sub">플레이어 캐릭터 4명의 외형 시안입니다. 게임과 같은 캐릭터 모델(<code>characters.js</code>)로 그렸고, 캐릭터마다 A·B·C 세 가지 차림이 있습니다. 공통 규칙은 <b>목에 건 흰 사원증 줄</b>(승객과 구별되는 주인공 표시)이고, 셔츠 색이 사원증 카드와 노선도 핀 색이 됩니다. 마음에 드는 안을 눌러 표시해 두고, 아래 "고른 안"을 알려 주시면 그대로 게임에 넣겠습니다.</p>
+<p class="sub">플레이어 캐릭터 4명의 외형 시안입니다. 게임과 같은 캐릭터 모델(<code>characters.js</code>)로 그렸고, 캐릭터마다 세 가지 차림이 있습니다 (한계획은 초록 셔츠를 빼고 새로 네 가지). 공통 규칙은 <b>목에 건 흰 사원증 줄</b>(승객과 구별되는 주인공 표시)이고, 셔츠 색이 사원증 카드와 노선도 핀 색이 됩니다. 마음에 드는 안을 눌러 표시해 두고, 아래 "고른 안"을 알려 주시면 그대로 게임에 넣겠습니다.</p>
 <div class="bar"><button id="spin" class="on">돌려 보기</button><button id="front">정면</button><button id="back">뒷면</button><button id="seat">앉은 자세</button></div>
 <div id="list"></div>
 <div class="box"><h3>고른 안</h3><div id="picks">아직 고르지 않았습니다.</div>
@@ -61,9 +61,10 @@ const suitTie=(tie)=>(x,F,B)=>{x.fillStyle="#ffffff";x.beginPath();x.moveTo(F-34
 const both=(...fs)=>(x,F,B)=>fs.forEach(f=>f&&f(x,F,B));
 const CHARS=[
  {k:"han",n:"한계획",r:"32세 · 마케팅팀 대리 · 신림 → 강남",d:1,stat:"체력3 눈치3 민첩3 균형3 버티기3 멘탈3",vars:[
-  {n:"A 초록 셔츠",now:true,d:"지금 게임에 들어간 모습. 2호선 초록을 그대로 입은 기본형. 단정한 짧은 머리.",o:{shirt:"#2fbf71",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",hair:"#1d1b1a",hairStyle:"short",shoe:"#fffdf5",h:1,cloth:lanyard}},
-  {n:"B 니트 조끼",d:"흰 셔츠 위에 초록 니트 조끼. 계획적인 모범생 느낌. 뒷모습이 단색이라 3D에서 잘 보인다.",o:{shirt:"#f4f1ea",sleeve:"#f4f1ea",collar:"shirt",collarC:"#ffffff",cuffC:"#ffffff",pants:"#3a4150",hair:"#1d1b1a",hairStyle:"side",shoe:"#5a3d2b",h:1,cloth:both(vest("#2a9d63"),knitRib,lanyard)}},
-  {n:"C 안경 + 카디건",d:"베이지 카디건과 둥근 안경. 플래너를 늘 들고 다닐 것 같은 꼼꼼한 인상.",o:{shirt:"#d8c39a",collar:"round",collarC:"#ffffff",cuffC:"same",pants:"#2b3340",hair:"#2b211c",hairStyle:"short",glasses:true,shoe:"#fffdf5",h:1.01,cloth:both(knitRib,lanyard)}},
+  {n:"A 하늘색 옥스퍼드",d:"하늘색 옥스퍼드 셔츠에 남색 슬랙스, 갈색 로퍼. 가르마 머리. 가장 무난한 '단정한 대리'.",o:{shirt:"#a9c8e8",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#26304a",hair:"#1d1b1a",hairStyle:"side",shoe:"#5a3d2b",h:1,cloth:lanyard}},
+  {n:"B 네이비 니트",d:"네이비 니트 아래로 흰 셔츠 깃. 베이지 치노. 차분하고 계획적인 인상. 뒷모습이 진한 단색이라 객차 안에서 잘 보인다.",o:{shirt:"#2c3b5e",collar:"shirt",collarC:"#ffffff",cuffC:"#ffffff",pants:"#b7a88a",hair:"#1d1b1a",hairStyle:"short",shoe:"#fffdf5",h:1,cloth:both(knitRib,lanyard)}},
+  {n:"C 톤 다운 초록",d:"초록을 남기되 채도를 낮춘 짙은 숲색 셔츠 + 베이지 치노. 2호선과 이어지는 색은 유지한다.",o:{shirt:"#3d6b57",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#c9b38c",hair:"#2b211c",hairStyle:"side",shoe:"#fffdf5",h:1,cloth:lanyard}},
+  {n:"D 안경 + 카디건",d:"이전 시안의 C. 베이지 카디건과 둥근 안경. 플래너를 늘 들고 다닐 것 같은 꼼꼼한 인상.",o:{shirt:"#d8c39a",collar:"round",collarC:"#ffffff",cuffC:"same",pants:"#2b3340",hair:"#2b211c",hairStyle:"short",glasses:true,shoe:"#fffdf5",h:1.01,cloth:both(knitRib,lanyard)}},
  ]},
  {k:"oh",n:"오신입",r:"26세 · 개발팀 신입 · 구로디지털단지 → 역삼",d:2,stat:"체력5 눈치2 민첩4 균형2 버티기4 멘탈2",vars:[
   {n:"A 파란 후드",now:true,d:"지금 게임 색(파랑). 회사 로고 후드티에 덥수룩한 머리. 몸으로 해결하는 신입.",o:{shirt:"#4a7fd6",collar:"rib",collarC:"same",cuffC:"shade",hemC:"shade",pants:"#2b2f36",hair:"#3a2a20",hairStyle:"messy",shoe:"#fffdf5",h:.98,wx:1.04,cloth:both(hoodText("DEV"),lanyard)}},
@@ -90,19 +91,19 @@ function build(ch,cv){
   const cam=new THREE.OrthographicCamera(-.75,3*1.3-.55,2.05,-.08,.1,30);cam.position.set(0,0,10);cam.lookAt(0,0,0);
   ch.vars.forEach((v,i)=>{const p=C.person(Object.assign({},v.o));const hold=new THREE.Group();hold.add(p.root);p.root.position.y=.86*(v.o.h||1);
     hold.position.x=i*1.3;sc.add(hold);const f=fl.clone();f.rotation.x=-Math.PI/2;f.position.set(i*1.3,.002,0);sc.add(f);units.push({p,hold,v,i});});
-  return {r,sc,cam,cv};
+  return {r,sc,cam,cv,n:ch.vars.length};
 }
 const views=[];
 document.getElementById("list").innerHTML=CHARS.map((c,ci)=>`<div class="ch"><div class="hd"><b>${c.n}</b><span class="r">${c.r}</span><span class="st">${"★".repeat(c.d)}</span><span class="stat">${c.stat}</span></div>
- <canvas class="cv" id="cv${ci}"></canvas><div class="vs">${c.vars.map((v,i)=>`<div class="v" data-c="${c.k}" data-i="${i}"><h4>${v.n}${v.now?'<span class="tag">지금 게임</span>':""}</h4>${v.d}</div>`).join("")}</div></div>`).join("");
+ <canvas class="cv" id="cv${ci}"></canvas><div class="vs" style="grid-template-columns:repeat(${c.vars.length},1fr)">${c.vars.map((v,i)=>`<div class="v" data-c="${c.k}" data-i="${i}"><h4>${v.n}${v.now?'<span class="tag">지금 게임</span>':""}</h4>${v.d}</div>`).join("")}</div></div>`).join("");
 CHARS.forEach((c,ci)=>views.push(build(c,document.getElementById("cv"+ci))));
 document.querySelectorAll(".v").forEach(el=>el.onclick=()=>{const k=el.dataset.c;picks[k]=+el.dataset.i;
   document.querySelectorAll(`.v[data-c="${k}"]`).forEach(x=>x.classList.toggle("pick",x===el));
-  document.getElementById("picks").textContent=CHARS.filter(c=>picks[c.k]!=null).map(c=>c.n+" "+"ABC"[picks[c.k]]).join(" · ")||"아직 고르지 않았습니다.";});
+  document.getElementById("picks").textContent=CHARS.filter(c=>picks[c.k]!=null).map(c=>c.n+" "+"ABCD"[picks[c.k]]).join(" · ")||"아직 고르지 않았습니다.";});
 ["spin","front","back","seat"].forEach(id=>document.getElementById(id).onclick=()=>{mode=id;document.querySelectorAll(".bar button").forEach(b=>b.classList.toggle("on",b.id===id));});
 function size(){for(const v of views){const w=v.cv.clientWidth,h=v.cv.clientHeight;if(v.cv.width!==Math.round(w*v.r.getPixelRatio()))v.r.setSize(w,h,false);
-  const asp=w/h,hh=1.95,ww=Math.max(3.6,hh*asp),vh=ww/asp,top=1.88+(vh-hh)/2;   // 머리 위 여백을 줄이고 발끝까지 들어오게
-  v.cam.left=1.3-ww/2;v.cam.right=1.3+ww/2;v.cam.top=top;v.cam.bottom=top-vh;v.cam.updateProjectionMatrix();}}
+  const asp=w/h,hh=1.95,ww=Math.max(v.n*1.2,hh*asp),vh=ww/asp,top=1.88+(vh-hh)/2,cx=(v.n-1)*1.3/2;   // 머리 위 여백을 줄이고 발끝까지 들어오게
+  v.cam.left=cx-ww/2;v.cam.right=cx+ww/2;v.cam.top=top;v.cam.bottom=top-vh;v.cam.updateProjectionMatrix();}}
 addEventListener("resize",size);
 const t0=performance.now();
 function frame(now){const t=(now-t0)/1000;size();
