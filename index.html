@@ -103,6 +103,10 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .sline .stops i.x{width:14px;height:14px;border-width:3px;box-shadow:0 0 0 2px rgba(255,255,255,.8)}
 .sline .lb{font-size:12.5px;opacity:.7;margin:1px 0}
 .sline .lb.got{opacity:1;font-weight:700;color:var(--lc)}
+.tabs{display:flex;gap:6px;margin-bottom:6px}.tab{border:2px solid var(--line);background:transparent;border-radius:999px;padding:4px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:inherit}.tab.on{background:var(--line);color:#fff}
+.bad{color:#c0392b;font-size:12.5px}
+.eqs{margin:10px 0}.eqr{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.eqi{flex:1 1 200px;text-align:left;border:2px solid #d8dcd8;background:var(--card);border-radius:10px;padding:8px 12px;font:inherit;font-size:12.5px;line-height:1.4;cursor:pointer;display:flex;flex-direction:column;gap:2px;color:inherit}.eqi b{font-size:14px}.eqi.on{border-color:var(--line);box-shadow:inset 0 0 0 1px var(--line)}
 .door .seats{font-size:12px;font-weight:700;opacity:.8}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;margin-bottom:8px}
 .wallet{position:absolute;right:36px;top:30px;font-weight:800;font-size:16px}
@@ -172,7 +176,7 @@ const hyp=Math.hypot;
 /* ========== 저장 (브라우저 저장소가 막혀 있으면 메모리로 유지) ========== */
 const KEY="plan-line2-v1";
 function loadProfile(){
-  const base={points:0,skills:{},bestWeek:0,runs:0,seenHelp:false};
+  const base={points:0,skills:{},bestWeek:0,runs:0,seenHelp:false,items:["bare","cross","shirt","sneaker"],equip:{bag:"cross",cloth:"shirt",shoe:"sneaker",kit:[]}};
   try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&typeof v==="object")return Object.assign(base,v,{skills:Object.assign({},v.skills)});}catch(e){}
   return base;
 }
@@ -198,6 +202,41 @@ const SKILLS=[   // 비용: 1단계는 처음 값 그대로, 2·3단계는 2배 
 ];
 const OLD_COST={obs:[40,90,160],bal:[30,70,120],sta:[40,80,140],plan:[60,130],excuse:[50,110],hip:[50,100],face:[40,90]};   // 비용을 올리기 전 값 (초기화 환급용)
 if(profile.spent==null){let t=0;for(const k in profile.skills)for(let i=0;i<profile.skills[k];i++)t+=(OLD_COST[k]||[])[i]||0;profile.spent=t;saveProfile();}   // 이전 저장 데이터: 그때 낸 값으로 기록
+/* ========== 아이템 (추가 기획서 10) 1차: 가방·옷·신발·소지품. 영구 보유, 출근 전에만 갈아입는다 ========== */
+const SLOTS={bag:"가방",cloth:"옷",shoe:"신발",kit:"소지품"};
+const ITEMS=[
+ {k:"bare",slot:"bag",n:"맨몸",p:0,cap:1,d:"충돌 범위 -10%"},
+ {k:"cross",slot:"bag",n:"크로스백",p:0,cap:2,d:"기본 가방"},
+ {k:"pack",slot:"bag",n:"백팩",p:150,cap:3,d:"소지품 3칸",bad:"충돌 범위 +15%. T로 앞으로 메면 없어지지만 그동안 이동 속도 -5%"},
+ {k:"brief",slot:"bag",n:"서류 가방",p:130,cap:2,d:"앉으면 무릎 위에 올려 둔다. 넓게 앉은 옆 승객이 있어도 회복이 줄지 않음",bad:"손잡이를 잡는 동안 찜할 수 없음"},
+ {k:"eco",slot:"bag",n:"에코백",p:100,cap:2,d:"가벼워서 충돌 범위 -5%"},
+ {k:"shirt",slot:"cloth",n:"셔츠와 사원증",p:0,d:"기본 옷"},
+ {k:"suit",slot:"cloth",n:"정장",p:120,d:"자리 양보 포인트 +20%",bad:"서 있을 때 체력 소모 +5%"},
+ {k:"hood",slot:"cloth",n:"후드티",p:100,d:"후드를 눌러써서 시선 게이지 속도 -25%",bad:"시야각 -10°"},
+ {k:"padding",slot:"cloth",n:"롱패딩",p:150,d:"앉았을 때 체력 회복 +15%",bad:"충돌 범위 +10%, 좁은 자리에 앉을 수 없음"},
+ {k:"hiking",slot:"cloth",n:"등산복",p:90,d:"균형 +1 (균형 감각 1단계만큼)",bad:"사당에서 내릴 사람처럼 보여 같은 문으로 경쟁 승객이 1명 더 탐"},
+ {k:"sneaker",slot:"shoe",n:"운동화",p:0,d:"기본 신발"},
+ {k:"dress",slot:"shoe",n:"구두",p:100,d:"정장과 함께 신으면 양보 포인트 보너스 +10%p",bad:"균형 -1, 비 오는 날 급정거에 더 미끄러짐"},
+ {k:"runner",slot:"shoe",n:"러닝화",p:120,d:"이동 속도 +8%",bad:"걸음에 관성이 붙어 바로 멈추기 어려움"},
+ {k:"boots",slot:"shoe",n:"장화",p:80,d:"비 오는 날 미끄러지지 않음",bad:"비가 안 오는 날 이동 속도 -5%"},
+ {k:"earphone",slot:"kit",n:"이어폰",p:60,d:"서 있을 때 체력 소모 -5%",bad:"승객의 혼잣말·통화가 들리지 않음"},
+ {k:"coffee",slot:"kit",n:"텀블러 커피",p:40,d:"C: 통근당 한 번 마셔서 체력 +10",bad:"마신 뒤 30초 안에 부딪히면 쏟아서 민폐 +20"},
+ {k:"diary",slot:"kit",n:"다이어리",p:70,d:"오늘의 계획표를 4개까지 적을 수 있음"},
+ {k:"pillow",slot:"kit",n:"목베개",p:60,d:"앉았을 때 체력 회복 +20%",bad:"깊이 잠들어 양보 상황에 1초 늦게 반응"},
+ {k:"book",slot:"kit",n:"책",p:30,d:"보는 척(R) 중에도 이동 속도가 줄지 않음",bad:"손잡이를 잡으면 효과 중단"},
+ {k:"shades",slot:"kit",n:"선글라스",p:80,d:"시선 게이지 속도 -30%",bad:"지하라 어두워서 낌새가 0.3초 늦게 보임"},
+];
+const IT=k=>ITEMS.find(i=>i.k===k);
+if(!Array.isArray(profile.items))profile.items=["bare","cross","shirt","sneaker"];
+if(!profile.equip||!Array.isArray(profile.equip.kit))profile.equip={bag:"cross",cloth:"shirt",shoe:"sneaker",kit:[]};
+const eq=k=>{const e=profile.equip;return e.bag===k||e.cloth===k||e.shoe===k||e.kit.includes(k);};
+const kitCap=()=>IT(profile.equip.bag).cap;
+const isRain=()=>!!(G&&G.mod&&G.mod.radius);
+const balLv=()=>clamp(sk("bal")+(eq("hiking")?1:0)-(eq("dress")?1:0),0,3);   // 등산복 +1, 구두 -1
+const bodyK=()=>(eq("bare")?.9:eq("eco")?.95:eq("pack")&&!(G&&G.pl.packFront)?1.15:1)*(eq("padding")?1.1:1);   // 내 충돌 범위
+const walkK=()=>(eq("runner")?1.08:1)*(eq("boots")&&!isRain()?.95:1)*(eq("pack")&&G&&G.pl.packFront?.95:1);
+function rollStock(){const c=ITEMS.filter(i=>i.p>0&&!profile.items.includes(i.k));for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}profile.stock=c.slice(0,4).map(i=>i.k);saveProfile();}   // 상점 진열 4개, 런이 끝날 때마다 바뀐다
+if(!Array.isArray(profile.stock))rollStock();
 const LINES={eye:{n:"눈치",d:"읽기",c:"#00a84d",b4:"시야각 +10°",b7:"통근 시작 때 3정거장 안에 내릴 앉은 승객 1명의 낌새가 처음부터 보임"},
  body:{n:"몸",d:"움직이기",c:"#e8843c",b4:"충돌 체력 피해 3 → 2",b7:"통근마다 1회, 체력이 0이 될 때 15로 버팀"},
  plan:{n:"계획",d:"J",c:"#3b6fd8",b4:"‘계획대로!’ 착석 포인트 +10%",b7:"통근마다 첫 계획 실패 1회는 붕괴 스택이 쌓이지 않음"}};
@@ -222,7 +261,9 @@ const DPLANS=[
  {k:"nobump",n:"무접촉 통근",d:"충돌 0회",star:3,p:40},
  {k:"nofake",n:"속지 않기",d:"페이크 동작 중인 승객을 찜하지 않기",star:3,p:40},
  {k:"planA",n:"플랜 A만",d:"찜은 한 번만, 바꾸거나 취소하지 않기",star:3,p:40},
+ {k:"packfront",n:"백팩은 앞으로",d:"서 있는 동안 가방을 앞으로 메기 (뒤로 멘 시간 3초까지 봐줌)",star:1,p:15,need:"pack"},
 ];
+const planOK=d=>!d.need||eq(d.need);   // 장착한 아이템이 있어야 나오는 계획
 const DP=k=>DPLANS.find(d=>d.k===k);
 const COMBO_MAX=5;
 const comboMax=()=>COMBO_MAX+(sk("routine")>=2?2:0);   // 칼각 루틴 2단계
@@ -246,10 +287,10 @@ const dpDesc=d=>d.k==="stand"?"출발 후 "+standHalf()+"정거장 동안 앉지
 const dpReward=d=>Math.round(d.p*(1+.1*Math.min(comboMax(),run.combo||0)));
 function genCandidates(extra){   // 후보 5개: ★ 2, ★★ 2, ★★★ 1. 모순되는 조합(일찍 앉기 + 서서 가기)은 함께 내지 않는다
   const sh=a=>{for(let i=a.length-1;i>0;i--){const j=irand(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
-  const by=n=>sh(DPLANS.filter(d=>d.star===n));
+  const by=n=>sh(DPLANS.filter(d=>d.star===n&&planOK(d)));
   const two=by(2);let c=by(1).slice(0,2).concat(two.slice(0,2),by(3).slice(0,1));
   if(c.some(d=>d.k==="early")&&c.some(d=>d.k==="stand"))c=c.filter(d=>d.k!=="stand").concat(two[2]);
-  if(extra){const has=k=>c.some(d=>d.k===k),rest=sh(DPLANS.filter(d=>!c.includes(d)&&!(d.k==="stand"&&has("early"))&&!(d.k==="early"&&has("stand"))));   // 집 카드 "내일 계획 세우기": 후보 추가
+  if(extra){const has=k=>c.some(d=>d.k===k),rest=sh(DPLANS.filter(d=>planOK(d)&&!c.includes(d)&&!(d.k==="stand"&&has("early"))&&!(d.k==="early"&&has("stand"))));   // 집 카드 "내일 계획 세우기": 후보 추가
     for(const d of rest){if(extra<=0)break;if((d.k==="stand"&&has("early"))||(d.k==="early"&&has("stand")))continue;c.push(d);extra--;}}
   return c.sort((a,b)=>a.star-b.star).map(d=>d.k);
 }
@@ -261,7 +302,7 @@ function dpSet(k,ok,why){   // 달성·실패는 확정되는 즉시 알린다
 }
 function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const g=G;
-  for(const k of["nobump","quiet","firm","nofake","unseen"])dpSet(k,true);
+  for(const k of["nobump","quiet","firm","nofake","unseen","packfront"])dpSet(k,true);
   dpSet("planA",g.claimN===1,g.claimN?"":"찜을 하지 않음");
   dpSet("sitarrive",!!(g.pl.seat&&!g.pl.seat.pink),"서서 도착");dpSet("stamina",g.stamina>=50,"체력 50 미만");
   for(const k of["asplanned","end","eye","early","stand","giveway","scan","xfer"])dpSet(k,false);
@@ -699,6 +740,7 @@ function startLeg(doorIdx){
   }
   // 함께 타는 경쟁 승객
   for(let i=0;i<3+Math.min(4,Math.floor(L/2));i++)spawnBoarder(rand(.3,1.6),null);
+  if(eq("hiking"))spawnBoarder(rand(.3,1.2),null,{door:doorIdx});   // 등산복: 같은 문으로 경쟁 승객이 1명 더
   spawnSpecials();
   if(lineB("eye",7)){const c=g.ps.filter(p=>p.state==="seated"&&!p.seat.pink&&p.dest>=1&&p.dest<=3&&!p.rush);if(c.length)pick(c).preTell=true;}   // 눈치 계열 7단계
   xferPrep(1);
@@ -706,6 +748,7 @@ function startLeg(doorIdx){
   buildRoute();toast("목표: "+route[route.length-1]+"역("+(am?"회사":"집")+")까지 "+(route.length-1)+"정거장. 도착 전에 체력이 바닥나면 탈락.");
   if(L<1){toast("마우스로 시선을 돌려 앉은 승객의 몸짓을 보세요. 휴대폰을 넣거나 가방을 끌어안으면 곧 내립니다. 클릭으로 찜.");
     toast("앞자리 사람이 일어나면 A/D로 몸을 90도 돌려 길을 터 주세요. 돌린 쪽은 내 몸이 막고, 반대편 사람과 눈치 싸움입니다.");}
+  {const ks=[eq("pack")?"T: 가방 앞으로 메기":"",eq("coffee")?"C: 커피 마시기 (한 번)":""].filter(Boolean);if(ks.length)toast("챙긴 물건 · "+ks.join(" · "));}
   sfx("chime");
 }
 /* 좌석 앞 자리(슬롯): 그 자리에 서 있는 사람이 좌석이 비면 먼저 앉는다 */
@@ -823,7 +866,7 @@ function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의
 function finishRun(why,rows,total){
   annStop();
   const wl=weekLog();
-  mode="over";profile.points+=run.points;saveProfile();
+  mode="over";profile.points+=run.points;rollStock();saveProfile();
   const msg={exhaust:["체력 방전","다리가 풀려 다음 역 벤치에 주저앉았습니다. 이번 주 통근은 여기까지."],
     nuis:["민폐 승객 등극","주변의 따가운 시선을 견디지 못하고 다음 역에서 내렸습니다."],
     quit:["이번 주 정산","무리하지 않는 것도 계획입니다."]}[why];
@@ -836,7 +879,7 @@ function finishRun(why,rows,total){
 }
 
 /* ========== 승객 판단 ========== */
-function tellAt(p){return ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit;}
+function tellAt(p){return (ARCH[p.arch].late?.86:[.6,.45,.3,.12][sk("obs")]+p.jit)+(eq("shades")?.3/T_RUN:0);}   // 선글라스: 0.3초 늦게
 const NOH={stage:0,icon:null,real:false};
 function hint(p){ // 좌석 승객이 지금 보이는 낌새
   if(p.state!=="seated"||p.rush||p.hide>0)return NOH;   // 눈이 마주친 승객은 잠시 낌새를 감춘다
@@ -922,9 +965,10 @@ function trySit(target){
   const g=G,pl=g.pl;
   if(pl.seat){
     if(g.yieldEv&&g.yieldEv.active){ // 양보
+      if(eq("pillow")&&g.yieldEv.t<1){toast("(꾸벅) 잠깐 졸았다…");return;}   // 목베개: 1초 늦게 반응
       const s=pl.seat,e=g.yieldEv.p;pl.seat=null;pl.x=s.fx+(s.fx<CAR.x+CAR.w/2?30:-30);pl.y=s.fy;constrain(pl);
       e.elder=false;seatPerson(e,s);g.yieldEv=null;g.yields++;g.nuis=Math.max(0,g.nuis-30);
-      addPts(25,"양보");ev("yield");dpSet("yield",true);toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
+      addPts(Math.round(25*(eq("suit")?(eq("dress")?1.3:1.2):1)),"양보");ev("yield");dpSet("yield",true);toast("자리를 양보했습니다. 어르신이 고맙다고 하십니다.","good");sfx("good");return;
     }
     const s=pl.seat;s.occ=null;pl.seat=null;pl.x=s.fx;pl.y=s.fy;g.leftSeat=s;toast("자리에서 일어났습니다.");
     g.timers.push({t:.5,fn(){if(!s.occ)seatOpen(s);}});return;
@@ -934,6 +978,7 @@ function trySit(target){
     g.nuis+=5*(1-.2*sk("face"));say(ex.exiting,"아직 내리는 중이에요");sfx("bump");return;}
   const s=target&&!target.occ&&!target.exiting&&canReach(target)?target:nearestFreeSeat();
   if(!s){if(target&&!target.occ)toast("앞줄로 가야 앉을 수 있습니다.");return;}
+  if(s.narrow&&eq("padding")){toast("롱패딩이 부풀어서 좁은 자리에는 앉을 수 없습니다.");return;}
   g.everSat=true;
   if(g.st<standHalf())dpSet("stand",false,"일찍 앉음");
   if(!s.pink&&(g.st<3||(g.st===3&&g.phase==="dwell")))dpSet("early",true);
@@ -956,6 +1001,7 @@ function trySit(target){
 function togglePlan(s){
   const g=G;if(g.pl.seat||!s.occ||s.occ==="player"||s.pink)return;
   if(g.melt>0){toast("멘붕 중에는 찜할 수 없습니다.");return;}
+  if(eq("brief")&&g.pl.brace){toast("서류 가방을 든 손으로 손잡이를 잡고 있어 찜할 수 없습니다.");return;}
   const i=g.plans.findIndex(p=>p.seat===s);
   if(i>=0){const ci=g.claims.findIndex(c=>c.pid===g.plans[i].pid);if(ci>=0)g.claims.splice(ci,1);g.plans.splice(i,1);dpSet("planA",false,"찜을 취소함");return;}
   const max=1+sk("plan");if(g.plans.length>=max)g.plans.shift();
@@ -984,7 +1030,7 @@ function shove(q){
 function say(e,txt){e.bubble=txt;e.bt=1.5;}
 const bumpDmg=()=>lineB("body",4)?2:3;   // 몸 계열 4단계: 충돌 피해 -1
 function bump(q,hard){
-  const g=G;g.bumps++;g.bumpCd=1.05;if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
+  const g=G;if(g.coffeeT>0){g.coffeeT=0;g.nuis+=20*(1-.2*sk("face"));toast("커피를 쏟았습니다 (민폐 +20)","bad");say(q,"앗, 뜨거…");}g.bumps++;g.bumpCd=1.05;if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
   g.nuis+=(hard?10:7)*(g.inFlow?2:1)*(1-.2*sk("face"));g.stamina-=bumpDmg();   // 하차 흐름을 거스르면 2배
   say(g.pl,pick(["죄송합니다!","앗, 죄송해요","실례했습니다"]));
   if(q&&Math.random()<.5)say(q,pick(["아…","저기요","조심 좀…","(한숨)"]));
@@ -1006,7 +1052,7 @@ function update(rdt){
       if(j.done)continue;
       if(j.msg&&g.t>=j.at-j.warn)ban=j.msg;
       if(g.t>=j.at){j.done=true;g.shake=.3;sfx("jolt");
-        if(!pl.seat&&!pl.brace){pl.vx+=j.dir*250*(1-[0,.25,.45,.6][sk("bal")]);if(j.warn)dpSet("firm",false,"급정거에 밀림");}
+        if(!pl.seat&&!pl.brace){pl.vx+=j.dir*250*(1-[0,.25,.45,.6][balLv()])*(isRain()?(eq("boots")?1:eq("dress")?1.4:1.2):1);if(j.warn)dpSet("firm",false,"급정거에 밀림");}
         for(const q of g.ps)if(q.state==="standing"){q.sway=j.dir*rand(3,7);}
       }
     }
@@ -1033,7 +1079,7 @@ function update(rdt){
      case"seated":
       if(p.delay!=null){p.delay-=dt;if(p.delay<=0)standUp(p);}
       else if(p.talk&&!p.talked&&g.phase==="run"&&((p.talk==="prev"&&p.dest===g.st+2&&g.t>3+p.jit*40)||(p.talk==="call"&&p.dest===g.st+1&&g.t>1.5+p.jit*25))){
-        p.talked=true;say(p,p.talk==="prev"?pick(["두 정거장 남았네…","다음다음 역이지?","(하품) 거의 다 왔다"]):pick(["응, 나 이번에 내려","어, "+g.route[p.dest]+" 다 와 가","곧 도착해. 끊어"]));p.bt=2.6;}
+        p.talked=true;if(!eq("earphone"))say(p,p.talk==="prev"?pick(["두 정거장 남았네…","다음다음 역이지?","(하품) 거의 다 왔다"]):pick(["응, 나 이번에 내려","어, "+g.route[p.dest]+" 다 와 가","곧 도착해. 끊어"]));p.bt=2.6;}
       else if(g.phase==="run"&&p.dest!==g.st+1&&p.arch!=="sleeper"&&p.fakeT<=0&&Math.random()<g.fakeRate*dt*.12)p.fakeT=rand(2,3.6);
       break;
      case"standing":
@@ -1124,7 +1170,7 @@ function update(rdt){
     if(pl.brace)ix=iy=0;
     if(pl.turn){if(!keys.KeyA&&!keys.KeyD&&!keys.KeyW&&!keys.KeyS)pl.turnRel=true;
       if(!pl.turnRel)ix=iy=0;else if(ix||iy){pl.turn=null;pl.screen=null;}}
-    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1)*(pl.phone?.7:1),ik=g.cfx.tipsy?Math.min(1,rdt*4):1;   // 회식 뒤에는 걸음에 관성이 붙는다
+    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1)*(pl.phone&&!(eq("book")&&!pl.brace)?.7:1)*walkK(),ik=g.cfx.tipsy?Math.min(1,rdt*4):eq("runner")?Math.min(1,rdt*9):1;   // 러닝화도 관성이 붙는다   // 회식 뒤에는 걸음에 관성이 붙는다
     pl.wx=(pl.wx||0)+(ix/m*sp-(pl.wx||0))*ik;pl.wy=(pl.wy||0)+(iy/m*sp-(pl.wy||0))*ik;
     const mvx=pl.wx+pl.vx,mvy=pl.wy;
     pl.vx*=Math.pow(.012,rdt);if(Math.abs(pl.vx)<3)pl.vx=0;
@@ -1137,7 +1183,7 @@ function update(rdt){
     constrain(pl);
     for(const q of pl.into?[]:movers){
       if(q.state==="gone"||(q.state==="boarding"&&q.step===0)||(q.state==="leaving"&&(q.step!==0||pl.turn)))continue;   // 좌석에서 막 일어난 사람은 나를 밀지 않는다
-      const dx=pl.x-q.x,dy=pl.y-q.y,d=hyp(dx,dy),R=(pl.screen&&q.slot?14:20)+(g.mod.radius||0);
+      const dx=pl.x-q.x,dy=pl.y-q.y,d=hyp(dx,dy),R=(pl.screen&&q.slot?14:20)*bodyK()+(g.mod.radius||0);
       if(d<R&&d>.01){
         // 좌석 앞 사람은 버티고, 자리로 달려드는 사람에게는 내가 벽이 된다(스크린)
         const lv=q.state==="leaving"&&q.step===0;   // 내리는 사람은 내 옆을 비집고 지나간다
@@ -1170,10 +1216,10 @@ function update(rdt){
       }
     }
     let near=0;for(const q of movers)if(hyp(q.x-pl.x,q.y-pl.y)<56)near++;
-    g.stamina-=(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*rdt;
+    g.stamina-=(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
   }else{
-    g.stamina=Math.min(maxSta(),g.stamina+(pl.seat.pink?.6:pl.seat.narrow?.5:1)*dt);   // 좁은 자리는 회복이 절반
+    g.stamina=Math.min(maxSta(),g.stamina+(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
   if(pl.turn){const s=pl.turn.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>30||Math.abs(pl.y-s.fy)>30){pl.turn=null;}}
@@ -1181,6 +1227,8 @@ function update(rdt){
   if(!pl.screen&&!pl.seat)for(const s of g.seats){   // 내리는 사람이 있는 좌석 옆 앞줄에 서 있으면 자동으로 그쪽을 막는다
     const dx=pl.x-s.fx;if(s.exiting&&Math.abs(dx)>=8&&Math.abs(dx)<46&&Math.abs(pl.y-s.fy)<22){pl.screen={s,side:Math.sign(dx)};break;}}
   pl.phone=!!keys.KeyR;   // 휴대폰 보는 척: 게이지 ×0.3, 시야각 -50%, 이동 -30%
+  if(g.coffeeT>0)g.coffeeT-=rdt;
+  if(eq("pack")&&!pl.seat&&!pl.packFront&&g.phase==="run"){g.packBack=(g.packBack||0)+rdt;if(g.packBack>3)dpSet("packfront",false,"가방을 뒤로 멤");}   // "백팩은 앞으로"
   updateGaze(rdt);updateSight(rdt);updateStare(rdt);updateSpecials(dt);
   if(!touching&&!(pl.seat&&pl.seat.pink)&&!(g.yieldEv&&g.yieldEv.active))g.nuis=Math.max(0,g.nuis-1.3*rdt);
   if(pl.bt>0){pl.bt-=rdt;if(pl.bt<=0)pl.bubble=null;}
@@ -1205,7 +1253,7 @@ function update(rdt){
 }
 /* ========== 시야 ========== */
 // 마우스가 가리키는 쪽을 본다. 방향키로도 돌릴 수 있다(2초 유지).
-const sightHalf=()=>(SIGHT_HALF+(lineB("eye",4)?.0873:0))*(G&&G.melt>0?.6:1)*(G&&G.pl.phone?.5:1);   // 멘붕 중에는 시야각 -40%
+const sightHalf=()=>(SIGHT_HALF+(lineB("eye",4)?.0873:0)-(eq("hood")?.0873:0))*(G&&G.melt>0?.6:1)*(G&&G.pl.phone?.5:1);   // 멘붕 중에는 시야각 -40%
 const SIGHT_HALF=.7;                                    // 시야 반각 (약 40도)
 function sightRange(){return 300+25*sk("obs");}
 function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d;}
@@ -1246,7 +1294,7 @@ function updateStare(rdt){
     if(p!==tgt){if(p.gz>0){p.gz=Math.max(0,p.gz-.5*rdt);if(p.gz<1)p.caught=0;}p.pk=0;continue;}   // 시선을 떼면 초당 0.5씩 줄어든다
     const peeking=p.peek&&!p.known&&hyp(p.x-P.x,p.y-P.y)<=120;   // 어깨너머 화면: 가까이서 2초 연속 주시, 그동안 게이지 2배
     if(peeking){p.pk=(p.pk||0)+rdt;if(p.pk>=2)p.known=true;}else p.pk=0;
-    p.gz=Math.min(6,p.gz+(1-.2*sk("poker"))*SENS_MUL[p.sens]*(p.touchy?1.6:1)*(P.phone?.3:1)*(peeking?2:1)*rdt);
+    p.gz=Math.min(6,p.gz+(1-.2*sk("poker"))*(eq("hood")?.75:1)*(eq("shades")?.7:1)*SENS_MUL[p.sens]*(p.touchy?1.6:1)*(P.phone?.3:1)*(peeking?2:1)*rdt);
     if(p.gz>=3&&p.caught<1){p.caught=1;p.hide=5;g.eyeN++;const n=(peeking?20:4)*(1-.2*sk("face"));g.nuis+=n;if(peeking)p.pk=0;   // 눈이 마주침: 낌새가 5초 가려진다
       say(p,pick(["…","(자세를 고쳐 앉는다)","(헛기침)"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"눈 마주침 · 민폐 +"+Math.round(n)});sfx("bump");ev("eye",{arch:p.arch});dpSet("unseen",false,"눈이 마주침");}
     if(p.gz>=4.5&&p.caught<2){p.caught=2;p.touchy=true;const n=12*(1-.2*sk("face"));g.nuis+=n;   // 이 승객은 통근 내내 예민해진다
@@ -1737,12 +1785,28 @@ function showPlatform(){
   const dv=[run.crowd[0].w,(run.crowd[0].w+run.crowd[1].w)/2,(run.crowd[1].w+run.crowd[2].w)/2,run.crowd[2].w].map(v=>v+(run.fx&&run.fx.exactBoard||sk("regular")?0:rand(-.18,.18)));
   run.cand=genCandidates((run.fx&&run.fx.cand||0)+(sk("routine")?1:0));run.picks=[];run.dv=dv;run.reroll=sk("routine")>=3;
   run.doorSeats=sk("regular")>=2?[0,1,2,3].map(()=>irand(0,2)):null;
-  showPlanner();
+  if(run.leg==="am"&&profile.items.length>4)showEquip();else showPlanner();   // 출근 전에만 갈아입는다
 }
+function showEquip(){   // 집에서 나가기 전: 가방·옷·신발·소지품 고르기 (10)
+  const e=profile.equip,own=ITEMS.filter(i=>profile.items.includes(i.k));
+  const row=slot=>{const list=own.filter(i=>i.slot===slot);if(slot!=="kit"&&list.length<2)return "";
+    return `<div class="eqs"><b>${SLOTS[slot]}${slot==="kit"?` (${e.kit.length}/${kitCap()}칸)`:""}</b><div class="eqr">${list.map(i=>{const on=slot==="kit"?e.kit.includes(i.k):e[slot]===i.k;
+      return `<button class="eqi${on?" on":""}" data-k="${i.k}"><b>${i.n}</b><span>${i.d}</span>${i.bad?`<span class="bad">${i.bad}</span>`:""}</button>`;}).join("")||'<span class="sub">가진 소지품이 없습니다. 상점에서 살 수 있습니다.</span>'}</div></div>`;};
+  sheet(`<span class="tag">${run.week}주차 ${DAYS[run.day]} 출근 전 · 집</span><h2>오늘은 뭘 챙길까요?</h2>
+   <p class="sub">오늘 예보: <b>${run.mod.name}</b>. 퇴근 때까지 이 차림 그대로입니다.</p>
+   ${["bag","cloth","shoe","kit"].map(row).join("")}
+   <div class="btns"><button class="btn go" id="b1">이대로 나가기</button></div>`);
+  document.querySelectorAll(".eqi").forEach(b=>b.onclick=()=>{const it=IT(b.dataset.k);
+    if(it.slot==="kit"){const i=e.kit.indexOf(it.k);if(i>=0)e.kit.splice(i,1);else if(e.kit.length<kitCap())e.kit.push(it.k);else{toast("가방에 소지품 칸이 모자랍니다.");return;}}
+    else{e[it.slot]=it.k;if(it.slot==="bag")e.kit=e.kit.slice(0,kitCap());}
+    saveProfile();sfx("tick");showEquip();});
+  $("b1").onclick=()=>{run.cand=genCandidates((run.fx&&run.fx.cand||0)+(sk("routine")?1:0));run.picks=[];showPlanner();};   // 차림에 따라 계획 후보가 달라진다 (백팩은 앞으로)
+}
+const planMax=()=>eq("diary")?4:3;   // 다이어리: 계획 4개
 function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계획표에 적는다
   const am=run.leg==="am";
   sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${am?"출근":"퇴근"} · 오늘의 계획표</span>
-   <h2>오늘은 무엇을 지킬까요? (최대 3개)</h2>
+   <h2>오늘은 무엇을 지킬까요? (최대 ${planMax()}개)</h2>
    <p class="sub">적은 계획을 지키면 보상을 받습니다. 2개 이상 적어 모두 지키면 +20P와 루틴 콤보 +1, 적은 계획이 전부 틀어지면 콤보가 끊깁니다. 적지 않아도 됩니다.<br>루틴 콤보 <b>${run.combo}</b> (계획 보상 +${run.combo*10}%)${run.collapseNext?" · 지난 통근의 계획이 모두 틀어졌습니다":""}</p>
    <div class="plans">${run.cand.map(k=>{const d=DP(k),on=run.picks.includes(k);return `<button class="pl${on?" on":""}" data-k="${k}"><span class="ck">${on?"✔":""}</span><span class="pn"><b>${d.n}</b>${dpDesc(d)}</span><span class="st">${"★".repeat(d.star)}</span><span class="pp">${dpReward(d)}P</span></button>`;}).join("")}</div>
    ${run.reroll?`<p class="sub">칼각 루틴: ${run.rerollOn?"<b>새로 뽑을 후보를 누르세요.</b>":"마음에 안 드는 후보 1개를 새로 뽑을 수 있습니다."}</p>`:""}
@@ -1750,13 +1814,13 @@ function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계
   if(run.reroll)$("b2").onclick=()=>{run.rerollOn=!run.rerollOn;sfx("tick");showPlanner();};
   document.querySelectorAll(".pl").forEach(b=>b.onclick=()=>{const k=b.dataset.k,i=run.picks.indexOf(k);
     if(run.rerollOn){rerollPlan(k);return;}
-    if(i>=0)run.picks.splice(i,1);else if(run.picks.length<3)run.picks.push(k);else{toast("계획은 3개까지 적을 수 있습니다.");return;}
+    if(i>=0)run.picks.splice(i,1);else if(run.picks.length<planMax())run.picks.push(k);else{toast("계획은 "+planMax()+"개까지 적을 수 있습니다.");return;}
     sfx("tick");showPlanner();});
   $("b1").onclick=showDoors;
 }
 function rerollPlan(k){   // 칼각 루틴 3단계: 후보 1개를 같은 별 수의 다른 계획으로 바꾼다 (통근마다 1회)
   const has=x=>run.cand.includes(x),old=DP(k);
-  const ok=d=>!has(d.k)&&!(d.k==="stand"&&has("early")&&k!=="early")&&!(d.k==="early"&&has("stand")&&k!=="stand");
+  const ok=d=>planOK(d)&&!has(d.k)&&!(d.k==="stand"&&has("early")&&k!=="early")&&!(d.k==="early"&&has("stand")&&k!=="stand");
   const pool=DPLANS.filter(d=>ok(d)&&d.star===old.star),alt=pool.length?pool:DPLANS.filter(ok);
   run.rerollOn=false;if(!alt.length){toast("바꿀 후보가 없습니다.");showPlanner();return;}
   const n=pick(alt);run.cand[run.cand.indexOf(k)]=n.k;run.picks=run.picks.filter(x=>x!==k);run.reroll=false;sfx("good");showPlanner();
@@ -1780,18 +1844,33 @@ function showShop(after){   // 스킬 화면: 세 계열이 세 노선, 단계�
       return `<div class="skill"><div class="nm">${s.n}<span class="pips">${"●".repeat(lv)}${"○".repeat(max-lv)}</span></div><div class="ds">${lv<max?s.d[lv]:"최대 단계 · "+s.d[max-1]}</div>
       <button class="btn go" data-k="${s.k}" ${lv>=max||c>profile.points?"disabled":""}>${lv>=max?"완료":c+" P"}</button></div>`;}).join("")}</div>`;};
   const back=Math.floor((profile.spent||0)*.9);
-  sheet(`<div class="wallet">보유 ${profile.points} P</div><h2>패시브 스킬</h2><p class="sub">포인트는 한 주가 끝날 때 정산됩니다. 찍은 스킬은 다음 주부터 계속 적용됩니다. 한 계열에 4단계, 7단계를 찍으면 계열 보너스가 붙습니다.</p>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><div class="tabs"><button class="tab on">패시브 스킬</button><button class="tab" id="tabItem">상점 · 아이템</button></div><h2>패시브 스킬</h2><p class="sub">포인트는 한 주가 끝날 때 정산됩니다. 찍은 스킬은 다음 주부터 계속 적용됩니다. 한 계열에 4단계, 7단계를 찍으면 계열 보너스가 붙습니다.</p>
   ${["eye","body","plan"].map(lineHTML).join("")}
   <div class="btns"><button class="btn go" id="b1">월요일 출근하기</button><button class="btn ghost" id="b3" ${profile.spent?"":"disabled"}>전체 초기화 (${back} P 환급)</button><button class="btn ghost" id="b2">처음으로</button></div>`);
   document.querySelectorAll(".skill .btn").forEach(b=>b.onclick=()=>{const s=SKILLS.find(x=>x.k===b.dataset.k),lv=sk(s.k),c=s.cost[lv];
     if(c==null||c>profile.points)return;profile.points-=c;profile.spent=(profile.spent||0)+c;profile.skills[s.k]=lv+1;saveProfile();sfx("good");showShop(after);});
   $("b3").onclick=()=>{if(!profile.spent)return;if($("b3").dataset.sure!=="1"){$("b3").dataset.sure="1";$("b3").textContent="한 번 더 누르면 초기화 ("+back+" P 환급)";return;}
     profile.points+=back;profile.spent=0;profile.skills={};saveProfile();sfx("tick");toast("스킬을 모두 초기화했습니다. "+back+" P를 돌려받았습니다.");showShop(after);};
-  $("b1").onclick=startRun;$("b2").onclick=showMenu;
+  $("b1").onclick=startRun;$("b2").onclick=showMenu;$("tabItem").onclick=()=>showItemShop(after);
+}
+function showItemShop(after){   // 상점: 진열 4개 (런이 끝날 때마다 바뀜). 산 아이템은 영구 보유
+  mode="shop";
+  const card=i=>{const own=profile.items.includes(i.k);
+    return `<div class="skill"><div class="nm">${i.n}<span class="pips">${SLOTS[i.slot]}${i.cap?" · 소지품 "+i.cap+"칸":""}</span></div><div class="ds">${i.d}${i.bad?`<br><span class="bad">단점: ${i.bad}</span>`:""}</div>
+    <button class="btn go" data-k="${i.k}" ${own||i.p>profile.points?"disabled":""}>${own?"보유":i.p+" P"}</button></div>`;};
+  const mine=ITEMS.filter(i=>i.p>0&&profile.items.includes(i.k));
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><div class="tabs"><button class="tab" id="tabSkill">패시브 스킬</button><button class="tab on">상점 · 아이템</button></div><h2>이번 진열</h2>
+  <p class="sub">산 아이템은 계속 가지고 있습니다. 출근 전에 집에서 챙겨 나갑니다. 진열은 한 주(런)가 끝날 때마다 바뀝니다.</p>
+  ${(profile.stock||[]).map(k=>card(IT(k))).join("")||'<p class="sub">진열된 물건을 모두 샀습니다.</p>'}
+  ${mine.length?`<h3>가지고 있는 아이템</h3><p class="sub">${mine.map(i=>i.n).join(", ")}</p>`:""}
+  <div class="btns"><button class="btn go" id="b1">월요일 출근하기</button><button class="btn ghost" id="b2">처음으로</button></div>`);
+  document.querySelectorAll(".skill .btn").forEach(b=>b.onclick=()=>{const i=IT(b.dataset.k);if(profile.items.includes(i.k)||i.p>profile.points)return;
+    profile.points-=i.p;profile.items.push(i.k);saveProfile();sfx("good");toast(i.n+"을(를) 샀습니다. 출근 전에 챙길 수 있습니다.","good");showItemShop(after);});
+  $("b1").onclick=startRun;$("b2").onclick=showMenu;$("tabSkill").onclick=()=>showShop(after);
 }
 function setPause(v){
   if(mode!=="play")return;paused=v;annPause(v);
-  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}</p>
+  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
     <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
     $("b1").onclick=()=>setPause(false);$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
@@ -1865,6 +1944,8 @@ addEventListener("keydown",e=>{
   if(ga!=null&&G&&view!=="q"){G.pl.gazeT=ga;G.pl.gazeHold=2;}   // 탑뷰: 짧게 눌러도 바로 돌아보게
   if(e.code==="KeyF"&&focus&&focus.state==="seated")togglePlan(focus.seat);
   if(e.code==="KeyQ")excuse();
+  if(e.code==="KeyT"&&eq("pack")&&G&&!G.pl.seat){G.pl.packFront=!G.pl.packFront;toast(G.pl.packFront?"가방을 앞으로 멨습니다 (이동 속도 -5%).":"가방을 다시 뒤로 멨습니다.");sfx("tick");}
+  if(e.code==="KeyC"&&eq("coffee")&&G){if(G.coffeeUsed)toast("커피는 이미 다 마셨습니다.");else{G.coffeeUsed=true;G.coffeeT=30;G.stamina=Math.min(maxSta(),G.stamina+10);toast("커피 한 모금. 체력 +10. 30초 동안은 부딪히지 않게 조심.","good");sfx("good");}}
   if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false)annStop();toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
   if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 3D":"시점: 탑뷰");if(view!=="q"&&document.pointerLockElement)document.exitPointerLock();}
 });

@@ -130,6 +130,15 @@ function syncMe(g,dt,time){
   const P=g.pl,me=R.me,p3=me.p3;p3.root.rotation.set(0,0,0);p3.torso.rotation.set(0,0,0);
   if(P.seat||me.hide){me.hold.visible=false;me.lx=P.x;me.ly=P.y;return;}                                                                     // 앉으면 1인칭
   me.hold.visible=true;me.hold.position.set(X(P.x),0,Z(P.y));
+  // 장착한 가방 (10): 백팩은 등(T로 앞), 크로스백·에코백은 옆구리, 서류 가방은 손
+  {const bk=profile.equip.bag;if(me.bagK!==bk){if(me.bag)me.bag.parent.remove(me.bag);me.bag=null;me.bagK=bk;
+    const g3=new THREE.Group();
+    if(bk==="pack"){g3.add(C.box(.4,.48,.22,"#36507a"));const pk=C.box(.28,.18,.07,"#2a3f60");pk.position.set(0,-.1,-.13);g3.add(pk);g3.position.set(0,.22,-.25);p3.torso.add(g3);}
+    else if(bk==="cross"){g3.add(C.box(.07,.24,.2,"#6b4a2f"));g3.position.set(.25,-.05,0);p3.torso.add(g3);}
+    else if(bk==="eco"){g3.add(C.box(.05,.34,.28,"#e9e1cc"));g3.position.set(.26,-.12,0);p3.torso.add(g3);}
+    else if(bk==="brief"){g3.add(C.box(.09,.28,.38,"#3a2a20"));g3.position.set(.3,-.62,0);p3.torso.add(g3);}
+    if(g3.children.length){me.bag=g3;me.mats=null;}}
+   if(me.bag&&me.bagK==="pack")me.bag.position.z=P.packFront?.25:-.25;}
   // 좌석 앞에서 좌석을 바라볼 때는 내 몸이 승객을 가리므로 반투명하게 한다
   if(!me.mats){me.mats=[];me.outl=[];me.fade=1;p3.root.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2)me.outl.push(o);else if(!me.mats.includes(o.material)){o.material.transparent=true;me.mats.push(o.material);}});}
   {const pz=Z(P.y),fz=Math.sin(P.gaze),front=Math.abs(pz)>HW-1.3&&fz*pz>0&&Math.abs(fz)>.45;
