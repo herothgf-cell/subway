@@ -208,6 +208,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
 #intro .sign button:hover{filter:brightness(1.15)}
 #intro .sign button:disabled{opacity:.35;cursor:default;filter:none}
 #intro .wal{position:absolute;right:20px;top:16px;background:rgba(0,0,0,.55);border-radius:8px;padding:4px 12px;font-weight:800;font-size:14px;z-index:2}
+.slots{display:flex;flex-direction:column;gap:10px;margin:14px 0}.slot{text-align:left;font:inherit;background:var(--card);border:2px solid #d8dcd8;border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:3px;color:var(--ink)}.slot b{font-size:16px}.slot span{font-size:13.5px;color:#4a5157}.slot:hover:not(:disabled){border-color:var(--line)}.slot.empty span{color:var(--mute)}.slot.warn{border-color:var(--bad)}.slot.warn span{color:var(--bad);font-weight:700}.slot:disabled{opacity:.45;cursor:default}
 .rec{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}.rec td,.rec th{border-bottom:1px solid #d8dcd8;padding:7px 10px;text-align:left}
 /* 튜토리얼 (01): 플래너 메모 */
 #tutmemo{position:absolute;left:24px;bottom:58px;width:340px;display:none;background:#fffdf3;border-radius:6px;padding:10px 16px 12px;font:26px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;transform:rotate(-1.5deg);box-shadow:0 6px 18px rgba(0,0,0,.45);border-left:6px solid #f0a0a0;pointer-events:none}
@@ -255,7 +256,10 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v, pick=a=>a[Math.floor(Math.random()*a.length)
 const hyp=Math.hypot;
 
 /* ========== 저장 (브라우저 저장소가 막혀 있으면 메모리로 유지) ========== */
-const KEY="plan-line2-v1";
+/* 저장 슬롯 3개: 슬롯마다 프로필(포인트·스킬·아이템·해금)과 진행 중인 런을 따로 둔다. 슬롯 1은 예전 저장 데이터 그대로 */
+const SLOTN=3,SLOT_META="plan-line2-slot",slotKey=n=>n===1?"plan-line2-v1":"plan-line2-v1-s"+n;
+let SLOT=1;try{SLOT=Math.min(SLOTN,Math.max(1,+localStorage.getItem(SLOT_META)||1));}catch(e){}
+let KEY=slotKey(SLOT);
 function loadProfile(){
   const base={points:0,skills:{},bestWeek:0,runs:0,seenHelp:false,items:["bare","cross","shirt","sneaker"],equip:{bag:"cross",cloth:"shirt",shoe:"sneaker",kit:[]}};
   try{const v=JSON.parse(localStorage.getItem(KEY)||"null");if(v&&typeof v==="object")return Object.assign(base,v,{skills:Object.assign({},v.skills)});}catch(e){}
@@ -307,6 +311,7 @@ function makeWeek(){   // 주 초에 이번 주 일정을 정한다: 비(예보 
   run.weekShown=false;
 }
 const APP=k=>APPTS.find(a=>a.k===k);
+const planName=()=>(run.leg==="am"?"출근길":run.leg==="pm"||!run.appt?"퇴근길":run.appt.dir==="go"?"가는 길":"귀갓길")+" 계획표";   // 통근마다 적는 계획표 이름
 const legName=()=>run.leg==="am"?"출근":run.leg==="pm"||!run.appt?"퇴근":run.appt.n;
 const goalName=()=>run.leg==="am"?"회사":run.leg==="pm"||!run.appt||run.appt.dir==="back"?"집":run.appt.n;
 const slackN=()=>(run.leg==="we"&&run.appt.slack!=null?run.appt.slack:1)+(sk("alarm")?1:0);   // 도착 시한 여유 (열차 대수). 두 번째 알람 +1
@@ -321,7 +326,7 @@ const SKILLS=[   // 비용: 1단계는 처음 값 그대로, 2·3단계는 2배 
  {k:"plan",n:"플랜 B",line:"plan",cost:[60,260],d:["찜 슬롯 2개","찜 슬롯 3개"]},
  {k:"excuse",n:"“잠시만요”",line:"plan",cost:[50,220],d:["Q: 주변 승객이 길을 터 줌 (12초 대기)","대기 시간 7초로 단축"]},
  {k:"face",n:"철면피",line:"plan",cost:[40,180],d:["민폐 게이지 상승 -20%","민폐 게이지 상승 -40%"]},
- {k:"routine",n:"칼각 루틴",line:"plan",cost:[60,240,400],d:["오늘의 계획표 후보 +1","루틴 콤보 최대치 +2","통근마다 계획 후보 1개를 새로 뽑기"]},
+ {k:"routine",n:"칼각 루틴",line:"plan",cost:[60,240,400],d:["계획표 후보 +1","루틴 콤보 최대치 +2","통근마다 계획 후보 1개를 새로 뽑기"]},
  {k:"alarm",n:"두 번째 알람",line:"plan",cost:[40,180],d:["도착 시한 여유 +1대","열차를 보내기 전에 다음 열차 혼잡도를 미리 봄"]},
 ];
 const OLD_COST={obs:[40,90,160],bal:[30,70,120],sta:[40,80,140],plan:[60,130],excuse:[50,110],hip:[50,100],face:[40,90]};   // 비용을 올리기 전 값 (초기화 환급용)
@@ -345,7 +350,7 @@ const ITEMS=[
  {k:"boots",slot:"shoe",n:"장화",p:80,d:"비 오는 날 미끄러지지 않음",bad:"비가 안 오는 날 이동 속도 -5%"},
  {k:"earphone",slot:"kit",n:"이어폰",p:60,d:"서 있을 때 체력 소모 -5%",bad:"승객의 혼잣말·통화가 들리지 않음"},
  {k:"coffee",slot:"kit",n:"텀블러 커피",p:40,d:"C: 통근당 한 번 마셔서 체력 +10",bad:"마신 뒤 30초 안에 부딪히면 쏟아서 민폐 +20"},
- {k:"diary",slot:"kit",n:"다이어리",p:70,d:"오늘의 계획표를 4개까지 적을 수 있음"},
+ {k:"diary",slot:"kit",n:"다이어리",p:70,d:"계획표를 4개까지 적을 수 있음"},
  {k:"pillow",slot:"kit",n:"목베개",p:60,d:"앉았을 때 체력 회복 +20%",bad:"깊이 잠들어 양보 상황에 1초 늦게 반응"},
  {k:"book",slot:"kit",n:"책",p:30,d:"보는 척(R) 중에도 이동 속도가 줄지 않음",bad:"손잡이를 잡으면 효과 중단"},
  {k:"shades",slot:"kit",n:"선글라스",p:80,d:"시선 게이지 속도 -30%",bad:"지하라 어두워서 낌새가 0.3초 늦게 보임"},
@@ -380,6 +385,13 @@ const CHARS=[
   trait:"연륜",td:"페이크 동작에 속지 않음 (관찰력 2단계의 페이크 간파)",lock:{d:"한 런에서 4주차 도달",ok:()=>bestAny()>=3},look:{shirt:"#3b3f46",pin:"#5b616b",shape:"v",collarC:"#ffffff",cuffC:"#ffffff",pants:"#2b2f36",hair:"#9a9ea6",hairStyle:"short",glasses:true,shoe:"#15151c",h:1.02,wx:1.1,suit:"#c0392b"}},
 ];
 if(!profile.best)profile.best={han:profile.bestWeek||0};   // 이전 저장 데이터: 기존 최고 기록은 한계획 것으로
+function fixProfile(){   // 예전·빈 저장 데이터 보정 (위의 처음 불러올 때 보정과 같다)
+  if(profile.spent==null){let t=0;for(const k in profile.skills)for(let i=0;i<profile.skills[k];i++)t+=(OLD_COST[k]||[])[i]||0;profile.spent=t;}
+  if(!Array.isArray(profile.items))profile.items=["bare","cross","shirt","sneaker"];
+  if(!profile.equip||!Array.isArray(profile.equip.kit))profile.equip={bag:"cross",cloth:"shirt",shoe:"sneaker",kit:[]};
+  if(!Array.isArray(profile.stock))rollStock();
+  if(!profile.best)profile.best={han:profile.bestWeek||0};
+}
 const bestAny=()=>Math.max(profile.bestWeek||0,...Object.values(profile.best||{}));
 const CH=()=>CHARS.find(c=>c.k===profile.char)||CHARS[0];
 const charOpen=c=>!c.lock||c.lock.ok();
@@ -530,7 +542,7 @@ const DIARY={
  tell:{pr:3,t:["{st} 직전에 {arch}{이} 짐을 챙겼다. 그걸 보고 움직였다. {time} 착석.","{time}, {st}. 계획은 아니었지만 눈치는 빨랐다.","낌새를 보고 나서야 찜했다. {st}에서 앉기는 했다.","{arch}{이} 일어날 자세를 잡는 것을 봤다. 늦지 않았다. {st}, {time}.","{st}에서 앉았다. 예측이라기보다 반응이었다.","계획 반, 눈치 반. {time} 착석으로 기록한다.","{arch}의 움직임을 읽은 것은 {st} 바로 앞이었다. 다음에는 더 일찍 본다.","{st}. 보고 나서 정했으니 계획이라 부르기는 어렵다. 그래도 앉았다.","{time}에 앉았다. 근거는 {arch}의 손이 가방으로 간 것 하나였다.","눈치로 얻은 자리다. {st}, {time}. 플래너에는 별표 없이 적는다."]},
  stood:{pr:5,t:["{n}정거장을 서서 왔다. 다리가 기억하고 있다.","오늘은 한 번도 앉지 못했다. {n}정거장, 기록해 둔다.","앉을 자리는 있었다. 내 앞이 아니었을 뿐이다.","{from}에서 {to}까지 서서 갔다. 손잡이와 많이 친해졌다.","찜한 자리는 끝까지 비지 않았다. {n}정거장을 서 있었다.","서서 가는 것도 계획에 넣어 두었어야 했다.","{to}에 도착했을 때 좌석은 여전히 남의 것이었다.","오늘의 착석 시각: 없음.","{n}정거장 동안 내 앞사람은 한 명도 내리지 않았다. 고르는 눈을 점검한다.","서 있는 동안 노선도를 세 번 읽었다. {n}정거장은 길다."]},
  bump:{pr:5,t:["{n}번 부딪혔다. {n}번 사과했다.","충돌 {n}회. 동선 계획에 사람이 빠져 있었다.","\"죄송합니다\"를 {n}번 말했다. 목표는 0번이었다.","오늘 통로는 예상보다 좁았다. 부딪힌 횟수 {n}.","{n}번의 접촉이 있었다. 급할수록 돌아갔어야 했다.","사람 사이를 지나가다 {n}번 닿았다. 틈은 기다리면 생긴다는 것을 적어 둔다.","충돌 {n}회는 계획에 없던 숫자다.","어깨가 {n}번 닿았다. 다음에는 한 박자 늦게 움직인다.","{st} 근처에서 처음 부딪혔다. 내릴 때는 {n}번이 되어 있었다.","부딪힌 것은 {n}번, 눈총은 그보다 많았다."]},
- planPart:{pr:4,t:["계획표 {total}줄 중 {done}줄에 체크했다. 「{failName}」에는 줄을 그었다.","「{doneName}」{은} 지켰다. 「{failName}」{은} 지키지 못했다.","{total}개 중 {done}개. 나쁘지 않지만 전부는 아니다.","「{failName}」에 줄을 긋는 손이 조금 무거웠다.","체크 {done}, 줄 {fail}. 오늘의 계획표는 그렇게 닫았다.","「{doneName}」 달성. 나머지는 내일의 나에게 넘긴다.","계획표가 절반쯤 맞았다. 절반쯤 틀렸다는 뜻이기도 하다.","「{failName}」{은} 적을 때부터 조금 불안했다.","{done}줄은 계획대로, {fail}줄은 계획과 다르게 되었다.","오늘 계획표의 성적은 {total}분의 {done}이다."]},
+ planPart:{pr:4,t:["계획표 {total}줄 중 {done}줄에 체크했다. 「{failName}」에는 줄을 그었다.","「{doneName}」{은} 지켰다. 「{failName}」{은} 지키지 못했다.","{total}개 중 {done}개. 나쁘지 않지만 전부는 아니다.","「{failName}」에 줄을 긋는 손이 조금 무거웠다.","체크 {done}, 줄 {fail}. 이번 계획표는 그렇게 닫았다.","「{doneName}」 달성. 나머지는 내일의 나에게 넘긴다.","계획표가 절반쯤 맞았다. 절반쯤 틀렸다는 뜻이기도 하다.","「{failName}」{은} 적을 때부터 조금 불안했다.","{done}줄은 계획대로, {fail}줄은 계획과 다르게 되었다.","오늘 계획표의 성적은 {total}분의 {done}이다."]},
  // 드문 사건: 3개씩
  exhaust:{pr:1,t:["{st}에서 더는 버티지 못했다. 이번 주 계획은 여기까지.","{st}에서 다리가 먼저 결정을 내렸다.","체력이 {st}에서 바닥났다. 다음 주 계획표 첫 줄은 정해졌다."]},
  nuis:{pr:1,t:["{st}에서 내렸다. 시선을 견딜 계획은 세우지 않았었다.","오늘은 내가 민폐였다. {st}에서 스스로 내렸다.","사과를 너무 많이 했다. {st}에서 통근을 멈췄다."]},
@@ -803,6 +815,7 @@ function makeSeats(){
 let run=null, G=null, paused=false, mode="menu";
 const keys={}; const mouse={x:-99,y:-99,inside:false};
 const T_RUN=14,T_DWELL=7.5;
+const SEAT_REC=.65,NUIS_DECAY=.8;   // 앉아 있을 때 체력 회복(게임 시간 초당, 앉으면 시간이 3배로 흐름), 민폐 게이지 자연 감소(초당). 2026-11-24: 1 → .65, 1.3 → .8 (너무 쉬워서)
 const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구간은 길다)
 
 function level(){return (run.week-1)*4+Math.min(4,run.day)+(run.leg!=="am"?.5:0);}
@@ -1429,7 +1442,7 @@ function update(rdt){
     g.stamina-=(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(1-.06*(stat("sta")-3))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
   }else{
-    g.stamina=Math.min(maxSta(),g.stamina+(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
+    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
   if(pl.turn){const s=pl.turn.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>30||Math.abs(pl.y-s.fy)>30){pl.turn=null;}}
@@ -1440,7 +1453,7 @@ function update(rdt){
   if(g.coffeeT>0)g.coffeeT-=rdt;
   if(eq("pack")&&!pl.seat&&!pl.packFront&&g.phase==="run"){g.packBack=(g.packBack||0)+rdt;if(g.packBack>3)dpSet("packfront",false,"가방을 뒤로 멤");}   // "백팩은 앞으로"
   updateGaze(rdt);updateSight(rdt);updateStare(rdt);updateSpecials(dt);
-  if(!touching&&!(pl.seat&&pl.seat.pink)&&!(g.yieldEv&&g.yieldEv.active))g.nuis=Math.max(0,g.nuis-1.3*(1+.15*(stat("mental")-3))*rdt);
+  if(!touching&&!(pl.seat&&pl.seat.pink)&&!(g.yieldEv&&g.yieldEv.active))g.nuis=Math.max(0,g.nuis-NUIS_DECAY*(1+.15*(stat("mental")-3))*rdt);
   if(pl.bt>0){pl.bt-=rdt;if(pl.bt<=0)pl.bubble=null;}
   for(let i=g.fx.length-1;i>=0;i--){g.fx[i].t+=rdt;if(g.fx[i].t>1.3)g.fx.splice(i,1);}
   // 찜한 승객이 그냥 사라진 경우 정리 (자리가 비어 있으면 유지)
@@ -1942,7 +1955,7 @@ function hud(){
   $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"))+(g.meltUsed?"":"   ·   붕괴 "+"●".repeat(g.collapse)+"○".repeat(Math.max(0,meltAt()-g.collapse)));
   $("meltfx").style.display=mode==="play"&&g.melt>0?"block":"none";
   {const el=$("dplan"),on=mode==="play"&&g.dp.length>0;let h="";
-    if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="scan"&&d.status==="pending"?" ("+g.scanned.size+"/5)":""}</span></div>`).join("");
+    if(on)h="<b>"+(run?planName():"계획표")+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="scan"&&d.status==="pending"?" ("+g.scanned.size+"/5)":""}</span></div>`).join("");
     if(el.innerHTML!==h)el.innerHTML=h;el.style.display=on?"block":"none";}
   // 승객 카드
   const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)&&(!GAZE||focus.state!=="seated"||stareCenter(focus))?focus:null;   // 곁눈질로는 차림새 카드가 뜨지 않는다
@@ -1976,20 +1989,48 @@ function seatAt(x,y){const up=view==="q"?40:SEAT_D/2+6;for(const s of G.seats)if
 function sheet(html){$("intro").classList.remove("on");$("tutmemo").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
 function showMenu(){   // 타이틀 화면 (01): 스크린도어 너머로 열차가 지나가고, 역명판이 메뉴. 전광판에 최장 개근 기록
   mode="menu";G=null;IN=null;$("ov").classList.remove("on");banner(null);prompt(null);$("card").style.display="none";$("tutmemo").style.display="none";
-  const bw=bestAny(),sv=loadRun();
+  const infos=[1,2,3].map(slotInfo),bw=Math.max(0,...infos.map(i=>i.best)),sv=infos.some(i=>i.used);
   const led=(bw?`최장 개근 ${bw}주 · `:"")+`다음 열차 곧 도착 · 승강장과 열차 사이가 넓으니 발밑을 조심하세요`;
   const el=$("intro");el.classList.add("on");
   el.innerHTML=`<div class="cut t0"><div class="led"><span>${led}</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
    <div class="sign"><div class="nm">계획대로<span>,</span> 지하철</div><div class="who">파워 J 직장인의 출퇴근 자리 사수기</div>
    <div class="menu"><button class="go" id="m1">출근하기</button><button id="m2"${sv?"":" disabled"}>불러오기</button></div></div>
    <div class="queue">${inPeople(12,true)}</div></div>`;
-  $("m1").onclick=showChars;if(sv)$("m2").onclick=resumeRun;
+  $("m1").onclick=()=>showSlots("new");if(sv)$("m2").onclick=()=>showSlots("load");
 }
 /* 런 저장 (불러오기): 통근 직전(승강장)과 주말 화면에서 저장하고, 런이 끝나면 지운다 */
-const RKEY=KEY+"-run";
-function saveRun(at){try{run.char=profile.char;run.at=at;localStorage.setItem(RKEY,JSON.stringify(run));}catch(e){}}
-function loadRun(){try{const r=JSON.parse(localStorage.getItem(RKEY)||"null");return r&&r.sched?r:null;}catch(e){return null;}}
-function clearRun(){try{localStorage.removeItem(RKEY);}catch(e){}}
+const rkey=()=>KEY+"-run";
+function saveRun(at){try{run.char=profile.char;run.at=at;localStorage.setItem(rkey(),JSON.stringify(run));}catch(e){}}
+function loadRun(){try{const r=JSON.parse(localStorage.getItem(rkey())||"null");return r&&r.sched?r:null;}catch(e){return null;}}
+function clearRun(){try{localStorage.removeItem(rkey());}catch(e){}}
+function slotInfo(n){   // 슬롯 요약 (전환하지 않고 읽기만)
+  const rd=k=>{try{return JSON.parse(localStorage.getItem(k)||"null");}catch(e){return null;}};
+  const p=rd(slotKey(n)),r=rd(slotKey(n)+"-run"),c=CHARS.find(x=>x.k===((r&&r.char)||(p&&p.char)))||CHARS[0];
+  const best=p?Math.max(p.bestWeek||0,...Object.values(p.best||{})):0;
+  return {n,used:!!((p&&p.runs>0)||(r&&r.sched)),p,r:r&&r.sched?r:null,c,best};
+}
+function useSlot(n,fresh){   // 슬롯 바꾸기. fresh면 그 슬롯을 비우고 새로 시작. 음성·시점·인트로 설정은 그대로 가져간다
+  const keep={voice:profile.voice,view:profile.view,seenIntro:profile.seenIntro,seenHelp:profile.seenHelp};
+  SLOT=n;KEY=slotKey(n);try{localStorage.setItem(SLOT_META,String(n));if(fresh){localStorage.removeItem(KEY);localStorage.removeItem(rkey());}}catch(e){}
+  profile=loadProfile();fixProfile();
+  for(const k of["voice","view","seenIntro"])if(keep[k]!=null)profile[k]=keep[k];
+  if(fresh&&keep.seenHelp)profile.seenHelp=true;   // 튜토리얼은 한 번 했으면 새 슬롯에서도 건너뛴다
+  saveProfile();
+}
+function showSlots(kind){   // 출근하기(new): 새로 시작할 슬롯. 불러오기(load): 이어 할 슬롯
+  const infos=[1,2,3].map(slotInfo);let armed=null;
+  const line=i=>!i.used?"빈 슬롯":`${i.c.n} · ${i.r?`${i.r.week}주차 ${DAYS[i.r.day]||""} 진행 중`:"진행 중인 주 없음"} · 최장 개근 ${i.best}주 · 보유 ${(i.p&&i.p.points)||0} P`;
+  const draw=()=>{sheet(`<h2>${kind==="new"?"어느 슬롯에 새로 시작할까요?":"어느 슬롯을 불러올까요?"}</h2>
+   <p class="sub">${kind==="new"?"슬롯마다 포인트·스킬·아이템·해금과 진행 상황이 따로 저장됩니다. 쓰던 슬롯을 고르면 덮어씁니다.":"통근 직전과 주말 화면에서 저장된 지점부터 이어 합니다."}</p>
+   <div class="slots">${infos.map(i=>`<button class="slot${i.used?"":" empty"}${armed===i.n?" warn":""}" data-n="${i.n}" ${kind==="load"&&!i.used?"disabled":""}><b>슬롯 ${i.n}</b><span>${armed===i.n?"한 번 더 누르면 이 슬롯의 진행과 포인트·스킬·아이템이 지워집니다":line(i)}</span></button>`).join("")}</div>
+   <div class="btns"><button class="btn ghost" id="b2">처음으로</button></div>`);
+   document.querySelectorAll(".slot").forEach(b=>b.onclick=()=>{const n=+b.dataset.n,i=infos[n-1];
+     if(kind==="load"){useSlot(n,false);if(loadRun())resumeRun();else showChars();return;}
+     if(i.used&&armed!==n){armed=n;sfx("tick");draw();return;}   // 덮어쓰기는 두 번 눌러 확인
+     useSlot(n,true);showChars();});
+   $("b2").onclick=showMenu;};
+  draw();
+}
 function resumeRun(){const r=loadRun();if(!r)return;run=r;if(r.char&&CHARS.some(c=>c.k===r.char)){profile.char=r.char;saveProfile();}if(r.at==="weekend")showWeekend();else showPlatform();}
 /* ========== 인트로 (추가 기획서 01). 처음 실행: 컷 ①~④ → 캐릭터 선택 → 1주차 월요일(튜토리얼). 두 번째부터: 컷 ③ → 타이틀 ========== */
 const INTRO={han:{dir:"강남 방면",door:"3-2",t:["06:30","07:12","07:14","07:16"],seat:"서울대입구 과잠 앞"},oh:{dir:"신림 방면",door:"6-1",t:["06:20","07:05","07:07","07:13"],seat:"신림에서 내리는 사람 앞"},
@@ -2083,8 +2124,8 @@ function showEquip(){   // 집에서 나가기 전: 가방·옷·신발·소지�
 const planMax=()=>eq("diary")?4:3;   // 다이어리: 계획 4개
 function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계획표에 적는다
   const am=run.leg==="am";
-  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · 오늘의 계획표</span>
-   <h2>오늘은 무엇을 지킬까요? (최대 ${planMax()}개)</h2>
+  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${planName()}</span>
+   <h2>${planName().replace(" 계획표","")}에는 무엇을 지킬까요? (최대 ${planMax()}개)</h2>
    <p class="sub">적은 계획을 지키면 보상을 받습니다. 2개 이상 적어 모두 지키면 +20P와 루틴 콤보 +1, 적은 계획이 전부 틀어지면 콤보가 끊깁니다. 적지 않아도 됩니다.<br>루틴 콤보 <b>${run.combo}</b> (계획 보상 +${run.combo*10}%)${run.collapseNext?" · 지난 통근의 계획이 모두 틀어졌습니다":""}</p>
    <div class="plans">${run.cand.map(k=>{const d=DP(k),on=run.picks.includes(k);return `<button class="pl${on?" on":""}" data-k="${k}"><span class="ck">${on?"✔":""}</span><span class="pn"><b>${d.n}</b>${dpDesc(d)}</span><span class="st">${"★".repeat(d.star)}</span><span class="pp">${dpReward(d)}P</span></button>`;}).join("")}</div>
    ${run.reroll?`<p class="sub">칼각 루틴: ${run.rerollOn?"<b>새로 뽑을 후보를 누르세요.</b>":"마음에 안 드는 후보 1개를 새로 뽑을 수 있습니다."}</p>`:""}
