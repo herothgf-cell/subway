@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주인공 시안 · 계획대로, 2호선</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f2a44;--paper:#f7f0dc;--hl:#ffe34d;--line:#00A84D;--font:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:var(--font);padding:22px 16px 40px;background:var(--paper);
+  background-image:linear-gradient(rgba(90,140,200,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(90,140,200,.22) 1px,transparent 1px);background-size:28px 28px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-family:"Gaegu",cursive;font-size:38px;margin:0;line-height:1.1}
+h1 span{background:linear-gradient(transparent 38%,var(--hl) 38% 92%,transparent 92%);padding:0 .2em}
+.sub{font-size:14px;line-height:1.6;margin:8px 0 14px;max-width:880px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+button{font-family:"Gaegu",cursive;font-weight:700;font-size:18px;border:2.5px solid var(--ink);background:#fffdf2;color:var(--ink);border-radius:8px;padding:2px 12px;cursor:pointer;box-shadow:2px 3px 0 rgba(31,42,68,.25)}
+button.on{background:var(--hl)}
+.ch{background:#fffdf2;border:2.5px solid var(--ink);border-radius:8px;box-shadow:3px 4px 0 rgba(31,42,68,.25);margin-bottom:18px;overflow:hidden}
+.hd{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;padding:10px 14px 0}
+.hd b{font-family:"Gaegu",cursive;font-size:30px}.hd .r{font-size:13.5px}.hd .st{color:#c9a227;letter-spacing:1px}
+.hd .stat{font-size:12px;opacity:.75;margin-left:auto}
+.cv{display:block;width:100%;aspect-ratio:3/1.35}
+.vs{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px dashed rgba(31,42,68,.25)}
+.v{padding:8px 12px 12px;font-size:13px;line-height:1.5;border-left:2px dashed rgba(31,42,68,.15);cursor:pointer}
+.v:first-child{border-left:0}
+.v h4{margin:0 0 2px;font-family:"Gaegu",cursive;font-size:22px}
+.v.pick{background:rgba(255,227,77,.45)}
+.v .tag{display:inline-block;font-size:11px;font-weight:800;background:var(--ink);color:#fffdf2;border-radius:999px;padding:0 8px;margin-left:4px;vertical-align:2px}
+.box{background:#fffdf2;border:2.5px solid var(--ink);border-radius:8px;padding:12px 16px;font-size:14px;line-height:1.65;box-shadow:3px 4px 0 rgba(31,42,68,.25)}
+.box h3{margin:0 0 4px;font-family:"Gaegu",cursive;font-size:24px}
+#picks{font-weight:800}
+@media(max-width:700px){.vs{grid-template-columns:1fr}.v{border-left:0;border-top:2px dashed rgba(31,42,68,.15)}.cv{aspect-ratio:3/1.6}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1><span>주인공 시안</span></h1>
+<p class="sub">플레이어 캐릭터 4명의 외형 시안입니다. 게임과 같은 캐릭터 모델(<code>characters.js</code>)로 그렸고, 캐릭터마다 A·B·C 세 가지 차림이 있습니다. 공통 규칙은 <b>목에 건 흰 사원증 줄</b>(승객과 구별되는 주인공 표시)이고, 셔츠 색이 사원증 카드와 노선도 핀 색이 됩니다. 마음에 드는 안을 눌러 표시해 두고, 아래 "고른 안"을 알려 주시면 그대로 게임에 넣겠습니다.</p>
+<div class="bar"><button id="spin" class="on">돌려 보기</button><button id="front">정면</button><button id="back">뒷면</button><button id="seat">앉은 자세</button></div>
+<div id="list"></div>
+<div class="box"><h3>고른 안</h3><div id="picks">아직 고르지 않았습니다.</div>
+<p style="margin:6px 0 0">확인할 것: 네 사람이 한눈에 구별되는지, 승객(라인업 시트의 11종)과 섞여도 주인공이 눈에 띄는지, 나이·직업이 차림으로 읽히는지. 3D 화면에서는 주로 <b>뒷모습과 어깨</b>가 보이므로 "뒷면"으로도 확인해 주세요.</p></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="characters.js"></script>
+<script>
+const C=window.Chars;
+// 사원증 줄 (주인공 공통). 앞 중심 F, 뒤 중심 B
+const lanyard=(x,F,B)=>{x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();
+  x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);x.fillStyle="#00A84D";x.fillRect(F-10,156,20,6);
+  x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(B-40,30);x.quadraticCurveTo(B,46,B+40,30);x.stroke();};
+const check=(c)=>(x,F,B)=>{x.strokeStyle=c;x.lineWidth=6;for(let i=0;i<512;i+=34){x.beginPath();x.moveTo(i,0);x.lineTo(i,256);x.stroke();}for(let j=10;j<256;j+=34){x.beginPath();x.moveTo(0,j);x.lineTo(512,j);x.stroke();}};
+const vest=(c)=>(x,F,B)=>{x.fillStyle=c;x.fillRect(F-70,60,140,196);x.fillRect(B-80,40,160,216);x.fillStyle="#ffffff";x.beginPath();x.moveTo(F-30,58);x.lineTo(F,120);x.lineTo(F+30,58);x.fill();};
+const knitRib=(x,F,B)=>{x.strokeStyle="rgba(0,0,0,.12)";x.lineWidth=3;for(let i=0;i<512;i+=12){x.beginPath();x.moveTo(i,200);x.lineTo(i,256);x.stroke();}};
+const hoodText=(t)=>(x,F,B)=>{x.fillStyle="#ffffff";x.font="900 40px sans-serif";x.textAlign="center";x.fillText(t,F,118);};
+const suitTie=(tie)=>(x,F,B)=>{x.fillStyle="#ffffff";x.beginPath();x.moveTo(F-34,22);x.lineTo(F+34,22);x.lineTo(F,150);x.fill();x.fillStyle=tie;x.beginPath();x.moveTo(F-9,40);x.lineTo(F+9,40);x.lineTo(F+12,120);x.lineTo(F,142);x.lineTo(F-12,120);x.fill();
+  x.strokeStyle=C.INK;x.lineWidth=4;x.beginPath();x.moveTo(F-34,22);x.lineTo(F,150);x.lineTo(F+34,22);x.stroke();};
+const both=(...fs)=>(x,F,B)=>fs.forEach(f=>f&&f(x,F,B));
+const CHARS=[
+ {k:"han",n:"한계획",r:"32세 · 마케팅팀 대리 · 신림 → 강남",d:1,stat:"체력3 눈치3 민첩3 균형3 버티기3 멘탈3",vars:[
+  {n:"A 초록 셔츠",now:true,d:"지금 게임에 들어간 모습. 2호선 초록을 그대로 입은 기본형. 단정한 짧은 머리.",o:{shirt:"#2fbf71",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",hair:"#1d1b1a",hairStyle:"short",shoe:"#fffdf5",h:1,cloth:lanyard}},
+  {n:"B 니트 조끼",d:"흰 셔츠 위에 초록 니트 조끼. 계획적인 모범생 느낌. 뒷모습이 단색이라 3D에서 잘 보인다.",o:{shirt:"#f4f1ea",sleeve:"#f4f1ea",collar:"shirt",collarC:"#ffffff",cuffC:"#ffffff",pants:"#3a4150",hair:"#1d1b1a",hairStyle:"side",shoe:"#5a3d2b",h:1,cloth:both(vest("#2a9d63"),knitRib,lanyard)}},
+  {n:"C 안경 + 카디건",d:"베이지 카디건과 둥근 안경. 플래너를 늘 들고 다닐 것 같은 꼼꼼한 인상.",o:{shirt:"#d8c39a",collar:"round",collarC:"#ffffff",cuffC:"same",pants:"#2b3340",hair:"#2b211c",hairStyle:"short",glasses:true,shoe:"#fffdf5",h:1.01,cloth:both(knitRib,lanyard)}},
+ ]},
+ {k:"oh",n:"오신입",r:"26세 · 개발팀 신입 · 구로디지털단지 → 역삼",d:2,stat:"체력5 눈치2 민첩4 균형2 버티기4 멘탈2",vars:[
+  {n:"A 파란 후드",now:true,d:"지금 게임 색(파랑). 회사 로고 후드티에 덥수룩한 머리. 몸으로 해결하는 신입.",o:{shirt:"#4a7fd6",collar:"rib",collarC:"same",cuffC:"shade",hemC:"shade",pants:"#2b2f36",hair:"#3a2a20",hairStyle:"messy",shoe:"#fffdf5",h:.98,wx:1.04,cloth:both(hoodText("DEV"),lanyard)}},
+  {n:"B 체크 셔츠",d:"빨강·남색 체크 셔츠. 개발자 이미지가 가장 빨리 읽히지만 무늬가 작은 화면에서는 뭉개질 수 있다.",o:{shirt:"#b8343c",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#4a5568",hair:"#15151c",hairStyle:"side",shoe:"#2b2f36",h:.98,cloth:both(check("#2b3a6b"),lanyard)}},
+  {n:"C 맨투맨 + 헤드폰",d:"연회색 맨투맨에 목에 건 헤드폰. 체력이 좋아 보이는 넓은 어깨.",o:{shirt:"#c9ced6",collar:"round",collarC:"same",cuffC:"shade",pants:"#1f2a44",hair:"#2b211c",hairStyle:"short",headphones:"#4a7fd6",shoe:"#fffdf5",h:.99,wx:1.1,cloth:lanyard}},
+ ]},
+ {k:"yu",n:"유감각",r:"29세 · 디자이너 · 합정 → 시청",d:2,stat:"체력2 눈치4 민첩4 균형3 버티기2 멘탈3",vars:[
+  {n:"A 주황 오버셔츠",now:true,d:"지금 게임 색(주황). 단발에 넉넉한 오버셔츠. 홍대·합정 동네 느낌.",o:{shirt:"#e8843c",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b2f36",hair:"#2b211c",hairStyle:"bob",shoe:"#fffdf5",h:.95,wx:1.06,cloth:lanyard}},
+  {n:"B 검정 터틀넥",d:"검정 터틀넥과 둥근 안경. 가장 '디자이너'다운 차림. 어두운 색이라 객차 안에서는 덜 튄다.",o:{shirt:"#23262d",collar:"high",collarC:"same",cuffC:"same",pants:"#3a3d45",hair:"#15151c",hairStyle:"bob",glasses:true,shoe:"#e8843c",h:.95,cloth:lanyard}},
+  {n:"C 비니 + 코트",d:"카멜 코트에 주황 비니. 머리 위 색이 있어 뒷모습에서도 찾기 쉽다.",o:{shirt:"#c9a877",collar:"coat",collarC:"same",pants:"#2b2b3a",skirt:"same",coat:true,hair:"#3a2a20",hairStyle:"long",hat:"beanie",hatC:"#e8843c",shoe:"#2b2b3a",h:.95,wx:.94,cloth:lanyard}},
+ ]},
+ {k:"jung",n:"정부장",r:"47세 · 영업부장 · 잠실 → 시청",d:3,stat:"체력2 눈치5 민첩2 균형4 버티기2 멘탈4",vars:[
+  {n:"A 회색 정장",now:true,d:"지금 게임 색(진회색). 희끗한 머리, 안경, 빨간 넥타이. 오래 통근한 베테랑.",o:{shirt:"#3b3f46",shape:"v",collar:"shirt",collarC:"#ffffff",cuffC:"#ffffff",pants:"#2b2f36",hair:"#9a9ea6",hairStyle:"short",glasses:true,shoe:"#15151c",h:1.02,wx:1.1,cloth:both(suitTie("#c0392b"),lanyard)}},
+  {n:"B 남색 정장 + 조끼",d:"남색 쓰리피스. 영업부장의 '각'을 보여 주는 차림. 주름(wrinkle)으로 나이를 표현.",o:{shirt:"#26355a",shape:"v",collar:"shirt",collarC:"#ffffff",cuffC:"#ffffff",pants:"#26355a",hair:"#6b6f78",hairStyle:"side",wrinkle:true,shoe:"#5a3d2b",h:1.03,wx:1.08,cloth:both(suitTie("#d8a83a"),lanyard)}},
+  {n:"C 트렌치코트",d:"베이지 트렌치코트. 정장 승객(직장인·서류 봉투)과 겹치지 않는 실루엣.",o:{shirt:"#b89a6a",collar:"coat",collarC:"same",pants:"#2b2f36",skirt:"same",coat:true,hair:"#8a8f98",hairStyle:"short",glasses:true,shoe:"#15151c",h:1.02,wx:1.05,cloth:lanyard}},
+ ]},
+];
+const picks={};
+const units=[];let mode="spin";
+function build(ch,cv){
+  const r=new THREE.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,2));r.setClearColor(0xfffdf2);
+  const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0xffffff,.68));const dl=new THREE.DirectionalLight(0xffffff,.42);dl.position.set(1.2,3,2.5);sc.add(dl);
+  const fl=new THREE.Mesh(new THREE.CircleGeometry(.36,24),new THREE.MeshBasicMaterial({color:0xe9e2cc}));
+  const cam=new THREE.OrthographicCamera(-.75,3*1.3-.55,2.05,-.08,.1,30);cam.position.set(0,0,10);cam.lookAt(0,0,0);
+  ch.vars.forEach((v,i)=>{const p=C.person(Object.assign({},v.o));const hold=new THREE.Group();hold.add(p.root);p.root.position.y=.86*(v.o.h||1);
+    hold.position.x=i*1.3;sc.add(hold);const f=fl.clone();f.rotation.x=-Math.PI/2;f.position.set(i*1.3,.002,0);sc.add(f);units.push({p,hold,v,i});});
+  return {r,sc,cam,cv};
+}
+const views=[];
+document.getElementById("list").innerHTML=CHARS.map((c,ci)=>`<div class="ch"><div class="hd"><b>${c.n}</b><span class="r">${c.r}</span><span class="st">${"★".repeat(c.d)}</span><span class="stat">${c.stat}</span></div>
+ <canvas class="cv" id="cv${ci}"></canvas><div class="vs">${c.vars.map((v,i)=>`<div class="v" data-c="${c.k}" data-i="${i}"><h4>${v.n}${v.now?'<span class="tag">지금 게임</span>':""}</h4>${v.d}</div>`).join("")}</div></div>`).join("");
+CHARS.forEach((c,ci)=>views.push(build(c,document.getElementById("cv"+ci))));
+document.querySelectorAll(".v").forEach(el=>el.onclick=()=>{const k=el.dataset.c;picks[k]=+el.dataset.i;
+  document.querySelectorAll(`.v[data-c="${k}"]`).forEach(x=>x.classList.toggle("pick",x===el));
+  document.getElementById("picks").textContent=CHARS.filter(c=>picks[c.k]!=null).map(c=>c.n+" "+"ABC"[picks[c.k]]).join(" · ")||"아직 고르지 않았습니다.";});
+["spin","front","back","seat"].forEach(id=>document.getElementById(id).onclick=()=>{mode=id;document.querySelectorAll(".bar button").forEach(b=>b.classList.toggle("on",b.id===id));});
+function size(){for(const v of views){const w=v.cv.clientWidth,h=v.cv.clientHeight;if(v.cv.width!==Math.round(w*v.r.getPixelRatio()))v.r.setSize(w,h,false);
+  const asp=w/h,hh=1.95,ww=Math.max(3.6,hh*asp),vh=ww/asp,top=1.88+(vh-hh)/2;   // 머리 위 여백을 줄이고 발끝까지 들어오게
+  v.cam.left=1.3-ww/2;v.cam.right=1.3+ww/2;v.cam.top=top;v.cam.bottom=top-vh;v.cam.updateProjectionMatrix();}}
+addEventListener("resize",size);
+const t0=performance.now();
+function frame(now){const t=(now-t0)/1000;size();
+  for(const u of units){const seat=mode==="seat";C.setSit(u.p,seat);u.p.root.position.y=seat?.5*(u.v.o.h||1):.86*(u.v.o.h||1)+Math.sin(t*2+u.i)*.004;
+    u.hold.rotation.y=mode==="spin"?t*.6+u.i*.5:mode==="back"?Math.PI:mode==="seat"?.45:.3;}
+  for(const v of views)v.r.render(v.sc,v.cam);requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
