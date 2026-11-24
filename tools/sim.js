@@ -18,7 +18,7 @@ function makeContext(seed){
   const rnd=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
   const store={};
   const ctx={console,document:{getElementById:()=>hole,querySelectorAll:()=>[],createElement:()=>hole,body:hole,addEventListener(){},pointerLockElement:null},
-    addEventListener(){},requestAnimationFrame(){},setTimeout(){},innerWidth:1280,innerHeight:720,performance:{now:()=>0},
+    addEventListener(){},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},innerWidth:1280,innerHeight:720,performance:{now:()=>0},
     localStorage:{getItem:k=>store[k]||null,setItem:(k,v)=>{store[k]=v;}},Audio:function(){return hole;}};
   ctx.window=ctx;
   vm.createContext(ctx);

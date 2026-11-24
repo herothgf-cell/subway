@@ -4,7 +4,7 @@ var __bot=(function(){
   const DT=1/20;
   let st={},last=null;
   view="t";                       // 조작 좌표를 객차 기준으로 쓴다 (규칙은 3D와 같다)
-  profile.voice=false;
+  profile.voice=false;profile.seenHelp=true;profile.seenIntro=true;   // 튜토리얼 없이 평소 난이도로
   const _endLeg=endLeg;
   endLeg=function(fail){
     const b=run.points,pb=profile.points,g=G;

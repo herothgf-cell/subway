@@ -37,7 +37,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <header class="doc"><div class="line"><span>계획대로, 2호선</span><span class="tag v">v1</span><span class="tag">초안 2026-11-24</span></div>
 <h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 14건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
 <p style="margin-top:8px">함께 보는 문서: <a href="../../PLAN.md">PLAN.md</a> (현재 게임 기준 기획서, v3) · <a href="DECISIONS.md">DECISIONS.md</a> (결정 기록)</p></header>
-<div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag">신규</span></a>
+<div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag ok">1차 구현</span></a>
 <a href="02_character_v1.html"><span class="num">02</span><span><b>캐릭터 설정 및 능력치</b><span class="d">캐릭터별 집·회사 구간, 능력치 6종, 고유 특성</span></span><span class="tag ok">1차 구현</span></a>
 <a href="03_line_expansion_v1.html"><span class="num">03</span><span><b>지하철 노선 확장</b><span class="d">신림~강남에서 2호선 순환선 전체로, 구간별 특성</span></span><span class="tag ok">1차 구현</span></a>
 <a href="04_schedule_v1.html"><span class="num">04</span><span><b>일정</b><span class="d">평일 출근, 주말 약속·휴무, 그날의 변수, 도착 시한</span></span><span class="tag ok">1차 구현</span></a>
@@ -67,7 +67,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>5</td><td>03 노선 확장 (1차)</td><td><span class="st ok">구현됨</span></td><td>순환선 43역, 구간별 승객 가중치, 한강 구간, 앉은 채 도착 건너뛰기. 남은 것: 내선·외선 돌아가기, 한강 창밖 연출, 역 정보 검수</td></tr>
 <tr><td>5</td><td>02 캐릭터 (1차)</td><td><span class="st ok">구현됨</span></td><td>4명, 능력치 6종, 고유 특성, 해금, 사원증 선택 화면. 남은 것: 난이도 순서 조정(오신입·유감각이 한계획보다 쉬움), 캐릭터 직접 만들기</td></tr>
 <tr><td>5</td><td>04 일정 (1차)</td><td><span class="st ok">구현됨</span></td><td>7일 주간, 주간 일정 화면, 예보, 주말 약속 4종·휴무, 금요일 정산과 주말 스킬·상점, 도착 시한·지각·팀장 호출, 월급날, 두 번째 알람. 남은 것: 데이트·공휴일·행사일·한파폭염, 계획 미리 적기, 일정별 전용 계획</td></tr>
-<tr><td>5</td><td>01 인트로</td><td><span class="st wait">시안 확정, 개발 대기</span></td><td>시안 <code>intro-flow.html</code> 확정. 주인공 외형 시안 <code>protagonist-lineup.html</code> 확인 뒤 개발</td></tr>
+<tr><td>5</td><td>01 인트로 (1차)</td><td><span class="st ok">구현됨</span></td><td>첫 실행 컷 ①~④ → 캐릭터 선택 → 튜토리얼 출근(플래너 메모 6단계). 두 번째부터 컷 ③ → 타이틀(역명판 메뉴, 기록). 주인공 외형 확정 반영</td></tr>
 <tr><td>6</td><td>11 좌석 등급</td><td><span class="st wait">대기</span></td><td></td></tr>
 <tr><td>7</td><td>13 기타 아이디어 (계절, 동행과 매너, 매너 점수, 단골 승객, 막차)</td><td><span class="st wait">후순위</span></td><td>다른 문서가 13에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)은 13이 들어올 때 함께 넣는다</td></tr>
 <tr><td>8</td><td>개선점 목록 처리</td><td><span class="st wait">대기</span></td><td>기능 구현이 모두 끝난 뒤</td></tr>
@@ -114,6 +114,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-24</td><td>06 특수 승객 등장 수 늘림(통근마다 1~2명, 내 주변). 09 패시브 스킬 미결 사항 결정과 1차 구현(계열 보너스, 신규 4종, 비용 조정, 초기화). 개선점 1건 추가</td></tr>
 <tr><td>2026-11-24</td><td>10 아이템 미결 사항 결정과 1차 구현(장착 슬롯 4개, 아이템 20종, 상점 탭, 비 오는 날 미끄러움, "백팩은 앞으로" 계획)</td></tr>
 <tr><td>2026-11-24</td><td>03·02·04 미결 사항 결정(20건)과 1차 구현(순환선 43역, 캐릭터 4명, 7일 주간·주말 약속·지각). 01 인트로 시안 <code>intro-flow.html</code></td></tr>
+<tr><td>2026-11-24</td><td>주인공 외형 확정(4명), 01 인트로 1차 구현(인트로 컷, 타이틀 화면, 튜토리얼)</td></tr>
 <tr><td>2026-11-24</td><td>07 시선 눈치 미결 사항 결정과 구현. 계획 "들키지 않기", 일기 사건 2종 추가</td></tr>
 <tr><td>2026-11-24</td><td>08 회사·집 이벤트 미결 사항 결정과 구현. 개선점 2건 추가 (착석 시 앞사람 거리, 일기 디자인)</td></tr>
 <tr><td>2026-11-24</td><td>출근 일기를 정식 구현하고 독립 문서(14)로 추가. 13의 나머지는 후순위 유지</td></tr>
