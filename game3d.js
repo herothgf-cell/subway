@@ -125,10 +125,14 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
   u.lod=lod;
   const noLine=far||u.gh>.06;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
 }
-function makeMe(){   // 주인공 모델: 캐릭터(02)마다 셔츠·머리만 바꾼다. 사원증 줄은 공통
-  const lk=(typeof CH==="function"?CH().look:null)||{shirt:"#2fbf71",hair:"#1d1b1a",hairStyle:"short",h:1};
+function makeMe(){   // 주인공 모델: 캐릭터(02)마다 차림(protagonist-lineup.html에서 고른 안). 사원증 줄은 공통
+  const lk=(typeof CH==="function"?CH().look:null)||{shirt:"#a9c8e8",hair:"#1d1b1a",hairStyle:"side",h:1};
   return C.person(Object.assign({collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",shoe:"#fffdf5"},lk,{
-    cloth:(x,F)=>{x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);}}));
+    cloth:(x,F,B)=>{
+      if(lk.suit){x.fillStyle="#ffffff";x.beginPath();x.moveTo(F-34,22);x.lineTo(F+34,22);x.lineTo(F,150);x.fill();x.fillStyle=lk.suit;x.beginPath();x.moveTo(F-9,40);x.lineTo(F+9,40);x.lineTo(F+12,120);x.lineTo(F,142);x.lineTo(F-12,120);x.fill();   // 정장 셔츠 앞판과 넥타이
+        x.strokeStyle=C.INK;x.lineWidth=4;x.beginPath();x.moveTo(F-34,22);x.lineTo(F,150);x.lineTo(F+34,22);x.stroke();}
+      x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);x.fillStyle="#00A84D";x.fillRect(F-10,156,20,6);
+      if(B!==undefined){x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(B-40,30);x.quadraticCurveTo(B,46,B+40,30);x.stroke();}}}));   // 뒷목의 줄
 }
 function syncMe(g,dt,time){
   if(R.me.charK!==profile.char){const me=R.me;R.me.charK=profile.char;if(me.p3){me.hold.remove(me.p3.root);}me.p3=makeMe();me.hold.add(me.p3.root);me.mats=null;me.bag=null;me.bagK=null;}   // 캐릭터가 바뀌면 다시 만든다
@@ -150,7 +154,7 @@ function syncMe(g,dt,time){
     me.fade+=((front?.16:1)-me.fade)*Math.min(1,dt*8);const solid=me.fade>.93;
     for(const m of me.mats){m.opacity=solid?1:me.fade;m.depthWrite=solid;}for(const o of me.outl)o.visible=solid;}
   const want=Math.PI/2-(P.turn?P.face:P.gaze);let d=want-me.hold.rotation.y;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;me.hold.rotation.y+=d*Math.min(1,dt*12);
-  C.setSit(p3,false);p3.root.position.set(0,.86,0);
+  C.setSit(p3,false);p3.root.position.set(0,.86*(p3.o.h||1),0);
   C.reach(p3.arms[1],V(.245,-.04,.04));C.reach(p3.arms[-1],V(-.245,-.04,.04));p3.neck.rotation.set(.05,0,0);
   if(P.brace)C.reach(p3.arms[1],V(.2,.84,.08));                                                                 // 손잡이를 잡는다
   if(P.turn){const s=P.turn.side*(Math.cos(me.hold.rotation.y)>0?1:-1);C.reach(p3.arms[1],V(.1,.3,.44));C.reach(p3.arms[-1],V(-.1,.3,.44));p3.neck.rotation.y=-s*.9;}   // 몸을 돌리고 팔로 막는다

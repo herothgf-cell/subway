@@ -299,13 +299,13 @@ const lineB=(l,n)=>lineLv(l)>=n;
 const STATS={sta:"체력",eye:"눈치",agi:"민첩",bal:"균형",grit:"버티기",mental:"멘탈"};
 const CHARS=[
  {k:"han",n:"한계획",age:32,job:"마케팅팀 대리",home:"신림",work:"강남",st:{sta:3,eye:3,agi:3,bal:3,grit:3,mental:3},diff:1,
-  trait:"플래너",td:"계획대로 앉은 다음, 다음 ‘계획대로!’ 착석 포인트 +10%",lock:null,look:{shirt:"#2fbf71",hair:"#1d1b1a",hairStyle:"short",h:1}},
+  trait:"플래너",td:"계획대로 앉은 다음, 다음 ‘계획대로!’ 착석 포인트 +10%",lock:null,look:{shirt:"#a9c8e8",pin:"#4a86c8",pants:"#26304a",hair:"#1d1b1a",hairStyle:"side",shoe:"#5a3d2b",h:1}},
  {k:"oh",n:"오신입",age:26,job:"개발팀 신입",home:"구로디지털단지",work:"역삼",st:{sta:5,eye:2,agi:4,bal:2,grit:4,mental:2},diff:2,
-  trait:"뛰어타기",td:"출발역 정차 중 한 번, B로 다른 문으로 옮겨 탈 수 있음",lock:{d:"한 주 개근 1회",ok:()=>bestAny()>=1},look:{shirt:"#4a7fd6",hair:"#3a2a20",hairStyle:"side",h:.98},crowdAm:1.15},
+  trait:"뛰어타기",td:"출발역 정차 중 한 번, B로 다른 문으로 옮겨 탈 수 있음",lock:{d:"한 주 개근 1회",ok:()=>bestAny()>=1},look:{shirt:"#c9ced6",pin:"#4a7fd6",collar:"round",pants:"#1f2a44",hair:"#2b211c",hairStyle:"short",headphones:"#4a7fd6",h:.99,wx:1.1},crowdAm:1.15},
  {k:"yu",n:"유감각",age:29,job:"디자이너",home:"합정",work:"시청",st:{sta:2,eye:4,agi:4,bal:3,grit:2,mental:3},diff:2,
-  trait:"눈썰미",td:"승객 카드에 ‘자주 내리는 역 후보 2곳’이 처음부터 보임 (관찰력 1단계 표시)",lock:{d:"‘계획대로!’ 누적 30회",ok:()=>(profile.planTotal||0)>=30},look:{shirt:"#e8843c",hair:"#2b211c",hairStyle:"bob",h:.95}},
+  trait:"눈썰미",td:"승객 카드에 ‘자주 내리는 역 후보 2곳’이 처음부터 보임 (관찰력 1단계 표시)",lock:{d:"‘계획대로!’ 누적 30회",ok:()=>(profile.planTotal||0)>=30},look:{shirt:"#c9a877",pin:"#e8843c",collar:"coat",pants:"#2b2b3a",skirt:"same",coat:true,cuffC:"same",hair:"#3a2a20",hairStyle:"long",hat:"beanie",hatC:"#e8843c",shoe:"#2b2b3a",h:.95,wx:.94}},
  {k:"jung",n:"정부장",age:47,job:"영업부장",home:"잠실",work:"시청",st:{sta:2,eye:5,agi:2,bal:4,grit:2,mental:4},diff:3,
-  trait:"연륜",td:"페이크 동작에 속지 않음 (관찰력 2단계의 페이크 간파)",lock:{d:"한 런에서 4주차 도달",ok:()=>bestAny()>=3},look:{shirt:"#3b3f46",hair:"#9a9ea6",hairStyle:"short",h:1.02,glasses:true}},
+  trait:"연륜",td:"페이크 동작에 속지 않음 (관찰력 2단계의 페이크 간파)",lock:{d:"한 런에서 4주차 도달",ok:()=>bestAny()>=3},look:{shirt:"#3b3f46",pin:"#5b616b",shape:"v",collarC:"#ffffff",cuffC:"#ffffff",pants:"#2b2f36",hair:"#9a9ea6",hairStyle:"short",glasses:true,shoe:"#15151c",h:1.02,wx:1.1,suit:"#c0392b"}},
 ];
 if(!profile.best)profile.best={han:profile.bestWeek||0};   // 이전 저장 데이터: 기존 최고 기록은 한계획 것으로
 const bestAny=()=>Math.max(profile.bestWeek||0,...Object.values(profile.best||{}));
@@ -1544,7 +1544,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   const P=g.pl;
   if(!P.seat){ctx.strokeStyle="rgba(20,24,28,.85)";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(P.x,P.y,17+Math.sin(time*5)*1.2,0,TAU);ctx.stroke();
     if(P.brace){ctx.fillStyle="#14181c";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("꽉!",P.x,P.y-24);}}
-  drawPerson(P.x,P.y,P.face,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me"},!!P.seat,true,time);
+  drawPerson(P.x,P.y,P.face,{shirt:CH().look.pin,hair:CH().look.hair,skin:"#f1c9a5",arch:"me"},!!P.seat,true,time);
   if(P.seat){ctx.strokeStyle="#00A84D";ctx.lineWidth=3;rr(P.seat.x-SEAT_W/2-1,P.seat.y-SEAT_D/2-2,SEAT_W+2,SEAT_D+4,8);ctx.stroke();}
   // 말풍선
   for(const e of g.ps)if(e.bubble)bubble(e.x,e.y-24,e.bubble,false);
@@ -1722,7 +1722,7 @@ function drawQ(time){
   const seen=(p,f)=>{ctx.globalAlpha=.5+.5*(p.vis||0);f();ctx.globalAlpha=1;};  // 시야 밖 좌석 승객은 흐리게
   // 위쪽 좌석과 승객
   for(const s of g.seats)if(s.side==="top"){seatBox(s,s===can);
-    if(s.occ==="player")figure(s.x,s.y+4,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me"},"front",true,time);
+    if(s.occ==="player")figure(s.x,s.y+4,{shirt:CH().look.pin,hair:CH().look.hair,skin:"#f1c9a5",arch:"me"},"front",true,time);
     else if(s.occ){const o=wig(s.occ);seen(s.occ,()=>figure(s.x+o[0],s.y+4+o[1],s.occ,"front",false,time));}
   }
   // 서 있는 사람들 (앞뒤 정렬)
@@ -1730,7 +1730,7 @@ function drawQ(time){
   list.sort((a,b)=>a.y-b.y);
   for(const p of list){
     if(p===P){ctx.strokeStyle="rgba(0,168,77,.95)";ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(P.x,P.y+9,15+Math.sin(time*5),7,0,0,TAU);ctx.stroke();
-      figure(P.x,P.y,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me",face:P.face,walk:P.walk,turn:P.turn?P.turn.side:0},null,true,time);}
+      figure(P.x,P.y,{shirt:CH().look.pin,hair:CH().look.hair,skin:"#f1c9a5",arch:"me",face:P.face,walk:P.walk,turn:P.turn?P.turn.side:0},null,true,time);}
     else{let ox=p.state==="standing"?(p.sway||0)+Math.sin(time*1.3+p.ph)*.8:0,oy=0;
       if(p.contend&&p.ct!=null&&p.ct<.35){const k=(1-p.ct/.35)*5;ox+=Math.sign(p.contend.fx-p.x)*k;oy+=(p.contend.side==="top"?-1:1)*k*.5;}   // 빈자리로 몸을 기울인다
       // 바라보는 위쪽 좌석 승객을 가리는 사람은 흐리게 (몸짓이 보이도록)
@@ -1739,7 +1739,7 @@ function drawQ(time){
   }
   // 아래쪽 좌석: 승객은 뒷모습, 등받이가 앞을 가림
   for(const s of g.seats)if(s.side==="bot"){seatBox(s,s===can);
-    if(s.occ==="player")figure(s.x,s.y+4,{shirt:"#00A84D",hair:"#1d1b1a",skin:"#f1c9a5",arch:"me"},"back",true,time);
+    if(s.occ==="player")figure(s.x,s.y+4,{shirt:CH().look.pin,hair:CH().look.hair,skin:"#f1c9a5",arch:"me"},"back",true,time);
     else if(s.occ){const o=wig(s.occ);seen(s.occ,()=>figure(s.x+o[0],s.y+4+o[1],s.occ,"back",false,time));}
     ctx.fillStyle=s.pink?"#e27fae":"#48688c";rr(s.x-SEAT_W/2+1.5,s.y+3,SEAT_W-3,SEAT_D/2+3,5);ctx.fill();
   }
@@ -1896,7 +1896,7 @@ function showChars(){   // 사원증 카드: 앞면 이름·직함, 뒷면 능�
   sheet(`<div class="wallet">보유 ${profile.points} P</div><h2>누구의 출근길인가요?</h2><p class="sub">포인트와 스킬, 아이템은 모두 함께 씁니다. 최고 기록은 캐릭터마다 따로 남습니다.</p>
   <div class="ids">${CHARS.map(c=>{const open=charOpen(c),on=c.k===CH().k,n=routeBetween(c.home,c.work).length-1;
     return `<button class="idc${on?" on":""}${open?"":" locked"}" data-k="${c.k}" ${open?"":"disabled"}>
-     <div class="idh"><span class="ph" style="background:${open?c.look.shirt:"#9aa0a6"}">${open?c.n[0]:"?"}</span><span><b>${c.n}</b><br>${c.age}세 · ${c.job}<br><span class="df">${"★".repeat(c.diff)}</span></span></div>
+     <div class="idh"><span class="ph" style="background:${open?(c.look.pin||c.look.shirt):"#9aa0a6"}">${open?c.n[0]:"?"}</span><span><b>${c.n}</b><br>${c.age}세 · ${c.job}<br><span class="df">${"★".repeat(c.diff)}</span></span></div>
      ${open?`<div class="idr">${c.home} → ${c.work} · ${n}정거장</div>${loopMap(c,150)}
      <div class="sts">${Object.keys(STATS).map(k=>`<span>${STATS[k]}</span><i><em style="width:${c.st[k]*20}%"></em></i>`).join("")}</div>
      <div class="tr"><b>${c.trait}</b> ${c.td}</div><div class="bw">최고 기록: ${profile.best[c.k]?profile.best[c.k]+"주 개근":"없음"}</div>`
