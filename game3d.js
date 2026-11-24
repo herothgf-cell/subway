@@ -53,8 +53,7 @@ function init(){
   for(let b=0;b<3;b++)for(const side of[-1,1]){const cx=X(DOORS[b].x+DOOR_W+BW/2),z=side*(HW-27*S);add(C.box(BW*S,.34,.52,"#7fb0d6"),cx,.17,z);
     for(const ex of[-1,1])add(C.box(.04,.72,.62,"#dfe6ea"),cx+ex*(BW*S/2+.02),.62,z);}
   // 나
-  const meP=C.person({shirt:"#2fbf71",collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",hair:"#1d1b1a",hairStyle:"short",shoe:"#fffdf5",h:1,
-    cloth:(x,F)=>{x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);}});
+  const meP=makeMe();
   const meHold=new THREE.Group();meHold.add(meP.root);scene.add(meHold);
   R={renderer,scene,cam,doors,poles,units:new Map(),pool:{},me:{p3:meP,hold:meHold,walk:0,lx:0,ly:0},camPos:V(0,1.7,0),fp:0,fr:0,pd:0,g:null,v:new THREE.Vector3()};
 }
@@ -126,7 +125,13 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
   u.lod=lod;
   const noLine=far||u.gh>.06;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
 }
+function makeMe(){   // 주인공 모델: 캐릭터(02)마다 셔츠·머리만 바꾼다. 사원증 줄은 공통
+  const lk=(typeof CH==="function"?CH().look:null)||{shirt:"#2fbf71",hair:"#1d1b1a",hairStyle:"short",h:1};
+  return C.person(Object.assign({collar:"shirt",collarC:"same",cuffC:"shade",pants:"#2b3340",shoe:"#fffdf5"},lk,{
+    cloth:(x,F)=>{x.strokeStyle="#ffffff";x.lineWidth=7;x.beginPath();x.moveTo(F-26,34);x.lineTo(F,150);x.lineTo(F+26,34);x.stroke();x.fillStyle="#ffffff";x.fillRect(F-15,150,30,38);x.lineWidth=4;x.strokeStyle=C.INK;x.strokeRect(F-15,150,30,38);}}));
+}
 function syncMe(g,dt,time){
+  if(R.me.charK!==profile.char){const me=R.me;R.me.charK=profile.char;if(me.p3){me.hold.remove(me.p3.root);}me.p3=makeMe();me.hold.add(me.p3.root);me.mats=null;me.bag=null;me.bagK=null;}   // 캐릭터가 바뀌면 다시 만든다
   const P=g.pl,me=R.me,p3=me.p3;p3.root.rotation.set(0,0,0);p3.torso.rotation.set(0,0,0);
   if(P.seat||me.hide){me.hold.visible=false;me.lx=P.x;me.ly=P.y;return;}                                                                     // 앉으면 1인칭
   me.hold.visible=true;me.hold.position.set(X(P.x),0,Z(P.y));
