@@ -112,7 +112,15 @@ var __bot=(function(){
         tick(cfg);update(DT);}
       if(!last){info.fail="timeout";legs.push(info);break;}
       Object.assign(info,last);legs.push(info);
-      if(run)showPlatform();
+      if(run){
+        if(run.needCard){showCard();   // 회사·집 카드: base는 기준 선택만, rest는 회복량이 큰 것, random은 아무거나
+          const o=run.cardOpts,work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,pol=cfg.cardPolicy||"base";
+          let k=o.find(x=>deck.find(c=>c.k===x).base)||o[0];
+          if(pol==="random")k=pick(o);else if(pol==="rest")k=o.slice().sort((a,b)=>cardGain(deck.find(c=>c.k===b),work).sta-cardGain(deck.find(c=>c.k===a),work).sta)[0];
+          else if(pol==="quiet"){const q=o.find(x=>{const cc=deck.find(c=>c.k===x);return cc.fx&&cc.fx.crowd;});if(q)k=q;}
+          info.card=k;chooseCard(k);}
+        else showPlatform();
+      }
     }
     run=null;return legs;
   }

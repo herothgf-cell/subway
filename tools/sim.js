@@ -29,6 +29,7 @@ function makeContext(seed){
 }
 
 const PLAN=flags.includes("--plans");
+const CARD=(flags.find(f=>f.startsWith("--cards="))||"--cards=base").split("=")[1];   // base(기준 선택만) | rest(회복 우선) | quiet(한산한 쪽) | random
 const BOTS={
   "숙련":{avoidDoor:true,patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},
   "보통":{avoidDoor:true,patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","early","giveway","yield","quiet","firm","asplanned"]},
@@ -37,9 +38,9 @@ const BOTS={
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,f1=v=>v.toFixed(1),pct=v=>Math.round(v*100)+"%";
 const out={runs:RUNS,weeks:WEEKS,seed:SEED,plans:PLAN,bots:{}};
 const t0=Date.now();
-console.log(`런 ${RUNS}회 × 봇 3종, 최대 ${WEEKS}주, 시드 ${SEED}${PLAN?", 계획표 사용":""}`);
+console.log(`런 ${RUNS}회 × 봇 3종, 최대 ${WEEKS}주, 시드 ${SEED}${PLAN?", 계획표 사용":""}, 카드 정책 ${CARD}`);
 for(const name in BOTS){
-  const ctx=makeContext(SEED*1000+Object.keys(out.bots).length);
+  const ctx=makeContext(SEED*1000+Object.keys(out.bots).length);BOTS[name].cardPolicy=CARD;
   const runs=[];for(let i=0;i<RUNS;i++)runs.push(ctx.__bot.runOne(BOTS[name],WEEKS));
   const legs=runs.flat(),done=legs.filter(l=>!l.fail);
   const weekDone=w=>runs.filter(r=>r.filter(l=>l.week===w&&!l.fail).length===10).length/RUNS;
@@ -59,6 +60,7 @@ for(const name in BOTS){
     "충돌/편도":f1(avg(done.map(l=>l.bumps))),
     "도착 체력(완주)":f1(avg(done.map(l=>l.stamina))),
     "도착 민폐(완주)":f1(avg(done.map(l=>l.nuis))),
+    "출발 체력(편도 평균)":f1(avg(legs.map(l=>l.start))),
     "쓸려 내림/편도":avg(legs.map(l=>l.sweeps||0)).toFixed(2),
   };
   if(PLAN){
