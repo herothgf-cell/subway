@@ -30,8 +30,8 @@ function makeContext(seed){
 
 const PLAN=flags.includes("--plans");
 const BOTS={
-  "숙련":{patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},
-  "보통":{patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","early","giveway","yield","quiet","firm","asplanned"]},
+  "숙련":{avoidDoor:true,patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},
+  "보통":{avoidDoor:true,patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","early","giveway","yield","quiet","firm","asplanned"]},
   "초보":{patience:.7,react:.9,scan:.6,brace:.3,braceDepart:0,archRead:false,readsBoard:false,yields:false,planPolicy:PLAN?"random":null},
 };
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,f1=v=>v.toFixed(1),pct=v=>Math.round(v*100)+"%";
@@ -59,6 +59,7 @@ for(const name in BOTS){
     "충돌/편도":f1(avg(done.map(l=>l.bumps))),
     "도착 체력(완주)":f1(avg(done.map(l=>l.stamina))),
     "도착 민폐(완주)":f1(avg(done.map(l=>l.nuis))),
+    "쓸려 내림/편도":avg(legs.map(l=>l.sweeps||0)).toFixed(2),
   };
   if(PLAN){
     const pl=legs.filter(l=>l.planN>0);

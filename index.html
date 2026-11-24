@@ -94,6 +94,7 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .skill .btn{padding:8px 14px;font-size:13.5px;min-width:86px}
 .tag{display:inline-block;background:var(--ink);color:#fff;border-radius:6px;padding:3px 10px;font-size:12.5px;font-weight:700;margin-bottom:8px}
 .wallet{position:absolute;right:36px;top:30px;font-weight:800;font-size:16px}
+#meltfx{position:absolute;inset:0;display:none;background:radial-gradient(ellipse at center,rgba(20,24,28,0) 34%,rgba(20,24,28,.8) 76%)}
 /* 오늘의 계획표 */
 #dplan{position:absolute;left:24px;top:104px;width:214px;display:none;background:var(--card);border-radius:10px;padding:8px 12px 9px;font-size:12.5px;line-height:1.5;box-shadow:0 2px 0 rgba(0,0,0,.35);border-left:5px solid var(--line)}
 #dplan b{display:block;font-size:11.5px;color:var(--mute);margin-bottom:2px}
@@ -116,6 +117,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
   <canvas id="gl" width="1280" height="720" style="display:none"></canvas>
   <canvas id="cv" width="1280" height="720"></canvas>
   <div id="hud">
+    <div id="meltfx"></div>
     <div id="top">
       <div class="plate" id="dayplate"><div id="roundel">2</div><div><b id="daytxt">월요일 출근</b><small id="weektxt">1주차</small></div></div>
       <div class="plate" id="routeplate"><div id="led"></div><div id="route"></div></div>
@@ -221,7 +223,7 @@ const dpGet=k=>G&&G.dp.find(d=>d.k===k&&d.status==="pending");
 function dpSet(k,ok,why){   // 달성·실패는 확정되는 즉시 알린다
   const d=dpGet(k);if(!d)return;d.status=ok?"done":"fail";
   if(ok){toast("계획 달성: "+d.n,"good");sfx("good");}
-  else{G.collapse++;toast("계획 실패: "+d.n+(why?" · "+why:""),"bad");sfx("bad");say(G.pl,pick(["…계획에 없던 일이다","괜찮아. 아직 남은 줄이 있어","(플래너에 줄을 긋는다)"]));}
+  else{addCollapse();toast("계획 실패: "+d.n+(why?" · "+why:""),"bad");sfx("bad");say(G.pl,pick(["…계획에 없던 일이다","괜찮아. 아직 남은 줄이 있어","(플래너에 줄을 긋는다)"]));}
 }
 function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const g=G;
@@ -232,6 +234,27 @@ function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
 }
 const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
+/* ========== 계획 붕괴 스택과 멘붕 (12), 버티기와 쓸려 내림 (02, 05) ========== */
+const GRIT=3,MELT_AT=3;                 // 버티기 능력치(캐릭터가 들어오기 전까지 3 고정), 멘붕이 오는 붕괴 스택
+const gritK=()=>1-.1*(GRIT-3);          // 사람에게 떠밀리는 거리 배수
+function addCollapse(){                 // 멘붕은 통근당 1회. 멘붕 뒤에는 그 통근에서 스택이 쌓이지 않는다
+  const g=G;if(g.meltUsed||g.st>=g.N)return;
+  if(++g.collapse>=MELT_AT){g.meltUsed=true;g.melt=20;g.meltdowns=1;g.collapse=0;g.breath=0;g.meltSay=0;
+    toast("멘붕. 계획이 연달아 틀어졌습니다. 가만히 서서 3초 심호흡하거나 자리에 앉으세요.","bad");sfx("bad");}
+}
+function meltEnd(msg){G.melt=0;G.collapse=0;toast(msg,"good");}
+function swept(){                       // 환승역 하차 인파에 밀려 승강장으로 내려짐
+  const g=G;g.stamina=Math.max(1,g.stamina-8);g.plans.length=0;g.claims.length=0;g.sweeps++;g.sweepT=0;
+  addCollapse();sfx("bad");mode="reboard";
+  if(document.pointerLockElement)document.exitPointerLock();
+  const cnt=DOORS.map(d=>g.ps.filter(p=>p.state!=="seated"&&p.state!=="gone"&&Math.abs(p.x-d.cx)<110).length);
+  const av=cnt.reduce((a,b)=>a+b,0)/cnt.length,lab=n=>n<av*.85?["덜 붐빔","c0"]:n>av*1.15?["혼잡","c2"]:["보통","c1"];   // 네 문을 서로 비교해 표시
+  sheet(`<span class="tag">${g.route[g.st]}역 승강장</span><h2>쓸려 내렸습니다</h2>
+   <p class="sub">하차 인파에 밀려 승강장으로 내려졌습니다. 체력 -8, 찜이 모두 풀렸습니다.<br>어느 문으로 다시 탈까요? 덜 붐비는 문을 고를 수 있습니다. 환승역에서는 문 앞을 피하고, 손잡이만 믿지 마세요.</p>
+   <div class="doors">${cnt.map((n,i)=>`<button class="door" data-i="${i}"><span class="n">${i+1}</span>번 문<br><span class="c ${lab(n)[1]}">${lab(n)[0]}</span></button>`).join("")}</div>`);
+  document.querySelectorAll(".door").forEach(b=>b.onclick=()=>reboard(+b.dataset.i));
+}
+function reboard(i){const g=G,P=g.pl;P.x=DOORS[i].cx;P.y=BY1-6;P.vx=0;g.sweepSafe=2.5;mode="play";$("ov").classList.remove("on");toast("다시 탔습니다.");}
 const ARCH={
  student:{label:"과잠 입은 대학생",desc:"전공책을 끌어안고 졸음과 싸우는 중.",shirt:"#27408b",prop:"pack",am:{"서울대입구":7,"낙성대":1,beyond:1},pm:{"신림":4,"봉천":3,"서울대입구":1,beyond:1}},
  office:{label:"정장 차림 직장인",desc:"사원증 줄이 셔츠 주머니에 꽂혀 있다.",shirt:"#3b3f46",prop:"brief",am:{"강남":5,"교대":2,"서초":1,beyond:4},pm:{"사당":3,"신림":3,"서울대입구":2,beyond:3}},
@@ -343,7 +366,7 @@ function startLeg(doorIdx){
     seats:makeSeats(),ps:[],pl:{x:DOORS[doorIdx].cx,y:BY1-6,vx:0,vy:0,seat:null,brace:false,face:-Math.PI/2,walk:0,gaze:-Math.PI/2,gazeT:-Math.PI/2,gazeHold:0},
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
-    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
+    dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
     seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
@@ -568,7 +591,7 @@ function commitSeat(p,s){
 function npcSit(p,s){
   seatPerson(p,s);p.dest=sampleDest(p.arch,G.legKey,G.route,G.st);assignHints(p);
   const i=G.plans.findIndex(pl=>pl.seat===s);
-  if(i>=0){G.plans.splice(i,1);G.stamina=Math.max(1,G.stamina-5);toast("계획 붕괴. 찜한 자리를 뺏겼습니다 (체력 -5)","bad");sfx("bad");}
+  if(i>=0){G.plans.splice(i,1);G.stamina=Math.max(1,G.stamina-5);addCollapse();toast("계획 붕괴. 찜한 자리를 뺏겼습니다 (체력 -5)","bad");sfx("bad");}
 }
 /* ========== 플레이어 행동 ========== */
 function sitRange(){return 46*(1+.25*sk("hip"));}
@@ -624,6 +647,7 @@ function trySit(target){
 }
 function togglePlan(s){
   const g=G;if(g.pl.seat||!s.occ||s.occ==="player"||s.pink)return;
+  if(g.melt>0){toast("멘붕 중에는 찜할 수 없습니다.");return;}
   const i=g.plans.findIndex(p=>p.seat===s);
   if(i>=0){const ci=g.claims.findIndex(c=>c.pid===g.plans[i].pid);if(ci>=0)g.claims.splice(ci,1);g.plans.splice(i,1);dpSet("planA",false,"찜을 취소함");return;}
   const max=1+sk("plan");if(g.plans.length>=max)g.plans.shift();
@@ -650,7 +674,7 @@ function shove(q){
 function say(e,txt){e.bubble=txt;e.bt=1.5;}
 function bump(q,hard){
   const g=G;g.bumps++;g.bumpCd=1.05;dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
-  g.nuis+=(hard?10:7)*(1-.2*sk("face"));g.stamina-=3;
+  g.nuis+=(hard?10:7)*(g.inFlow?2:1)*(1-.2*sk("face"));g.stamina-=3;   // 하차 흐름을 거스르면 2배
   say(g.pl,pick(["죄송합니다!","앗, 죄송해요","실례했습니다"]));
   if(q&&Math.random()<.5)say(q,pick(["아…","저기요","조심 좀…","(한숨)"]));
   sfx("bump");
@@ -679,7 +703,9 @@ function update(rdt){
     if(!g.xferMoved&&g.t>T_RUN*.5&&xferAt(g.st+1)){g.xferMoved=true;   // 환승역 직전: 서 있는 하차 예정자가 문 쪽으로 모인다
       for(const q of g.ps)if(q.state==="standing"&&q.dest===g.st+1&&q.delay==null&&!q.elder){
         dropSlot(q);let d=DOORS[0];for(const o of DOORS)if(Math.abs(o.cx-q.x)<Math.abs(d.cx-q.x))d=o;
-        const h={x:d.cx+rand(-34,34),y:BY1-rand(4,34)};constrain(h);q.hx=h.x;q.hy=h.y;q.wt=99;q.cool=30;}}
+        const h={x:d.cx+rand(-34,34),y:BY1-rand(4,34)};constrain(h);q.hx=h.x;q.hy=h.y;q.wt=99;q.cool=30;}
+      if(XFER[g.route[g.st+1]]==="S"){toast("곧 "+g.route[g.st+1]+"역(환승). 문 앞에 서 있으면 하차 인파에 쓸려 내릴 수 있습니다.");
+        if(!pl.seat&&pl.y>AY1)say(pl,g.route[g.st+1]+"이다. 문 앞은 위험해.");}}
     if(g.t>=T_RUN){arrive();}
   }else{
     banner(null);
@@ -777,7 +803,7 @@ function update(rdt){
         if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");dpSet("yield",false,"양보하지 않음");}}
     }
   }
-  prompt(g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":null);
+  prompt(g.melt>0&&!pl.seat?"멘붕! 가만히 서서 심호흡 "+Math.max(0,3-g.breath).toFixed(1)+"초 (또는 자리에 앉기)":g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":null);
   // 플레이어
   let touching=false;
   if(!pl.seat){
@@ -804,7 +830,10 @@ function update(rdt){
         // 좌석 앞 사람은 버티고, 자리로 달려드는 사람에게는 내가 벽이 된다(스크린)
         const lv=q.state==="leaving"&&q.step===0;   // 내리는 사람은 내 옆을 비집고 지나간다
         const o=R-d,nx=dx/d,ny=dy/d,an=q.state==="toSeat"||lv?.85:q.slot&&q.state==="standing"?.1:.4;
-        pl.x+=nx*o*(1-an);pl.y+=ny*o*(1-an);if(q.state==="standing"||q.state==="toSeat"||lv){q.x-=nx*o*an;q.y-=ny*o*an;constrain(q);}
+        // 떠밀림: 내가 움직이지 않는데 걸어오는 승객이 미는 경우. 버티기로 줄고, 손잡이는 절반만 막는다
+        const walking=q.state==="toSeat"||lv||(q.state==="standing"&&!q.slot&&hyp(q.x-q.hx,q.y-q.hy)>10);
+        const pk=!(ix||iy)&&walking?gritK()*(pl.brace?.5:1):1;
+        pl.x+=nx*o*(1-an)*pk;pl.y+=ny*o*(1-an)*pk;if(q.state==="standing"||q.state==="toSeat"||lv){const qa=an+(1-an)*(1-pk);q.x-=nx*o*qa;q.y-=ny*o*qa;constrain(q);}
         touching=true;
         // 비집고 들어가기: 좌석 앞 사람을 계속 밀면 결국 비켜 준다 (민폐 크게 상승)
         if(q.slot&&q.state==="standing"&&(ix||iy)&&-(nx*ix+ny*iy)/m>.45){
@@ -816,6 +845,18 @@ function update(rdt){
       }
     }
     constrain(pl);
+    // 환승역 하차 인파: S등급 역에서 문이 열려 있는 동안, 문 폭 1.5배 범위에 서 있으면 문 쪽으로 떠밀린다
+    g.inFlow=false;if(g.sweepSafe>0)g.sweepSafe-=rdt;
+    if(g.phase==="dwell"&&g.doorOpen&&g.st<g.N&&XFER[g.route[g.st]]==="S"&&!pl.into){
+      let dr=DOORS[0];for(const o of DOORS)if(Math.abs(o.cx-pl.x)<Math.abs(dr.cx-pl.x))dr=o;
+      const adx=Math.abs(pl.x-dr.cx),zone=DOOR_W*.75;
+      if(adx<zone&&pl.y>AY1-20){
+        let n=0;for(const q of g.ps)if(q.state==="leaving"&&q.step===0&&q.door===dr&&q.y<pl.y+12&&hyp(q.x-pl.x,q.y-pl.y)<110)n++;
+        if(n){g.inFlow=true;const push=Math.min(150,24*n)*(1-adx/zone)*gritK()*(pl.brace?.5:1);
+          pl.y+=push*rdt;pl.x+=Math.sign(dr.cx-pl.x)*push*.3*rdt;constrain(pl);}
+        if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
+      }
+    }
     let near=0;for(const q of movers)if(hyp(q.x-pl.x,q.y-pl.y)<56)near++;
     g.stamina-=(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
@@ -832,6 +873,16 @@ function update(rdt){
   if(pl.bt>0){pl.bt-=rdt;if(pl.bt<=0)pl.bubble=null;}
   for(let i=g.fx.length-1;i>=0;i--){g.fx[i].t+=rdt;if(g.fx[i].t>1.3)g.fx.splice(i,1);}
   // 찜한 승객이 그냥 사라진 경우 정리 (자리가 비어 있으면 유지)
+  if(g.melt>0){   // 멘붕: 20초. 자리에 앉거나 3초 심호흡(이동·손잡이 없이 가만히)으로 풀린다
+    g.melt-=rdt;g.meltSay-=rdt;
+    const still=!pl.seat&&!pl.brace&&!keys.KeyW&&!keys.KeyA&&!keys.KeyS&&!keys.KeyD;
+    g.breath=still?g.breath+rdt:0;
+    if(g.meltSay<=0&&!pl.seat){g.meltSay=4;say(pl,pick(["계획이… 계획이 뭐였지","07:16 착석… 아니, 지금 몇 시","플랜 B가… C가… 아니","…괜찮아. 괜찮지 않아"]));}
+    if(pl.seat)meltEnd("앉으니 정신이 돌아왔습니다.");
+    else if(g.breath>=3)meltEnd("후… 심호흡. 다시 계획을 세웁니다.");
+    else if(g.melt<=0)meltEnd("멘붕이 가라앉았습니다.");
+  }
+  if(g.sweptNow){g.sweptNow=false;swept();return;}
   if(g.ending==null){
     if(g.stamina<=0){g.stamina=0;endLeg("exhaust");return;}
     if(g.nuis>=100){g.nuis=100;endLeg("nuis");return;}
@@ -840,6 +891,7 @@ function update(rdt){
 }
 /* ========== 시야 ========== */
 // 마우스가 가리키는 쪽을 본다. 방향키로도 돌릴 수 있다(2초 유지).
+const sightHalf=()=>SIGHT_HALF*(G&&G.melt>0?.6:1);   // 멘붕 중에는 시야각 -40%
 const SIGHT_HALF=.7;                                    // 시야 반각 (약 40도)
 function sightRange(){return 300+25*sk("obs");}
 function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d;}
@@ -863,7 +915,7 @@ function blocked(ox,oy,tx,ty,self){ // 서 있는 사람이 시선을 가리는�
 function seesRaw(p){
   const P=G.pl,dx=p.x-P.x,dy=p.y-P.y,d=hyp(dx,dy);
   if(d<42)return true;                                 // 바로 옆은 고개 안 돌려도 보임
-  if(d>sightRange()||Math.abs(angDiff(Math.atan2(dy,dx),P.gaze))>SIGHT_HALF)return false;
+  if(d>sightRange()||Math.abs(angDiff(Math.atan2(dy,dx),P.gaze))>sightHalf())return false;
   return !blocked(P.x,P.y,p.x,p.y,p);
 }
 let focus=null,focusT=0;
@@ -887,7 +939,7 @@ function drawCone(){
   gr.addColorStop(0,"rgba(255,236,150,.42)");gr.addColorStop(1,"rgba(255,236,150,0)");
   const top=view==="q"?CAR.y-WALL+6:CAR.y;
   ctx.save();ctx.beginPath();ctx.rect(CAR.x,top,CAR.w,CAR.y+CAR.h-top);ctx.clip();   // 객차 안쪽만
-  ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R,P.gaze-SIGHT_HALF,P.gaze+SIGHT_HALF);ctx.closePath();ctx.fill();
+  ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(P.x,P.y);ctx.arc(P.x,P.y,R,P.gaze-sightHalf(),P.gaze+sightHalf());ctx.closePath();ctx.fill();
   ctx.restore();
 }
 function drawFocus(time,q){ // 보고 있는 승객 표시
@@ -1286,7 +1338,8 @@ function hud(){
   $("pts").textContent=run?run.points+g.pts:0;$("led").textContent=g.led;
   $("qhelp").style.display=sk("excuse")?"":"none";
   if(sk("excuse"))$("qhelp").style.opacity=g.excuseCd>0?.4:1;
-  $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"));
+  $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"))+(g.meltUsed?"":"   ·   붕괴 "+"●".repeat(g.collapse)+"○".repeat(MELT_AT-g.collapse));
+  $("meltfx").style.display=mode==="play"&&g.melt>0?"block":"none";
   {const el=$("dplan"),on=mode==="play"&&g.dp.length>0;let h="";
     if(on)h="<b>오늘의 계획표"+(run&&run.combo?" · 콤보 "+run.combo:"")+"</b>"+g.dp.map(d=>`<div class="${d.status}"><i>${d.status==="done"?"✔":d.status==="fail"?"✕":d.status==="void"?"–":"☐"}</i><span>${d.n}${d.k==="scan"&&d.status==="pending"?" ("+g.scanned.size+"/5)":""}</span></div>`).join("");
     if(el.innerHTML!==h)el.innerHTML=h;el.style.display=on?"block":"none";}

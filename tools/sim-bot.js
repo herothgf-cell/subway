@@ -9,7 +9,7 @@ var __bot=(function(){
   endLeg=function(fail){
     const b=run.points,pb=profile.points,g=G;
     last={fail:fail||null,stamina:g.stamina,nuis:g.nuis,bumps:g.bumps,seatStops:g.seatStops,planHits:g.planHits,yields:g.yields,st:g.st,
-      dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,combo:run.combo||0};
+      dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,sweeps:g.sweeps||0,combo:run.combo||0};
     _endLeg(fail);
     last.dp=(g.dp||[]).map(d=>[d.k,d.status]);last.planPts=g.planPts||0;last.planDone=g.planDone||0;last.planN=g.planN||0;last.combo=run?run.combo:0;
     last.gained=run?run.points-b:profile.points-pb-b;
@@ -37,7 +37,8 @@ var __bot=(function(){
   function tick(cfg){
     const g=G,P=g.pl;
     for(const k in keys)keys[k]=false;
-        if(P.seat){if(g.yieldEv&&g.yieldEv.active&&cfg.yields&&g.yieldEv.t>1)trySit(null);return;}
+        if(g.melt>0&&!P.seat)return;   // 멘붕: 가만히 심호흡
+    if(P.seat){if(g.yieldEv&&g.yieldEv.active&&cfg.yields&&g.yieldEv.t>1)trySit(null);return;}
     // 시선: 0.35초마다 주변 좌석을 훑는다. 목표가 있으면 절반은 목표를 본다
     st.lookT=(st.lookT||0)-DT;
     if(st.lookT<=0){st.lookT=cfg.scan;
@@ -53,6 +54,8 @@ var __bot=(function(){
     const fs=nearestFreeSeat();
     if(fs&&!fs.pink&&!(st.noSit&&st.noSit())){st.sitW=(st.sitW||0)+DT;if(st.sitW>=cfg.react){st.sitW=0;trySit(fs);return;}}else st.sitW=0;
     if(P.turn)return;
+    // 환승역(S)에 가까워지면 문 앞을 벗어난다
+    if(cfg.avoidDoor&&P.y>AY1+2&&((g.phase==="dwell"&&XFER[g.route[g.st]]==="S"&&g.st<g.N)||(g.phase==="run"&&XFER[g.route[g.st+1]]==="S"&&g.t>T_RUN*.5))){keys.KeyW=true;return;}
     // 손잡이
     if(g.phase==="run"){
       const j=g.jolts.find(j=>!j.done&&g.t>=j.at-.45);
@@ -104,7 +107,9 @@ var __bot=(function(){
       if(G.dp&&G.dp.some(d=>d.k==="stand"))st.noSit=()=>G.st<standHalf();
       info.standing=G.target;
       let guard=0;
-      while(mode==="play"&&guard++<60000){tick(cfg);update(DT);}
+      while((mode==="play"||mode==="reboard")&&guard++<60000){
+        if(mode==="reboard"){let b=0,bn=1e9;DOORS.forEach((d,i)=>{const n=G.ps.filter(p=>p.state!=="seated"&&Math.abs(p.x-d.cx)<110).length;if(n<bn){bn=n;b=i;}});reboard(cfg.readsBoard?b:irand(0,3));continue;}
+        tick(cfg);update(DT);}
       if(!last){info.fail="timeout";legs.push(info);break;}
       Object.assign(info,last);legs.push(info);
       if(run)showPlatform();
