@@ -110,6 +110,14 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
     u.walk+=dt*10*u.spd;if(u.spd>.05)legs(p3,u.walk,u.spd);
     if(lean)p3.torso.rotation.x+=.2*lean;
   }
+  // 특수 승객 (06): 백팩은 큰 배낭, 넓게 앉기는 옆자리에 올려 둔 짐
+  if(p.sp==="backpack"&&!u.bigpack){const bg=new THREE.Group();bg.add(C.box(.46,.54,.24,"#e8843c"));const pk=C.box(.3,.2,.07,"#c9661f");pk.position.set(0,-.1,-.14);bg.add(pk);
+    bg.position.set(0,.22,-.27);p3.torso.add(bg);u.bigpack=bg;bg.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2)u.outl.push(o);else if(!u.mats.includes(o.material))u.mats.push(o.material);});}
+  if(u.bigpack){u.bigpack.visible=p.sp==="backpack";
+    if(u.bigpack.visible){u.bigpack.position.z=p.bpFront?.27:-.27;if(p.bpWarn)p3.root.rotation.y+=Math.sin(time*26)*.14;}}   // 돌기 직전에 어깨를 들썩인다
+  if(p.sp==="sprawl"&&p.state==="seated"){const ns=G.seats.find(o=>o.narrow===p);
+    if(ns){if(!R.spBag){R.spBag=C.box(.26,.24,.34,"#8a5a2c");R.scene.add(R.spBag);}
+      R.spBag.position.set(X(p.seat.x+(ns.x-p.seat.x)*.66),.57,Z(p.seat.y)+(p.seat.side==="top"?.02:-.02));R.spBagT=time;}}
   // 멀리 있는 사람은 외곽선을 끈다 (그리기 부담 줄이기)
   const ddx=u.hold.position.x-camX,ddz=u.hold.position.z-camZ,far=ddx*ddx+ddz*ddz>20;
   const d2c=ddx*ddx+ddz*ddz,lod=d2c>72?2:d2c>26?1:0;   // 거리에 따라 작은 부분을 생략
@@ -146,6 +154,7 @@ function overlay(g,time){
   // 보고 있는 승객
   if(focus&&focus.state!=="gone"&&g.ps.includes(focus)){const sx=focus.seat?focus.seat.x:focus.x,sy=focus.seat?focus.seat.y:focus.y,q=proj(X(sx),focus.seat?1.12:1.3,Z(sy));
     if(q){const r=34+Math.sin(time*6)*2;ctx.strokeStyle="rgba(31,42,68,.85)";ctx.lineWidth=3;for(const [a,b] of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.beginPath();ctx.moveTo(q[0]+a*r-a*11,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r-b*11);ctx.stroke();}}}
+  if(R.spBag)R.spBag.visible=typeof G!=="undefined"&&!!G&&G.seats.some(o=>o.narrow)&&time-(R.spBagT||0)<.5;
   // 시선 눈치: 화면 가운데의 옅은 원이 정면 범위(대략). 정면으로 본 승객 머리 위에 눈 게이지가 차오르고, 원 밖에 두면 곁눈질이다
   if(typeof GAZE!=="undefined"&&GAZE){
     ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=2;ctx.setLineDash([6,8]);ctx.beginPath();ctx.arc(W/2,H/2,113,0,TAU);ctx.stroke();ctx.setLineDash([]);

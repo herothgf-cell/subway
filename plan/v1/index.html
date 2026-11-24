@@ -42,7 +42,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <a href="03_line_expansion_v1.html"><span class="num">03</span><span><b>지하철 노선 확장</b><span class="d">신림~강남에서 2호선 순환선 전체로, 구간별 특성</span></span><span class="tag">신규</span></a>
 <a href="04_schedule_v1.html"><span class="num">04</span><span><b>일정</b><span class="d">평일 출근, 주말 약속·휴무, 그날의 변수, 도착 시한</span></span><span class="tag">신규</span></a>
 <a href="05_transfer_v1.html"><span class="num">05</span><span><b>환승역 물갈이</b><span class="d">환승 등급, 진행 순서, 쓸려 내림</span></span><span class="tag ok">구현됨</span></a>
-<a href="06_special_passenger_v1.html"><span class="num">06</span><span><b>특수 승객</b><span class="d">공간을 바꾸는 승객 10종과 양심 승객</span></span><span class="tag">신규</span></a>
+<a href="06_special_passenger_v1.html"><span class="num">06</span><span><b>특수 승객</b><span class="d">공간을 바꾸는 승객 10종과 양심 승객</span></span><span class="tag ok">1차 구현</span></a>
 <a href="07_gaze_v1.html"><span class="num">07</span><span><b>시선 눈치</b><span class="d">쳐다보는 것의 비용, 들키지 않고 보는 방법</span></span><span class="tag ok">구현됨</span></a>
 <a href="08_work_home_event_v1.html"><span class="num">08</span><span><b>회사·집 이벤트</b><span class="d">통근 사이의 선택 카드</span></span><span class="tag ok">구현됨</span></a>
 <a href="09_passive_skill_v1.html"><span class="num">09</span><span><b>패시브 스킬 상세</b><span class="d">현재 7종 수치, 계열 구조, 신규 5종, 포인트 경제</span></span><span class="tag">확장</span></a>
@@ -61,8 +61,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2</td><td>14 출근 일기</td><td><span class="st ok">구현됨</span></td><td>정산 화면의 일기와 이미지 저장. 남은 것: 문장 검수, 플래너 보관, 내일의 다짐과 계획표 연결(04 이후)</td></tr>
 <tr><td>3</td><td>08 회사·집 이벤트</td><td><span class="st ok">구현됨</span></td><td>회사 카드 4종, 집 카드 6종, 끼어드는 이벤트 2종. 남은 것: 취객·통로 판매(06), 점심 낮잠·택배(10), 도착 시한·팀장 호출·약속 연락·월급날·휴무일 카드(04)</td></tr>
 <tr><td>3</td><td>07 시선 눈치</td><td><span class="st ok">구현됨</span></td><td>시선 게이지, 승객 성향, 곁눈질, 휴대폰 보는 척(R), 어깨너머 화면 2초. 남은 것: 창문 반사, 노선도 보는 척, 선글라스·책·후드티(10), 동행자 만족도(13)</td></tr>
-<tr><td>3</td><td>06 특수 승객</td><td><span class="st wait">다음</span></td><td>백팩, 넓게 앉기부터</td></tr>
-<tr><td>4</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">대기</span></td><td>관찰력 표시 변경은 먼저 반영함 (후보 2곳, "곧 내릴 것 같다")</td></tr>
+<tr><td>3</td><td>06 특수 승객 (1차)</td><td><span class="st ok">구현됨</span></td><td>백팩, 넓게 앉기. 남은 것: 취객·캐리어(2차, 취객은 몸짓 시안 먼저), 통로 판매·단체(3차), 큰 소리 통화·기대어 잠든 승객·뛰어 타는 승객, 양심 승객 확장, 도감 화면</td></tr>
+<tr><td>4</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">다음</span></td><td>관찰력 표시 변경은 먼저 반영함 (후보 2곳, "곧 내릴 것 같다")</td></tr>
 <tr><td>5</td><td>03 노선 확장 → 02 캐릭터 → 04 일정 → 01 인트로</td><td><span class="st wait">대기</span></td><td>인트로 시안(<code>intro-flow.html</code>)은 병행 가능, 아직 시작 전</td></tr>
 <tr><td>6</td><td>11 좌석 등급</td><td><span class="st wait">대기</span></td><td></td></tr>
 <tr><td>7</td><td>13 기타 아이디어 (계절, 동행과 매너, 매너 점수, 단골 승객, 막차)</td><td><span class="st wait">후순위</span></td><td>다른 문서가 13에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)은 13이 들어올 때 함께 넣는다</td></tr>
@@ -105,6 +105,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-24</td><td>v1 초안 작성</td></tr>
 <tr><td>2026-11-24</td><td>미결 사항 결정 방식 추가 / 01 인트로: 시안 흐름 선행 / 02 캐릭터: 균형 적용 범위 검토 / 13 기타: 출근 일기·계절 상세화</td></tr>
 <tr><td>2026-11-24</td><td>12·05 미결 사항 결정과 구현(계획표, 환승역 물갈이, 쓸려 내림, 멘붕). 게임 본체를 3D로 전환. 이 문서에 구현 현황, 검토 중인 제안, 개선점 목록을 추가해 한 장에서 관리</td></tr>
+<tr><td>2026-11-24</td><td>06 특수 승객 미결 사항 결정과 1차 구현(백팩, 넓게 앉기). 일기 사건 5종 추가</td></tr>
 <tr><td>2026-11-24</td><td>07 시선 눈치 미결 사항 결정과 구현. 계획 "들키지 않기", 일기 사건 2종 추가</td></tr>
 <tr><td>2026-11-24</td><td>08 회사·집 이벤트 미결 사항 결정과 구현. 개선점 2건 추가 (착석 시 앞사람 거리, 일기 디자인)</td></tr>
 <tr><td>2026-11-24</td><td>출근 일기를 정식 구현하고 독립 문서(14)로 추가. 13의 나머지는 후순위 유지</td></tr>
