@@ -1,6 +1,6 @@
 // 헤드리스 난이도 시뮬레이션.
 // index.html의 게임 스크립트를 화면 없이 그대로 실행하고, 봇이 여러 주를 통근한 결과를 집계한다.
-// 사용: node tools/sim.js [런 수=40] [최대 주차=2] [시드=1] [--plans] [--json 파일]
+// 사용: node tools/sim.js [런 수=40] [최대 주차=2] [시드=1] [--plans] [--allskills] [--json 파일]
 const fs=require("fs"),path=require("path"),vm=require("vm");
 const args=process.argv.slice(2),flags=args.filter(a=>a.startsWith("--")),nums=args.filter(a=>/^\d+$/.test(a)).map(Number);
 const RUNS=nums[0]||40,WEEKS=nums[1]||2,SEED=nums[2]||1;
@@ -40,7 +40,8 @@ const out={runs:RUNS,weeks:WEEKS,seed:SEED,plans:PLAN,bots:{}};
 const t0=Date.now();
 console.log(`런 ${RUNS}회 × 봇 3종, 최대 ${WEEKS}주, 시드 ${SEED}${PLAN?", 계획표 사용":""}, 카드 정책 ${CARD}`);
 for(const name in BOTS){
-  const ctx=makeContext(SEED*1000+Object.keys(out.bots).length);BOTS[name].cardPolicy=CARD;if(flags.includes("--nogaze"))vm.runInContext("GAZE=false;",ctx);if(flags.includes("--nospecial"))vm.runInContext("SPECIALS=false;",ctx);
+  const ctx=makeContext(SEED*1000+Object.keys(out.bots).length);BOTS[name].cardPolicy=CARD;if(flags.includes("--allskills"))BOTS[name].skills=vm.runInContext("Object.fromEntries(SKILLS.map(s=>[s.k,s.cost.length]))",ctx);   // 모든 스킬 최대 단계
+  if(flags.includes("--nogaze"))vm.runInContext("GAZE=false;",ctx);if(flags.includes("--nospecial"))vm.runInContext("SPECIALS=false;",ctx);
   const runs=[];for(let i=0;i<RUNS;i++)runs.push(ctx.__bot.runOne(BOTS[name],WEEKS));
   const legs=runs.flat(),done=legs.filter(l=>!l.fail);
   const weekDone=w=>runs.filter(r=>r.filter(l=>l.week===w&&!l.fail).length===10).length/RUNS;
