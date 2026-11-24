@@ -58,8 +58,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>1</td><td>12 오늘의 계획표</td><td><span class="st ok">구현됨</span></td><td>계획 16종, 루틴 콤보, 멘붕. 남은 것: "들키지 않기"(07 필요), "백팩은 앞으로"(10 필요), 일정별 전용 계획(04 필요)</td></tr>
 <tr><td>1</td><td>05 환승역 물갈이</td><td><span class="st ok">구현됨</span></td><td>사당 S, 교대 A. 쓸려 내림, 손잡이 절반 규칙 포함. 남은 것: 출근·퇴근 방향 보정, "문턱에서 버티기"</td></tr>
 <tr><td>2</td><td>13 출근 일기 1단계</td><td><span class="st wait">다음</span></td><td>정산 화면에 일기 문장</td></tr>
-<tr><td>3</td><td>08 회사·집 이벤트 → 07 시선 눈치 → 06 특수 승객</td><td><span class="st wait">대기</span></td><td></td></tr>
-<tr><td>4</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">대기</span></td><td>09는 아래 "검토 중인 제안"의 관찰력 항목이 먼저</td></tr>
+<tr><td>3</td><td>08 회사·집 이벤트 → 07 시선 눈치 → 06 특수 승객</td><td><span class="st wait">대기</span></td><td>07에서 어깨너머 화면 정리 (2초 주시 + 들킬 위험)</td></tr>
+<tr><td>4</td><td>09 스킬 확장 → 10 아이템</td><td><span class="st wait">대기</span></td><td>관찰력 표시 변경은 먼저 반영함 (후보 2곳, "곧 내릴 것 같다")</td></tr>
 <tr><td>5</td><td>03 노선 확장 → 02 캐릭터 → 04 일정 → 13 나머지 → 01 인트로</td><td><span class="st wait">대기</span></td><td>인트로 시안(<code>intro-flow.html</code>)은 병행 가능, 아직 시작 전</td></tr>
 <tr><td>6</td><td>11 좌석 등급</td><td><span class="st wait">대기</span></td><td></td></tr>
 <tr><td>7</td><td>개선점 목록 처리</td><td><span class="st wait">대기</span></td><td>기능 구현이 모두 끝난 뒤</td></tr>
@@ -67,15 +67,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 
 <h2>검토 중인 제안 (결정 대기)</h2>
 <p class="note">기획자의 결정을 기다리는 항목입니다. 결정되면 <code>DECISIONS.md</code>에 기록하고 해당 문서에 반영한 뒤 이 표에서 뺍니다.</p>
-<h3>관찰력: 하차역을 직접 알기 어렵게 (09 패시브 스킬)</h3>
-<p>관찰력 1단계의 "자주 내리는 역"은 실제 하차역이 아니라 승객 유형이 가장 자주 내리는 역입니다. 그런데 표시된 역에서 실제로 내리는 비율이 유형에 따라 거의 정답 수준입니다 (통근 600회 표본, 출근 기준): 환승 경로 검색 100%(사당 2정거장 전 이후), 과잠 대학생 79%, 등산복 어르신 61%, 정장 직장인·서류 봉투 33~47%, 전체 평균 출근 46~47%·퇴근 28~31%.</p>
-<div class="tw"><table>
-<tr><th>#</th><th>대상</th><th>선택지</th><th>추천</th><th>상태</th></tr>
-<tr><td>1</td><td>관찰력 1단계 표시</td><td>A. 역 이름 대신 후보 2개 표시 ("서울대입구 또는 낙성대") / B. 역 이름 없이 거리감만 ("곧", "중간쯤", "한참 뒤") / C. 표시는 두고 일치율 높은 유형의 가중치만 낮춤</td><td>A. 차림새로 역을 짐작하는 재미는 남기고 확정만 막는다</td><td><span class="st ask">결정 대기</span></td></tr>
-<tr><td>2</td><td>관찰력 3단계 (남은 정거장 수 표시, "N정거장 뒤 하차 확실")</td><td>A. 정확한 숫자 대신 "곧 내릴 것 같다" 표시만 / B. 그대로</td><td>A</td><td><span class="st ask">결정 대기</span></td></tr>
-<tr><td>3</td><td>환승 경로 검색 유형</td><td>A. 물갈이 지정에서 우선권을 없애 다른 유형과 섞음 / B. 그대로</td><td>A. 원래 가중치(사당 60%)는 남는다. 05 문서의 "환승역 하차 가중치가 가장 높다"와는 부딪힌다</td><td><span class="st ask">결정 대기</span></td></tr>
-<tr><td>4</td><td>어깨너머 화면 (스킬 없이 정확한 하차역 표시)</td><td>A. 07 시선 눈치 때 정리 (2초 주시 + 들킬 위험) / B. 지금 역 이름을 흐리게</td><td>A</td><td><span class="st ask">결정 대기</span></td></tr>
-</table></div>
+<p>지금은 결정을 기다리는 제안이 없습니다.</p>
 
 <h2>개선점 목록 (기능 구현 완료 후 처리)</h2>
 <p class="note">플레이하면서 나온 개선 의견입니다. 지금은 기록만 하고, 추가 기획서의 기능 구현이 모두 끝난 뒤에 한꺼번에 손봅니다.</p>
@@ -107,6 +99,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-24</td><td>v1 초안 작성</td></tr>
 <tr><td>2026-11-24</td><td>미결 사항 결정 방식 추가 / 01 인트로: 시안 흐름 선행 / 02 캐릭터: 균형 적용 범위 검토 / 13 기타: 출근 일기·계절 상세화</td></tr>
 <tr><td>2026-11-24</td><td>12·05 미결 사항 결정과 구현(계획표, 환승역 물갈이, 쓸려 내림, 멘붕). 게임 본체를 3D로 전환. 이 문서에 구현 현황, 검토 중인 제안, 개선점 목록을 추가해 한 장에서 관리</td></tr>
+<tr><td>2026-11-24</td><td>관찰력: 하차역을 직접 알려 주지 않도록 변경 (후보 2곳 표시, 남은 정거장 수 제거, 환승 검색 유형 우선 지정 제거). 09·05 반영</td></tr>
 <tr><td>2026-11-24</td><td>능력치 "버티기" 신설(6종): 사람에게 떠밀리는 것은 균형이 아닌 버티기가 담당. 손잡이는 균형 쪽은 완전히, 버티기 쪽은 절반만 막음. 02·05·06·09 반영, 캐릭터 수치 재조정</td></tr>
 </table></div>
 <h2>제안 도입 순서 (초안)</h2>

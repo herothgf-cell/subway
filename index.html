@@ -164,7 +164,7 @@ const sk=k=>profile.skills[k]||0;
 const STATIONS=["신림","봉천","서울대입구","낙성대","사당","방배","서초","교대","강남"];
 const DAYS=["월요일","화요일","수요일","목요일","금요일"];
 const SKILLS=[
- {k:"obs",n:"관찰력",cost:[40,90,160],d:["승객 카드에 ‘자주 내리는 역’ 표시, 내릴 낌새가 더 일찍 보임","페이크 동작을 간파, 낌새가 한층 더 일찍 보임","2정거장 안에 내릴 승객의 남은 정거장 수 표시"]},
+ {k:"obs",n:"관찰력",cost:[40,90,160],d:["승객 카드에 ‘자주 내리는 역 후보 2곳’ 표시, 내릴 낌새가 더 일찍 보임","페이크 동작을 간파, 낌새가 한층 더 일찍 보임","2정거장 안에 내릴 승객에 ‘곧 내릴 것 같다’ 표시 (몇 정거장인지는 알 수 없음)"]},
  {k:"bal",n:"균형 감각",cost:[30,70,120],d:["급정거에 밀리는 거리 -28%","급정거에 밀리는 거리 -56%","급정거에 밀리는 거리 -84%"]},
  {k:"sta",n:"출근 체력",cost:[40,80,140],d:["서 있을 때 체력 소모 -12%","서 있을 때 체력 소모 -24%","서 있을 때 체력 소모 -36%"]},
  {k:"plan",n:"플랜 B",cost:[60,130],d:["찜 슬롯 2개","찜 슬롯 3개"]},
@@ -197,13 +197,12 @@ const COMBO_MAX=5;
 const XFER={"사당":"S","교대":"A"};   // 현재 구간의 환승 등급. 강남은 늘 출발역이거나 종점이라 물갈이가 없다
 const XG={S:{stand:.40,seat:.30,board:1.10,dwell:13},A:{stand:.25,seat:.20,board:1.00,dwell:10},B:{stand:.15,seat:.12,board:.90,dwell:7.5}};
 const xferAt=i=>G&&i>0&&i<G.N?XG[XFER[G.route[i]]]||null:null;
-function xferPrep(tx){   // 환승역 2정거장 전: 비율에 모자란 만큼 목적지를 그 역으로 다시 지정한다 (환승 검색 유형 먼저)
+function xferPrep(tx){   // 환승역 2정거장 전: 비율에 모자란 만큼 목적지를 그 역으로 다시 지정한다 (유형을 가리지 않고 섞는다)
   const g=G,x=xferAt(tx);if(!x)return;
   const fill=(list,ratio,seated)=>{
     let need=Math.round(list.length*ratio)-list.filter(p=>p.dest===tx).length;
     const pool=list.filter(p=>p.dest>tx&&p.arch!=="sleeper"&&p.arch!=="elder"&&p.arch!=="mom"&&!p.elder);
     for(let i=pool.length-1;i>0;i--){const j=irand(0,i);[pool[i],pool[j]]=[pool[j],pool[i]];}
-    pool.sort((a,b)=>(b.arch==="transfer")-(a.arch==="transfer"));
     while(need-->0&&pool.length){const q=pool.shift();q.dest=tx;assignHints(q);q.rush=seated&&Math.random()<.2;}   // 급하차: 낌새 없이 문이 열린 뒤 일어난다
   };
   fill(g.ps.filter(p=>p.state==="standing"&&p.delay==null),x.stand,false);
@@ -334,6 +333,13 @@ function sampleDest(arch,legKey,route,from){
   let t=0;for(const o of opts)t+=o[1];let r=Math.random()*t;
   for(const o of opts){r-=o[1];if(r<=0)return o[0];}
   return 99;
+}
+function likelyStops(p){   // 관찰력 1단계 카드: 이 유형이 자주 내리는 역 후보 2곳 (노선 순서로, 어느 쪽이 더 유력한지는 알려 주지 않는다)
+  const w=ARCH[p.arch][G.legKey],c=[];
+  for(const k in w)if(k!=="beyond"&&k!=="any"){const i=G.route.indexOf(k);if(i>G.st)c.push([i,w[k]]);}
+  if(!c.length)return null;
+  const top=c.sort((a,b)=>b[1]-a[1]).slice(0,2).sort((a,b)=>a[0]-b[0]).map(x=>G.route[x[0]]);
+  return top.length>1?top.join(" 또는 "):top[0]+(w.beyond?" 또는 더 멀리":" 쪽");
 }
 function likelyStop(p){
   const w=ARCH[p.arch][G.legKey];let best=null,bw=0;
@@ -1033,7 +1039,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
     if(p.state!=="seated"||!(p.vis>.05))continue;
     ctx.globalAlpha=p.vis;
     if(p.arch==="sleeper"){ctx.fillStyle="#55606e";ctx.font="700 11px "+FONT;ctx.fillText("z",p.x+12,p.y-8+Math.sin(time*2+p.ph)*2);}
-    if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,p.x,p.seat.side==="top"?p.y-22:p.y+26);}
+    if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("곧",p.x,p.seat.side==="top"?p.y-22:p.y+26);}
     ctx.globalAlpha=1;
   }
   drawFocus(time,false);
@@ -1259,7 +1265,7 @@ function drawQ(time){
     const hy=s.y-(s.side==="top"?48:44),hn=hint(p);ctx.globalAlpha=p.vis;
     // 낌새 아이콘은 띄우지 않는다. 몸짓과, 시선을 맞춘 승객의 카드로만 읽는다
     if(p.arch==="sleeper"&&!hn.icon){ctx.fillStyle="#55606e";ctx.font="700 12px "+FONT;ctx.textAlign="center";ctx.fillText("z",s.x+11,hy+10+Math.sin(time*2+p.ph)*2);}
-    if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText(p.dest-g.st,s.x-12,hy+10);}
+    if(sk("obs")>=3&&p.dest-g.st<=2&&p.dest>g.st){ctx.fillStyle="#007a38";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText("곧",s.x-12,hy+10);}
     ctx.globalAlpha=1;
   }
   drawFocus(time,true);
@@ -1347,14 +1353,14 @@ function hud(){
   const c=$("card"),p=mode==="play"&&!paused&&focus&&focus.state!=="gone"&&G.ps.includes(focus)?focus:null;
   if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
-  if(o>=1){const l=likelyStop(p);h+=`<div class="hint">자주 내리는 역: ${l||"한참 더 감"}</div>`;}
+  if(o>=1){const l=likelyStops(p);h+=`<div class="hint">이런 차림은 보통: ${l||"한참 더 감"}</div>`;}
   // 낌새와 하는 일은 카드에 쓰지 않는다. 승객의 몸짓을 직접 보고 판단
   if(p.peek&&p.state==="seated"){
     if(hyp(p.x-g.pl.x,p.y-g.pl.y)>120)h+=`<div class="peek">휴대폰을 보고 있다. 더 가까이 가면 화면이 보일 것 같다.</div>`;
     else if(focusT<.9)h+=`<div class="peek">어깨너머로 화면을 보는 중…</div>`;
     else h+=`<div class="peek">화면: ${p.dest===99?"웹툰 정주행 중. 내릴 기색이 없다.":"‘"+g.route[p.dest]+"역 출구’ 검색 중."}</div>`;
   }
-  if(o>=3&&p.state==="seated"&&p.dest>g.st&&p.dest-g.st<=2)h+=`<div class="hint">${p.dest-g.st}정거장 뒤 하차 확실</div>`;
+  if(o>=3&&p.state==="seated"&&p.dest>g.st&&p.dest-g.st<=2)h+=`<div class="hint">곧 내릴 것 같다</div>`;
   if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act">클릭 또는 <kbd>F</kbd> ${g.plans.some(x=>x.seat===p.seat)?"찜 취소":"이 자리 찜하기"}</div>`;
   if(c.innerHTML!==h)c.innerHTML=h;c.style.display="block";
   const top=p.seat?p.seat.side==="top":p.y<(AY0+AY1)/2;
