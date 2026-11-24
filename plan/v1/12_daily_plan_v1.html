@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>12 오늘의 계획표 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">12</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
+<h1>오늘의 계획표</h1><p>통근별 목표 선택, 루틴 콤보, 멘붕</p></header>
+<h2>1. 목적</h2>
+<ul>
+<li>게임 제목 "계획대로"를 규칙으로 만든다. 현재 J 성격은 <b>자리 찜</b> 하나로만 표현된다.</li>
+<li>통근마다 스스로 고른 목표를 두어, 같은 구간도 매번 다르게 플레이하게 한다.</li>
+</ul>
+
+<h2>2. 흐름</h2>
+<ol>
+<li>통근 시작 전 플래너에 후보 <b>5개</b>가 제시된다.</li>
+<li>그중 <b>3개</b>를 골라 오늘의 계획표에 적는다. (0~3개 자유. 적게 적으면 위험도 보상도 작다)</li>
+<li>통근 중 화면 구석의 계획표에 달성은 체크, 실패는 줄 긋기로 표시된다.</li>
+<li>도착 후 정산: 달성 수에 따라 보상과 루틴 콤보가 정해진다.</li>
+</ol>
+
+<h2>3. 계획 목록</h2>
+<div class="tw"><table>
+<tr><th>분류</th><th>계획</th><th>달성 조건</th><th>난이도</th><th>보상</th></tr>
+<tr><td rowspan="4">착석</td><td>일찍 앉기</td><td>3정거장 안에 착석</td><td>★</td><td>15P</td></tr>
+<tr><td>계획대로 앉기</td><td>찜한 자리에 낌새 전 착석 1회</td><td>★★</td><td>25P</td></tr>
+<tr><td>끝자리</td><td>끝자리에 착석</td><td>★★★</td><td>40P</td></tr>
+<tr><td>환승역 노리기</td><td>환승역에서 빈 자리에 착석</td><td>★★</td><td>25P</td></tr>
+<tr><td rowspan="3">이동</td><td>무접촉 통근</td><td>충돌 0회</td><td>★★★</td><td>40P</td></tr>
+<tr><td>조용한 통근</td><td>민폐 게이지 30 이하 유지</td><td>★★</td><td>25P</td></tr>
+<tr><td>단단한 하체</td><td>급정거에 한 번도 밀리지 않기</td><td>★</td><td>15P</td></tr>
+<tr><td rowspan="3">눈치</td><td>정확한 눈</td><td>찜한 승객이 실제로 예상 역에서 하차 2회</td><td>★★</td><td>25P</td></tr>
+<tr><td>들키지 않기</td><td>눈 마주침 0회</td><td>★★</td><td>25P</td></tr>
+<tr><td>속지 않기</td><td>페이크 동작에 반응해 이동하지 않기</td><td>★★★</td><td>40P</td></tr>
+<tr><td rowspan="2">매너</td><td>양보 한 번</td><td>자리 양보 1회</td><td>★</td><td>15P (양보 보상과 별도)</td></tr>
+<tr><td>백팩은 앞으로</td><td>혼잡 구간 내내 가방 앞으로 메기</td><td>★</td><td>15P</td></tr>
+<tr><td rowspan="2">절제</td><td>서서 가기</td><td>2정거장 동안 앉지 않고 버티기</td><td>★★</td><td>25P</td></tr>
+<tr><td>플랜 A만</td><td>찜을 한 번도 바꾸지 않기</td><td>★★★</td><td>40P</td></tr>
+</table></div>
+<ul>
+<li>후보 5개는 난이도 ★ 2개, ★★ 2개, ★★★ 1개로 구성한다. 그날의 변수(비, 환승역 유무, 동행)에 맞지 않는 항목은 빼고 뽑는다.</li>
+<li>서로 모순되는 조합(일찍 앉기 + 서서 가기)은 함께 제시하지 않는다.</li>
+</ul>
+
+<h2>4. 정산과 루틴 콤보</h2>
+<div class="tw"><table>
+<tr><th>결과</th><th>효과</th></tr>
+<tr><td>적은 계획 모두 달성 (2개 이상 적었을 때)</td><td>"오늘도 계획대로" 보너스 +20P, 루틴 콤보 +1</td></tr>
+<tr><td>일부 달성</td><td>달성한 계획의 보상만. 콤보 유지</td></tr>
+<tr><td>모두 실패</td><td>콤보 초기화, 다음 통근 시작 시 붕괴 스택 1</td></tr>
+</table></div>
+<ul>
+<li><b>루틴 콤보</b>: 1당 그 통근의 계획 보상 +10%, 최대 5(+50%). 한 주 동안 이어진다.</li>
+<li>콤보가 높을수록 주인공의 독백과 걸음이 가벼워진다. 5에서는 플래너에 금색 스티커.</li>
+</ul>
+
+<h2>5. 계획 붕괴와 멘붕</h2>
+<div class="tw"><table>
+<tr><th>붕괴 발생</th><th>스택</th></tr>
+<tr><td>찜한 자리를 남에게 뺏김 (현재 체력 -5)</td><td>+1</td></tr>
+<tr><td>계획표 항목 실패 확정</td><td>+1</td></tr>
+<tr><td>환승역에서 쓸려 내림</td><td>+1</td></tr>
+</table></div>
+<ul>
+<li>스택 3이 되면 <b>멘붕</b>: 20초간 시야각 -40%, 찜 불가, 독백이 엉킨다.</li>
+<li>해제: 자리에 앉기, 또는 제자리에서 3초 <b>심호흡</b>(이동·조작 없음).</li>
+<li>멘붕이 풀리면 스택은 0이 된다. 멘탈 능력치가 높으면 스택 한도가 4로 늘어난다 (<a href="02_character_v1.html">02</a>).</li>
+</ul>
+
+<h2>6. 일정별 전용 계획</h2>
+<div class="tw"><table>
+<tr><th>일정</th><th>전용 계획 예</th></tr>
+<tr><td>데이트</td><td>동행자 먼저 앉히기, 나란히 앉기, 한 번도 떨어지지 않기 (<a href="13_misc_ideas_v1.html">13</a>)</td></tr>
+<tr><td>결혼식</td><td>구두 신고 충돌 0회, 시한 2분 전 도착</td></tr>
+<tr><td>야구 관람</td><td>종합운동장 귀가 인파 속 쓸려 내림 없이 탑승</td></tr>
+<tr><td>월급날</td><td>최대 혼잡 퇴근길에서 "계획대로" 2회</td></tr>
+</table></div>
+
+<h2>7. 연동</h2>
+<ul>
+<li>집 카드 "내일 계획 세우기"로 후보 +2 (<a href="08_work_home_event_v1.html">08</a>).</li>
+<li>스킬 "칼각 루틴", 아이템 "다이어리"로 후보·슬롯 증가 (<a href="09_passive_skill_v1.html">09</a>, <a href="10_item_v1.html">10</a>).</li>
+<li>주간 플래너에 미리 적어 둔 계획을 달성하면 보상 +20% (<a href="04_schedule_v1.html">04</a>).</li>
+</ul>
+
+<h2>8. 미결 사항</h2>
+<ul>
+<li>통근당 획득량이 크게 늘어난다 (3개 달성 + 콤보 5 기준 최대 약 155P 추가). 스킬 비용과 함께 조정 필요.</li>
+<li>"실패 확정" 시점을 바로 알려 줄지 정산 때 알려 줄지. 바로 알려 주는 쪽이 붕괴 연출에 맞다.</li>
+<li>멘붕이 실패를 더 키우는 악순환이 될 수 있다. 통근당 1회로 제한하는 안 검토.</li>
+</ul>
+
+<nav class="foot"><a href="11_seat_grade_v1.html">← 11 좌석 등급</a><a href="index.html">목록</a><a href="13_misc_ideas_v1.html">13 기타 아이디어 →</a></nav>
+</div></body></html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>06 특수 승객 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">06</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
+<h1>특수 승객</h1><p>공간을 바꾸는 승객 10종과 양심 승객</p></header>
+<h2>1. 목적</h2>
+<ul>
+<li>"사람을 피해 이동한다"는 컨트롤에 변화를 준다. 일반 승객은 서 있는 장애물이지만, 특수 승객은 <b>각자 다른 방식으로 공간을 바꾼다</b>.</li>
+<li>한 번 보면 알 수 있는 지하철 일상 장면으로 웃음을 준다.</li>
+</ul>
+
+<h2>2. 원칙</h2>
+<ul>
+<li>특수 승객은 <b>행동</b>으로 정의한다. 나이·성별·직업 같은 속성에 불편한 행동을 고정하지 않고, 외형은 매번 무작위로 붙인다.</li>
+<li>모든 유형에 대응 방법이 있어야 한다. 피할 수 없는 손해는 만들지 않는다.</li>
+<li>열차 한 칸에 특수 승객은 0~3명. 같은 유형은 한 칸에 1명.</li>
+</ul>
+
+<h2>3. 유형</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>행동</th><th>영향</th><th>대응</th><th>등장</th></tr>
+<tr><td>백팩</td><td>큰 가방을 뒤로 멘 채 몸을 자주 돌림</td><td>돌 때 뒤쪽 반경의 사람을 밀침 (충돌 판정)</td><td>등 뒤를 피해 지나가기. "잠시만요"를 쓰면 가방을 앞으로 멤</td><td>항상</td></tr>
+<tr><td>넓게 앉기</td><td>다리를 벌리거나 옆자리에 짐을 둠</td><td>옆자리가 비어도 "좁은 자리"가 됨 (체력 회복 -50%)</td><td>E 길게: "실례합니다"로 해제 (60% 성공, 실패 시 민폐 +5)</td><td>항상</td></tr>
+<tr><td>취객</td><td>비틀거리며 불규칙하게 이동, 가끔 손잡이에 매달림</td><td>가까이 있으면 민폐 게이지가 아닌 <b>체력</b>이 깎임. 옆자리 회복 -30%</td><td>거리 두기. 잠들면 종점까지 안 내리는 자리</td><td>퇴근, 주말 밤</td></tr>
+<tr><td>통로 판매·홍보</td><td>객차 끝에서 끝으로 일정 속도로 걸어감</td><td>지나가는 동안 통로의 서 있는 승객이 양옆으로 밀림</td><td>오는 방향을 보고 좌석 앞 줄로 비켜서기. 밀려난 틈에 생긴 길 이용</td><td>낮, 한산한 날</td></tr>
+<tr><td>등산 단체</td><td>4~6명이 모여 서서 대화</td><td>통로 한 구역을 통째로 막음</td><td>사당 등 특정 역에서 한꺼번에 내림 → 미리 그 앞 좌석을 노림</td><td>주말 오전</td></tr>
+<tr><td>캐리어</td><td>캐리어를 옆에 세워 둠. 급정거 때 캐리어가 굴러감</td><td>통로 한 칸 차단, 굴러온 캐리어에 맞으면 충돌</td><td>우회. 굴러가는 캐리어를 E로 잡아 주면 +10P, 민폐 -10</td><td>강변, 홍대입구, 주말</td></tr>
+<tr><td>큰 소리 통화</td><td>앉아서 계속 통화</td><td>주변 좌석 2칸의 체력 회복 -30%</td><td>이어폰 아이템으로 무시 (<a href="10_item_v1.html">10</a>). 통화 내용에서 하차역을 들을 수 있음 (확실 힌트)</td><td>항상</td></tr>
+<tr><td>기대어 잠든 승객</td><td>옆사람 쪽으로 점점 기울어짐</td><td>옆자리에 앉으면 주기적으로 체력 회복이 멈춤</td><td>어깨를 살짝 피하기(A/D 타이밍). 끝까지 받아 주면 매너 +</td><td>출근, 막차</td></tr>
+<tr><td>뛰어 타는 승객</td><td>문 닫히기 직전 뛰어 들어옴</td><td>문 앞 승객을 연쇄로 밀침</td><td>정차 중 문 앞에 서 있지 않기</td><td>모든 역, 낮은 확률</td></tr>
+<tr><td>현장학습 단체</td><td>어린이 여러 명 + 인솔자. 줄지어 이동</td><td>줄을 끊고 지나가면 민폐 +15</td><td>줄이 지나갈 때까지 기다리기. 한꺼번에 내려 자리가 많이 남</td><td>평일 낮, 공휴일</td></tr>
+</table></div>
+
+<h2>4. 양심 승객 (기존 시스템 확장)</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>상황</th><th>선택</th></tr>
+<tr><td>어르신</td><td>앉아 있을 때 앞에 섬 (현재 구현)</td><td>양보 +25P, 민폐 -30</td></tr>
+<tr><td>임산부 배지</td><td>배려석이 아닌 내 자리 앞에 섬</td><td>양보 +30P. 배지를 알아보려면 시선을 줘야 함</td></tr>
+<tr><td>유모차·휠체어</td><td>문 옆 공간에 자리 잡음</td><td>그 공간을 막고 서 있으면 민폐 상승. 비켜 주면 +5P</td></tr>
+<tr><td>다친 승객 (깁스, 목발)</td><td>서 있으면 급정거 때 넘어질 뻔함</td><td>양보 +25P, 또는 급정거 때 E로 잡아 주기 +15P</td></tr>
+</table></div>
+
+<h2>5. 등장 규칙</h2>
+<ul>
+<li>통근 시작 시 특수 슬롯 수를 정한다: 월요일 출근 0~1, 금요일 퇴근 2~3, 주말 밤 3.</li>
+<li>유형별 가중치는 시간대(출근/퇴근/주말 낮/주말 밤)와 구간(<a href="03_line_expansion_v1.html">03</a>)으로 정한다.</li>
+<li>처음 만나는 유형은 주인공 독백으로 한 줄 소개한다. ("백팩이다. 등 뒤는 사각지대.")</li>
+<li>도감: 만난 유형과 대응 성공 횟수를 기록한다.</li>
+</ul>
+
+<h2>6. 도입 순서</h2>
+<ol>
+<li>백팩, 넓게 앉기 — 기존 충돌·좌석 시스템만으로 구현 가능</li>
+<li>취객, 캐리어 — 움직이는 장애물 처리 필요</li>
+<li>통로 판매·홍보, 단체 — 여러 승객을 동시에 움직이는 처리 필요</li>
+</ol>
+
+<h2>7. 미결 사항</h2>
+<ul>
+<li>취객 등 일부 유형은 불쾌감 없이 코믹하게 그려야 한다. 표현 수위를 시안 단계에서 확인.</li>
+<li>유형이 많아지면 한 판에서 읽을 정보가 늘어난다. 한 칸 최대 3명 제한이 적절한지 테스트 필요.</li>
+</ul>
+
+<nav class="foot"><a href="05_transfer_v1.html">← 05 환승역 물갈이</a><a href="index.html">목록</a><a href="07_gaze_v1.html">07 시선 눈치 →</a></nav>
+</div></body></html>

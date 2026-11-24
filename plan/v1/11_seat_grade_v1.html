@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>11 좌석 등급 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">11</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">후순위</span><span class="tag">초안 2026-11-24</span></div>
+<h1>좌석 등급</h1><p>자리와 입석 위치의 등급</p></header>
+<p class="note">후순위 항목. 다른 시스템이 자리 잡은 뒤 얹는다. 규칙은 단순하게 유지한다.</p>
+
+<h2>1. 목적</h2>
+<ul>
+<li>찜할 때 "아무 자리"가 아니라 <b>"어느 자리"</b>를 고르게 한다.</li>
+<li>좋은 자리일수록 경쟁이 세서, 확실한 보통 자리와 불확실한 좋은 자리 사이에서 고민하게 한다.</li>
+</ul>
+
+<h2>2. 등급</h2>
+<div class="tw"><table>
+<tr><th>등급</th><th>자리</th><th>체력 회복</th><th>경쟁</th><th>비고</th></tr>
+<tr><td>S</td><td>끝자리 (기둥·칸막이 옆)</td><td>×1.3</td><td>경쟁자 반응 가장 빠름</td><td>기댈 수 있어 급정거 영향 없음</td></tr>
+<tr><td>A</td><td>가운데 자리, 양옆이 보통 승객</td><td>×1.0</td><td>보통</td><td>기준</td></tr>
+<tr><td>B</td><td>좁은 자리 (옆이 넓게 앉은 승객, 롱패딩 사이)</td><td>×0.5</td><td>경쟁자 거의 없음</td><td>"실례합니다"로 A로 바꿀 수 있음</td></tr>
+<tr><td>배려석</td><td>분홍색 자리</td><td>×1.0</td><td>없음</td><td>앉아 있는 동안 민폐 상승 (현재 규칙)</td></tr>
+</table></div>
+
+<h2>3. 입석 명당</h2>
+<p>앉지 못했을 때의 차선책. 서 있는 위치에도 등급을 둔다.</p>
+<div class="tw"><table>
+<tr><th>위치</th><th>효과</th><th>위험</th></tr>
+<tr><td>문 옆 기대는 자리</td><td>서 있을 때 체력 소모 -40%</td><td>환승역에서 쓸려 내림 위험 (<a href="05_transfer_v1.html">05</a>)</td></tr>
+<tr><td>좌석 앞 손잡이 줄</td><td>앞자리가 비면 가장 먼저 앉음</td><td>기준</td></tr>
+<tr><td>객차 연결 통로 앞</td><td>사람이 적음</td><td>덜컹거림 2배, 가까운 좌석이 적음</td></tr>
+<tr><td>통로 가운데</td><td>양쪽 좌석을 모두 노릴 수 있음</td><td>손잡이가 멀어 급정거에 취약</td></tr>
+</table></div>
+
+<h2>4. 상황 보정</h2>
+<ul>
+<li><b>옆 승객</b>: 기대어 잠든 승객, 큰 소리 통화 옆은 회복 감소 (<a href="06_special_passenger_v1.html">06</a>).</li>
+<li><b>약냉방칸</b>: 폭염 날 약냉방칸에서는 서 있을 때 소모 +10%. 승강장에서 칸을 고를 때 표시.</li>
+<li><b>햇빛</b>: 지상 구간에서 해가 드는 쪽 좌석은 회복 -10%. 가벼운 연출 요소로만 쓴다.</li>
+</ul>
+
+<h2>5. 표시</h2>
+<ul>
+<li>찜할 때 승객 카드에 그 자리의 등급을 함께 보여 준다.</li>
+<li>S 자리에 "계획대로" 앉으면 연출을 한 단계 키운다. ("완벽한 계획대로!" +10P)</li>
+</ul>
+
+<h2>6. 연동</h2>
+<ul>
+<li>오늘의 계획표 항목 "끝자리에 앉기" (<a href="12_daily_plan_v1.html">12</a>).</li>
+<li>동행자와 나란히 앉으려면 연속된 두 자리가 필요하다 (<a href="13_misc_ideas_v1.html">13</a>).</li>
+</ul>
+
+<h2>7. 미결 사항</h2>
+<ul>
+<li>후순위로 둔 이유: 좌석마다 속성이 붙으면 읽을 정보가 늘어난다. 특수 승객·시선 눈치를 먼저 넣어 보고 정보량에 여유가 있을 때 도입한다.</li>
+</ul>
+
+<nav class="foot"><a href="10_item_v1.html">← 10 아이템</a><a href="index.html">목록</a><a href="12_daily_plan_v1.html">12 오늘의 계획표 →</a></nav>
+</div></body></html>

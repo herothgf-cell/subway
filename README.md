@@ -26,3 +26,5 @@
 | Esc | 일시정지 |
 
 기획 내용은 [PLAN.md](PLAN.md)에 있습니다.
+
+추가 기획서(v1, 13건)는 [plan/v1/index.html](plan/v1/index.html)에 있습니다.

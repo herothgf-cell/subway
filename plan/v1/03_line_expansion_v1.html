@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>03 지하철 노선 확장 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">03</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
+<h1>지하철 노선 확장</h1><p>신림~강남에서 2호선 순환선 전체로, 구간별 특성</p></header>
+<h2>1. 목적</h2>
+<ul>
+<li>캐릭터별 출퇴근 구간(<a href="02_character_v1.html">02</a>)과 주말 약속 목적지(<a href="04_schedule_v1.html">04</a>)를 담을 수 있게 노선을 넓힌다.</li>
+<li>역이 늘어나는 것 자체보다, <b>구간마다 타고 내리는 사람이 다르다</b>는 차이를 만드는 것이 핵심이다.</li>
+</ul>
+
+<h2>2. 확장 단계</h2>
+<div class="tw"><table>
+<tr><th>단계</th><th>범위</th><th>역 수</th><th>필요한 이유</th></tr>
+<tr><td>1 (현재)</td><td>신림 ~ 강남</td><td>9</td><td>한계획 출퇴근</td></tr>
+<tr><td>2</td><td>신도림 ~ 잠실 (2호선 남쪽 절반)</td><td>약 21</td><td>오신입 출퇴근, 강남권 주말 약속</td></tr>
+<tr><td>3</td><td>2호선 순환선 전체, 내선·외선 방향</td><td>43</td><td>유감각·정부장 출퇴근, 홍대·성수 약속</td></tr>
+<tr><td>4 (후순위)</td><td>다른 노선으로 갈아타기</td><td>-</td><td>환승 자체를 플레이로 만들 때</td></tr>
+</table></div>
+
+<h2>3. 구간별 특성</h2>
+<div class="tw"><table>
+<tr><th>구간</th><th>주요 역</th><th>자주 보이는 승객</th><th>특징</th></tr>
+<tr><td>서남</td><td>신도림, 대림, 구로디지털단지</td><td>환승객, IT 직장인</td><td>신도림(1호선)에서 대량 승차. 출근 시간 최고 혼잡</td></tr>
+<tr><td>관악·사당</td><td>신림, 서울대입구, 사당</td><td>과잠 대학생, 등산객</td><td>현재 구현 구간. 사당(4호선) 물갈이</td></tr>
+<tr><td>강남</td><td>교대, 강남, 역삼, 선릉, 삼성</td><td>정장 직장인, 서류 봉투</td><td>출근 때 내리는 사람이 가장 많음. 퇴근 때는 반대로 계속 탐</td></tr>
+<tr><td>잠실</td><td>종합운동장, 잠실, 강변</td><td>야구 유니폼, 가족 나들이, 캐리어</td><td>경기 있는 날 종합운동장 혼잡. 강변은 터미널 캐리어</td></tr>
+<tr><td>성수·왕십리</td><td>건대입구, 성수, 왕십리</td><td>대학생, 주말 나들이객</td><td>주말 약속 목적지. 왕십리는 여러 노선 환승</td></tr>
+<tr><td>도심</td><td>동대문역사문화공원, 을지로3가, 시청</td><td>관광객, 도심 직장인</td><td>정거장 간격이 짧아 낌새를 볼 시간이 적음</td></tr>
+<tr><td>신촌·홍대</td><td>신촌, 홍대입구, 합정</td><td>대학생, 악기 가방, 약속 인파</td><td>주말 저녁 최고 혼잡. 홍대입구(공항철도) 캐리어</td></tr>
+<tr><td>서부</td><td>당산, 영등포구청, 문래</td><td>환승객</td><td>당산철교로 한강을 건넘</td></tr>
+</table></div>
+<p class="note">한강을 건너는 구간(당산철교, 잠실철교)은 창밖이 밝아지는 연출 구간으로 쓴다. 역 사이가 길어 체력 소모는 크지만 덜컹거림이 없는 "숨 고르기" 구간으로 설정한다.</p>
+
+<h2>4. 순환선 규칙 (3단계)</h2>
+<ul>
+<li>승강장에서 <b>내선 / 외선</b>을 고른다. 기본은 짧은 방향이다.</li>
+<li><b>돌아가기</b>: 먼 방향을 타면 정거장이 훨씬 많지만 한산한 구간을 지난다. 대신 도착 시각이 늦어져 지각 위험이 생긴다 (<a href="04_schedule_v1.html">04 일정</a>의 도착 시한).</li>
+<li>J 성격 표현: 플래너에 두 경로의 예상 소요 시간과 혼잡도를 미리 보여 주고 고르게 한다.</li>
+</ul>
+
+<h2>5. 역 데이터 구조</h2>
+<pre>{
+  id: "sadang", name: "사당",
+  transfer: ["4"],          // 환승 노선. 물갈이 등급 계산에 사용 (05 문서)
+  grade: "S",               // 환승 등급 S/A/B/없음
+  zone: "gwanak",           // 구간 (승객 유형 가중치)
+  gap: 1.0,                 // 다음 역까지 구간 길이 배수
+  alight: { am: {...}, pm: {...}, weekend: {...} }  // 승객 유형별 하차 가중치
+}</pre>
+<ul>
+<li>현재 코드는 <code>STATIONS</code> 배열과 승객 유형(<code>ARCH</code>)마다 역 이름으로 가중치를 적는 방식이다. 역이 43개가 되면 유형마다 역을 다 적을 수 없으므로, <b>역이 구간을 갖고 승객 유형이 구간별 가중치를 갖는</b> 구조로 바꾼다.</li>
+<li>특정 역에만 해당하는 유형(과잠 → 서울대입구)은 예외 항목으로 덧붙인다.</li>
+</ul>
+
+<h2>6. 노선도 UI</h2>
+<ul>
+<li>통근 중 상단 노선도는 현재처럼 <b>내 구간만</b> 직선으로 보여 준다.</li>
+<li>캐릭터 선택과 일정 화면에서는 순환선 전체를 원형으로 보여 주고 집·회사·약속 장소를 핀으로 찍는다.</li>
+</ul>
+
+<h2>7. 미결 사항</h2>
+<ul>
+<li>지선(성수지선, 신정지선) 포함 여부. v1에서는 제외를 제안한다.</li>
+<li>구간이 15정거장인 캐릭터는 한 판이 길어진다. 앉은 뒤 시간 가속을 더 키우거나 "앉은 채 도착" 건너뛰기가 필요하다.</li>
+<li>역 이름·환승 정보는 실제 노선 기준으로 최종 검수가 필요하다.</li>
+</ul>
+
+<nav class="foot"><a href="02_character_v1.html">← 02 캐릭터 설정 및 능력치</a><a href="index.html">목록</a><a href="04_schedule_v1.html">04 일정 →</a></nav>
+</div></body></html>

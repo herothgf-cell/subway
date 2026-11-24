@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>10 아이템 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">10</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
+<h1>아이템</h1><p>가방·옷·신발·소지품 장착과 입수</p></header>
+<h2>1. 목적</h2>
+<ul>
+<li>출발 전 "오늘 뭘 메고 뭘 신고 갈까"를 고르게 한다. 준비물을 챙기는 것 자체가 J의 플레이다.</li>
+<li>패시브 스킬이 순수한 강화라면, 아이템은 <b>장점과 단점이 함께 있는 선택</b>이다.</li>
+</ul>
+
+<h2>2. 장착 슬롯</h2>
+<div class="tw"><table>
+<tr><th>슬롯</th><th>개수</th><th>성격</th></tr>
+<tr><td>가방</td><td>1</td><td>소지품 칸 수와 내 몸의 부피를 정함</td></tr>
+<tr><td>옷</td><td>1</td><td>체력 소모, 부피, 인상(민폐·시선)에 영향</td></tr>
+<tr><td>신발</td><td>1</td><td>이동 속도와 균형</td></tr>
+<tr><td>소지품</td><td>1~3 (가방에 따라)</td><td>통근 중 쓰는 도구, 조건부 효과</td></tr>
+</table></div>
+<p class="note">장착은 집에서 나가기 전(플래너 화면)에만 바꿀 수 있다. 전날 예보를 보고 챙기는 구조다 (<a href="04_schedule_v1.html">04 일정</a>).</p>
+
+<h2>3. 가방</h2>
+<div class="tw"><table>
+<tr><th>아이템</th><th>소지품 칸</th><th>효과</th><th>단점</th></tr>
+<tr><td>맨몸</td><td>1</td><td>충돌 범위 -10%</td><td>-</td></tr>
+<tr><td>크로스백 (기본)</td><td>2</td><td>-</td><td>-</td></tr>
+<tr><td>백팩</td><td>3</td><td>-</td><td>충돌 범위 +15%. <b>앞으로 메기</b>(T 키)로 없앨 수 있으나 그동안 이동 속도 -5%</td></tr>
+<tr><td>서류 가방</td><td>2</td><td>앉았을 때 무릎 위에 올려 옆 승객 간섭 차단</td><td>손잡이를 잡는 동안 찜 조작 불가</td></tr>
+<tr><td>에코백</td><td>2</td><td>빈자리에 먼저 던져 0.5초 선점 (통근당 1회)</td><td>쓰면 민폐 +10</td></tr>
+</table></div>
+<ul>
+<li>백팩을 앞으로 메면 매너 점수(<a href="13_misc_ideas_v1.html">13</a>)가 오른다. 혼잡할 때 뒤로 멘 채 다니면 특수 승객 "백팩"과 같은 취급을 받는다.</li>
+</ul>
+
+<h2>4. 옷</h2>
+<div class="tw"><table>
+<tr><th>아이템</th><th>효과</th><th>단점</th></tr>
+<tr><td>셔츠와 사원증 (기본)</td><td>-</td><td>-</td></tr>
+<tr><td>정장</td><td>양보·매너 포인트 +20%</td><td>서 있을 때 체력 소모 +5%</td></tr>
+<tr><td>후드티</td><td>후드를 쓰면 시선 게이지 속도 -25%</td><td>시야각 -10°</td></tr>
+<tr><td>롱패딩</td><td>앉았을 때 체력 회복 +15%, 한파 영향 없음</td><td>충돌 범위 +10%, 좁은 자리에 앉을 수 없음</td></tr>
+<tr><td>등산복</td><td>균형 +1</td><td>주변 승객이 나를 "사당에서 내릴 사람"으로 봐서 내 앞에 경쟁자가 선다</td></tr>
+</table></div>
+
+<h2>5. 신발</h2>
+<div class="tw"><table>
+<tr><th>아이템</th><th>효과</th><th>단점</th></tr>
+<tr><td>운동화 (기본)</td><td>-</td><td>-</td></tr>
+<tr><td>구두</td><td>정장과 함께면 포인트 보너스 +10%p 추가</td><td>균형 -1, 비 오는 날 밀림 추가</td></tr>
+<tr><td>러닝화</td><td>이동 속도 +8%</td><td>급정지가 어려움 (관성 증가)</td></tr>
+<tr><td>장화</td><td>비 오는 날 미끄러움 없음</td><td>맑은 날 이동 속도 -5%</td></tr>
+</table></div>
+
+<h2>6. 소지품</h2>
+<div class="tw"><table>
+<tr><th>아이템</th><th>효과</th><th>단점·조건</th></tr>
+<tr><td>이어폰</td><td>큰 소리 통화 등 소음 영향 없음, 서 있을 때 체력 소모 -5%</td><td>혼잣말·통화 힌트를 들을 수 없음</td></tr>
+<tr><td>접이식 우산</td><td>비 오는 날 내 젖은 우산으로 인한 민폐 없음</td><td>맑은 날에는 칸만 차지</td></tr>
+<tr><td>텀블러 커피</td><td>통근당 1회 체력 +10</td><td>마신 뒤 30초 안에 충돌하면 쏟아서 민폐 +20</td></tr>
+<tr><td>다이어리</td><td>오늘의 계획표 슬롯 +1</td><td>-</td></tr>
+<tr><td>손수건</td><td>폭염 날 체력 소모 증가 없음</td><td>-</td></tr>
+<tr><td>목베개</td><td>앉았을 때 회복 +20%, 회사 "점심 낮잠" 선택지 해금</td><td>앉으면 깊이 잠들어 양보 상황 반응이 1초 늦음</td></tr>
+<tr><td>책</td><td>"보는 척" 중 이동 속도 감소 없음</td><td>한 손 사용: 손잡이를 잡으면 효과 중단</td></tr>
+<tr><td>선글라스</td><td>시선 게이지 속도 -30%</td><td>지하 구간에서 낌새가 0.3초 늦게 보임</td></tr>
+<tr><td>휴대용 손잡이</td><td>손잡이가 없는 위치에서도 Shift 효과 50%</td><td>-</td></tr>
+</table></div>
+
+<h2>7. 입수</h2>
+<div class="tw"><table>
+<tr><th>경로</th><th>내용</th></tr>
+<tr><td>주말 상점</td><td>포인트로 구매. 매주 4개 진열, 월급날 뒤 6개</td></tr>
+<tr><td>약속 보상</td><td>약속 종류에 따른 고정 보상 (야구 관람 → 응원 타월 등)</td></tr>
+<tr><td>택배 이벤트</td><td>무작위 소지품 1개 (<a href="08_work_home_event_v1.html">08</a>)</td></tr>
+<tr><td>도감·업적</td><td>특수 승객 유형별 대응 10회 등</td></tr>
+</table></div>
+<ul>
+<li>가격대: 소지품 30~80P, 신발·옷 80~150P, 가방 100~180P. 스킬 1~2단계와 비슷하게 두어 "스킬이냐 아이템이냐"를 고민하게 한다.</li>
+<li>아이템은 영구 보유. 런이 끝나도 남는다. 대신 한 번에 장착할 수 있는 수가 제한이다.</li>
+</ul>
+
+<h2>8. 외형</h2>
+<ul>
+<li>장착한 가방·옷·신발은 주인공 모델에 그대로 보인다. <code>characters.js</code>의 소품(prop) 방식을 주인공에도 적용한다.</li>
+<li>효과 없이 외형만 바꾸는 색상 변형을 두어 수집 요소로 쓴다.</li>
+</ul>
+
+<h2>9. 미결 사항</h2>
+<ul>
+<li>아이템을 런마다 잃게 할지(로그라이트 강화) 영구 보유로 할지. v1은 영구 보유를 제안한다.</li>
+<li>에코백 "던져서 선점"은 실제 민폐 행동이라 게임이 권장하는 것처럼 보일 수 있다. 민폐 비용을 더 키우거나 빼는 것을 검토.</li>
+<li>조합 효과(정장 + 구두 + 서류 가방 = "출근 룩" 세트)를 둘지.</li>
+</ul>
+
+<nav class="foot"><a href="09_passive_skill_v1.html">← 09 패시브 스킬 상세</a><a href="index.html">목록</a><a href="11_seat_grade_v1.html">11 좌석 등급 →</a></nav>
+</div></body></html>

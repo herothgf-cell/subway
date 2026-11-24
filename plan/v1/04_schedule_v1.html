@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 일정 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">04</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
+<h1>일정</h1><p>평일 출근, 주말 약속·휴무, 그날의 변수, 도착 시한</p></header>
+<h2>1. 목적</h2>
+<ul>
+<li>"월~금 출퇴근 10회"인 현재 주간 런을 <b>달력</b>으로 넓혀, 날마다 목적지·혼잡·조건이 달라지게 한다.</li>
+<li>주 초에 이번 주 일정을 미리 보여 줘 J답게 <b>한 주를 계획</b>하게 한다.</li>
+</ul>
+
+<h2>2. 달력 구조</h2>
+<ul>
+<li>1주 = 7일. 4주 = 1개월. 한 달의 마지막 금요일은 월급날.</li>
+<li>평일은 <b>출근</b>(집 → 회사, 회사 → 집 왕복), 주말은 <b>약속</b> 또는 <b>휴무</b>.</li>
+<li>체력이 0이 되거나 민폐 게이지가 가득 차면 그 주에서 런이 끝나는 규칙은 유지한다.</li>
+</ul>
+
+<h2>3. 날짜 유형</h2>
+<div class="tw"><table>
+<tr><th>유형</th><th>요일</th><th>이동</th><th>특징</th></tr>
+<tr><td>출근일</td><td>월~금</td><td>집 ↔ 회사</td><td>기본. 요일이 갈수록 혼잡 (현재 규칙)</td></tr>
+<tr><td>약속</td><td>토·일</td><td>집 ↔ 약속 장소</td><td>목적지가 매번 다름. 동행자가 붙을 수 있음 (<a href="13_misc_ideas_v1.html">13</a>)</td></tr>
+<tr><td>휴무</td><td>토·일</td><td>없음</td><td>체력 완전 회복. 포인트 없음</td></tr>
+<tr><td>공휴일</td><td>평일 중 가끔</td><td>약속 또는 휴무</td><td>주말과 같게 처리</td></tr>
+<tr><td>월급날</td><td>4주차 금요일</td><td>집 ↔ 회사</td><td>퇴근길 최대 혼잡. 완주하면 상점 품목 추가 (<a href="10_item_v1.html">10</a>)</td></tr>
+</table></div>
+
+<h2>4. 주말 약속</h2>
+<div class="tw"><table>
+<tr><th>약속</th><th>목적지 예</th><th>동행</th><th>조건</th><th>보상</th></tr>
+<tr><td>데이트</td><td>성수, 홍대입구, 잠실</td><td>여자 친구 (가는 길 또는 오는 길)</td><td>매너 조건 (13 문서)</td><td>포인트 + 다음 주 멘탈 보너스</td></tr>
+<tr><td>친구 모임</td><td>강남, 건대입구</td><td>없음</td><td>늦은 귀가: 막차 혼잡, 취객 증가</td><td>포인트</td></tr>
+<tr><td>결혼식</td><td>삼성, 시청</td><td>없음</td><td>정장·구두 고정 (균형 -1), 지각 시한 엄격</td><td>포인트 큼</td></tr>
+<tr><td>야구 관람</td><td>종합운동장</td><td>친구</td><td>경기 종료 후 귀가 인파</td><td>포인트 + 아이템</td></tr>
+<tr><td>본가 방문</td><td>강변 (터미널)</td><td>없음</td><td>캐리어 소지: 내 충돌 범위 증가</td><td>체력 회복 보너스</td></tr>
+</table></div>
+<ul>
+<li>매주 토·일 각각 "약속 1개 제안 / 휴무" 중 고른다. <b>쉴지 나갈지</b>가 주말의 선택이다.</li>
+<li>약속을 거절해도 벌칙은 없다. 다만 같은 상대의 약속을 연속으로 거절하면 다음 제안의 보상이 줄어든다.</li>
+</ul>
+
+<h2>5. 그날의 변수</h2>
+<div class="tw"><table>
+<tr><th>변수</th><th>효과</th><th>미리 알 수 있는가</th></tr>
+<tr><td>비</td><td>젖은 우산으로 승객 간격이 좁아짐, 바닥 미끄러움(밀림 +20%)</td><td>전날 예보 (70% 적중)</td></tr>
+<tr><td>열차 지연</td><td>승강장 대기 인원이 한 번에 탐</td><td>당일 승강장에서</td></tr>
+<tr><td>한산한 날</td><td>서 있는 승객 -30%</td><td>주간 일정에 표시 (연휴 전날 등)</td></tr>
+<tr><td>행사일</td><td>특정 역 승하차 급증 (야구, 콘서트, 불꽃축제)</td><td>주간 일정에 표시</td></tr>
+<tr><td>한파·폭염</td><td>두꺼운 옷으로 모두의 부피 증가 / 서 있을 때 체력 소모 +10%</td><td>주간 일정에 표시</td></tr>
+</table></div>
+
+<h2>6. 도착 시한 (지각)</h2>
+<ul>
+<li>일정마다 도착 시한이 있다. 평소대로 타면 넉넉하다.</li>
+<li>시간을 쓰는 행동: <b>열차 한 대 보내기</b>(다음 열차는 덜 붐빌 수 있음), 순환선 돌아가기, 인파에 밀려 내렸다 다시 타기.</li>
+<li>지각하면 포인트 -30%, 회사·집 이벤트(<a href="08_work_home_event_v1.html">08</a>)에 "팀장 호출"이 끼어든다.</li>
+</ul>
+
+<h2>7. 화면</h2>
+<ul>
+<li><b>주간 플래너</b>: 월요일 아침에 7칸짜리 주간 일정이 펼쳐진다. 날짜별 유형, 예보, 행사 아이콘.</li>
+<li>각 칸에 오늘의 계획표(<a href="12_daily_plan_v1.html">12</a>)를 미리 적어 둘 수 있다. 미리 적은 계획을 그날 그대로 달성하면 추가 보너스.</li>
+<li>하루가 끝나면 플래너에 체크 표시 또는 줄 긋기(계획 붕괴)가 남아 한 주 기록이 된다.</li>
+</ul>
+
+<h2>8. 정산 주기</h2>
+<div class="tw"><table>
+<tr><th>시점</th><th>내용</th></tr>
+<tr><td>통근 1회 종료</td><td>포인트 정산 (현재와 같음)</td></tr>
+<tr><td>금요일 퇴근 후</td><td>개근 보너스, 패시브 스킬 구매</td></tr>
+<tr><td>주말</td><td>상점(아이템), 약속 또는 휴무</td></tr>
+<tr><td>월급날</td><td>월간 결산, 캐릭터·아이템 해금 확인</td></tr>
+</table></div>
+
+<h2>9. 미결 사항</h2>
+<ul>
+<li>런의 단위: 현재처럼 탈락 시 1주차 월요일로 돌아갈지, 달 단위로 저장점을 둘지.</li>
+<li>주말까지 넣으면 한 주가 최대 14회 이동으로 길어진다. 휴무를 기본값으로 두고 약속은 선택으로 유지하는 이유다.</li>
+<li>날짜를 실제 달력(계절, 명절)과 맞출지.</li>
+</ul>
+
+<nav class="foot"><a href="03_line_expansion_v1.html">← 03 지하철 노선 확장</a><a href="index.html">목록</a><a href="05_transfer_v1.html">05 환승역 물갈이 →</a></nav>
+</div></body></html>

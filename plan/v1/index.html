@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>추가 기획서 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span>계획대로, 2호선</span><span class="tag v">v1</span><span class="tag">초안 2026-11-24</span></div>
+<h1>추가 기획서 v1 목록</h1><p>기존 기획서(PLAN.md, v2 게임 기준) 위에 더하는 기획 13건입니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p></header>
+<div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag">신규</span></a>
+<a href="02_character_v1.html"><span class="num">02</span><span><b>캐릭터 설정 및 능력치</b><span class="d">캐릭터별 집·회사 구간, 능력치 5종, 고유 특성</span></span><span class="tag">신규</span></a>
+<a href="03_line_expansion_v1.html"><span class="num">03</span><span><b>지하철 노선 확장</b><span class="d">신림~강남에서 2호선 순환선 전체로, 구간별 특성</span></span><span class="tag">신규</span></a>
+<a href="04_schedule_v1.html"><span class="num">04</span><span><b>일정</b><span class="d">평일 출근, 주말 약속·휴무, 그날의 변수, 도착 시한</span></span><span class="tag">신규</span></a>
+<a href="05_transfer_v1.html"><span class="num">05</span><span><b>환승역 물갈이</b><span class="d">환승 등급, 진행 순서, 쓸려 내림</span></span><span class="tag">신규</span></a>
+<a href="06_special_passenger_v1.html"><span class="num">06</span><span><b>특수 승객</b><span class="d">공간을 바꾸는 승객 10종과 양심 승객</span></span><span class="tag">신규</span></a>
+<a href="07_gaze_v1.html"><span class="num">07</span><span><b>시선 눈치</b><span class="d">쳐다보는 것의 비용, 들키지 않고 보는 방법</span></span><span class="tag">신규</span></a>
+<a href="08_work_home_event_v1.html"><span class="num">08</span><span><b>회사·집 이벤트</b><span class="d">통근 사이의 선택 카드</span></span><span class="tag">신규</span></a>
+<a href="09_passive_skill_v1.html"><span class="num">09</span><span><b>패시브 스킬 상세</b><span class="d">현재 7종 수치, 계열 구조, 신규 5종, 포인트 경제</span></span><span class="tag">확장</span></a>
+<a href="10_item_v1.html"><span class="num">10</span><span><b>아이템</b><span class="d">가방·옷·신발·소지품 장착과 입수</span></span><span class="tag">신규</span></a>
+<a href="11_seat_grade_v1.html"><span class="num">11</span><span><b>좌석 등급</b><span class="d">자리와 입석 위치의 등급</span></span><span class="tag">후순위</span></a>
+<a href="12_daily_plan_v1.html"><span class="num">12</span><span><b>오늘의 계획표</b><span class="d">통근별 목표 선택, 루틴 콤보, 멘붕</span></span><span class="tag">신규</span></a>
+<a href="13_misc_ideas_v1.html"><span class="num">13</span><span><b>기타 아이디어</b><span class="d">동행과 지하철 매너, 단골 승객, 막차 등</span></span><span class="tag">아이디어</span></a></div>
+<h2>문서 사이의 관계</h2>
+<div class="tw"><table>
+<tr><th>묶음</th><th>문서</th><th>역할</th></tr>
+<tr><td>틀</td><td>01 인트로, 02 캐릭터, 03 노선 확장, 04 일정</td><td>누가, 어디를, 언제 다니는지</td></tr>
+<tr><td>통근 한 판</td><td>05 환승역, 06 특수 승객, 07 시선 눈치, 11 좌석 등급</td><td>객차 안에서 벌어지는 일</td></tr>
+<tr><td>J 성격</td><td>12 오늘의 계획표, 13 동행과 매너</td><td>스스로 정한 목표와 조건</td></tr>
+<tr><td>통근 사이·성장</td><td>08 회사·집 이벤트, 09 패시브 스킬, 10 아이템</td><td>다음 통근을 준비하는 선택</td></tr>
+</table></div>
+<h2>제안 도입 순서</h2>
+<ol>
+<li>12 오늘의 계획표, 05 환승역 물갈이 — 현재 구간(신림~강남) 안에서 바로 넣을 수 있음</li>
+<li>07 시선 눈치, 06 특수 승객(백팩·넓게 앉기부터), 08 회사·집 이벤트</li>
+<li>09 스킬 확장, 10 아이템 — 위 시스템이 있어야 효과가 의미를 가짐</li>
+<li>03 노선 확장 → 02 캐릭터 → 04 일정(주말) → 13 동행 → 01 인트로</li>
+<li>11 좌석 등급</li>
+</ol>
+
+</div></body></html>
