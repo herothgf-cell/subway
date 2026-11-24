@@ -940,6 +940,7 @@ function startLeg(doorIdx){
   if(g.tut)tutTick();
   else if(L<1){toast("마우스로 시선을 돌려 앉은 승객의 몸짓을 보세요. 휴대폰을 넣거나 가방을 끌어안으면 곧 내립니다. 클릭으로 찜.");
     toast("앞자리 사람이 일어나면 A/D로 몸을 90도 돌려 길을 터 주세요. 돌린 쪽은 내 몸이 막고, 반대편 사람과 눈치 싸움입니다.");}
+  stopArriveMusic();
   {const ks=[CH().k==="oh"?"B: 뛰어타기 (출발 전 한 번)":"",eq("pack")?"T: 가방 앞으로 메기":"",eq("coffee")?"C: 커피 마시기 (한 번)":""].filter(Boolean);if(ks.length)toast("챙긴 물건 · "+ks.join(" · "));}
   sfx("chime");
 }
@@ -987,7 +988,7 @@ function arrive(){
   buildRoute();
   if(g.pl.seat){g.seatStops++;addPts(g.pl.seat.pink?4:10,"앉아서 도착");}
   if(g.st>=standHalf()&&!g.everSat)dpSet("stand",true);
-  if(g.st>=g.N){dpFinal();g.ending=1.1;g.led=g.route[g.st]+"역 도착. 수고하셨습니다.";return;}
+  if(g.st>=g.N){annStop();playArriveMusic();dpFinal();g.ending=1.1;g.led=g.route[g.st]+"역 도착. 수고하셨습니다.";return;}
   g.led=g.route[g.st]+"역입니다. 내리실 문은 오른쪽입니다.";
   let out=0;
   for(const p of g.ps){
@@ -2258,6 +2259,19 @@ function annSay(text,lang){
   const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=lang==="ko"?.95:.92;u.pitch=1.05;u.volume=.9;
   speechSynthesis.speak(u);
 }
+/* 목적지 도착 음악: 광주교통공사 전동차 내 안내방송 음원 D02(국악신호음악 '벨소리2') 앞부분, 음성 안내 전까지만.
+   출처: 광주교통공사, 공공데이터포털(data.go.kr/data/15053587), 이용허락범위 제한 없음 */
+const ARRIVE_MUSIC={src:"audio/arrive_gwangju_D02.mp3",len:14,fade:2.5};
+let arriveAud=null,arriveFadeT=null;
+function playArriveMusic(){
+  if(profile.voice===false)return;stopArriveMusic();
+  const a=new Audio(ARRIVE_MUSIC.src);a.volume=.7;arriveAud=a;
+  a.play().catch(()=>{arriveAud=null;});
+  arriveFadeT=setInterval(()=>{if(arriveAud!==a){clearInterval(arriveFadeT);return;}
+    const left=ARRIVE_MUSIC.len-a.currentTime;if(left<=0){stopArriveMusic();return;}
+    if(left<ARRIVE_MUSIC.fade)a.volume=Math.max(0,.7*left/ARRIVE_MUSIC.fade);},100);
+}
+function stopArriveMusic(){clearInterval(arriveFadeT);if(arriveAud){try{arriveAud.pause();}catch(e){}arriveAud=null;}}
 function announceNext(name,last){
   if(profile.voice===false)return;
   annStop();
@@ -2315,7 +2329,7 @@ addEventListener("keydown",e=>{
   if(e.code==="KeyX"&&G&&G.pl.seat&&!G.yieldEv&&G.st<G.N-1){G.ff=!G.ff;toast(G.ff?"앉은 채 도착까지 건너뜁니다 (X로 멈춤). 양보할 일이 생기면 멈춥니다.":"건너뛰기를 멈췄습니다.");}
   if(e.code==="KeyT"&&eq("pack")&&G&&!G.pl.seat){G.pl.packFront=!G.pl.packFront;toast(G.pl.packFront?"가방을 앞으로 멨습니다 (이동 속도 -5%).":"가방을 다시 뒤로 멨습니다.");sfx("tick");}
   if(e.code==="KeyC"&&eq("coffee")&&G){if(G.coffeeUsed)toast("커피는 이미 다 마셨습니다.");else{G.coffeeUsed=true;G.coffeeT=30;G.stamina=Math.min(maxSta(),G.stamina+10);toast("커피 한 모금. 체력 +10. 30초 동안은 부딪히지 않게 조심.","good");sfx("good");}}
-  if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false)annStop();toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
+  if(e.code==="KeyM"){profile.voice=profile.voice===false;saveProfile();if(profile.voice===false){annStop();stopArriveMusic();}toast(profile.voice===false?"안내방송: 끔":"안내방송: 켬");}
   if(e.code==="KeyV"){view=view==="q"?"t":"q";profile.view=view;saveProfile();toast(view==="q"?"시점: 3D":"시점: 탑뷰");if(view!=="q"&&document.pointerLockElement)document.exitPointerLock();}
 });
 addEventListener("keyup",e=>{keys[e.code]=false;});
