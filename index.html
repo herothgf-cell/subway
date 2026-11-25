@@ -110,7 +110,7 @@ h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .eqs{margin:10px 0}.eqr{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .eqi{flex:1 1 200px;text-align:left;border:2px solid #d8dcd8;background:var(--card);border-radius:10px;padding:8px 12px;font:inherit;font-size:12.5px;line-height:1.4;cursor:pointer;display:flex;flex-direction:column;gap:2px;color:inherit}.eqi b{font-size:14px}.eqi.on{border-color:var(--line);box-shadow:inset 0 0 0 1px var(--line)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0}.wd{background:var(--card);border:2px solid #d8dcd8;border-radius:10px;padding:8px 6px;text-align:center;font-size:12.5px;line-height:1.35;position:relative;display:flex;flex-direction:column;gap:3px}
-.wd b{font-size:15px}.wd small{opacity:.75}.wd i{font-style:normal;font-size:12px}.wd.now{border-color:var(--line)}.wd em{position:absolute;right:6px;top:4px;font-style:normal;font-weight:900;color:var(--line)}.wd.strike em{color:#E5484D}.wd.strike span{text-decoration:line-through}
+.wd b{font-size:15px}.wd small{opacity:.75}.wd i{font-style:normal;font-size:12px}.wd.now{border-color:var(--line)}.wd em{position:absolute;right:6px;top:4px;font-style:normal;font-weight:900;color:var(--line)}.wd.strike em{color:#E5484D}.wd.strike span{text-decoration:line-through}.wd.hol{background:#fff2f2}.wd.hol b,.wd .hn{color:#E5484D;opacity:1}
 @media (max-width:560px){.week{grid-template-columns:repeat(4,1fr)}}
 .ids{display:flex;flex-wrap:wrap;gap:12px}.idc{flex:1 1 220px;text-align:left;font:inherit;color:inherit;background:var(--card);border:2px solid #d8dcd8;border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:stretch}
 .idc.on{border-color:var(--line);box-shadow:0 0 0 2px var(--line)}.idc.locked{opacity:.55;cursor:default}
@@ -295,6 +295,44 @@ function routeBetween(a,b){   // 순환선에서 짧은 방향으로 a → b. �
 const segGap=(a,b)=>{const A=ST[a],B=ST[b],L=LINE2.length;if(!A||!B)return 1;return (A.i+1)%L===B.i?A.gap:(B.i+1)%L===A.i?B.gap:1;};   // 두 역 사이 구간 길이 배수
 const isRiver=(a,b)=>segGap(a,b)>1;   // 한강 구간: 길지만 덜컹거림이 없는 숨 고르기 구간
 const DAYS=["월요일","화요일","수요일","목요일","금요일","토요일","일요일"];
+/* ========== 달력과 공휴일 (04, 2026-11-26 결정): 한 런은 실제 달력 위에서 흐른다. 기본 2026년. 개발용: 주소 뒤에 ?year=2027 (연도), &start=05-04 (시작 날짜) ========== */
+const CAL_Q=(()=>{try{return new URLSearchParams(location.search);}catch(e){return null;}})();
+const CAL_YEAR=(()=>{const y=CAL_Q&&+CAL_Q.get("year");return y>=1990&&y<=2100?y:2026;})();
+const LUNAR={2025:["01-29","05-05","10-06"],2026:["02-17","05-24","09-25"],2027:["02-07","05-13","09-15"]};   // 설날·부처님오신날·추석 당일 (월력요항 기준). 표에 없는 해는 양력 공휴일만
+const EXTRA_HOL={"2025-01-27":"임시공휴일","2025-06-03":"대통령 선거일","2026-06-03":"지방선거일"};
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const addDays=(d,n)=>new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);
+const parseYmd=k=>new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10));
+const HOL_CACHE={};
+function holidaysOf(Y){   // 그해 공휴일 {"YYYY-MM-DD": 이름}. 대체공휴일: 설·추석은 일요일이나 다른 공휴일과 겹칠 때, 삼일절·어린이날·광복절·개천절·한글날·부처님오신날·성탄절은 토·일이나 다른 공휴일과 겹칠 때
+  if(HOL_CACHE[Y])return HOL_CACHE[Y];
+  const E={},H={},add=(k,n,t)=>{(E[k]||(E[k]=[])).push({n,t});},D=md=>new Date(Y,+md.slice(0,2)-1,+md.slice(3,5));
+  const solar=[["01-01","신정",0],["03-01","삼일절","wk"],["05-05","어린이날","wk"],["06-06","현충일",0],["08-15","광복절","wk"],["10-03","개천절","wk"],["10-09","한글날","wk"],["12-25","성탄절","wk"]];
+  if(Y>=2026)solar.push(["05-01","노동절",0],["07-17","제헌절",0]);   // 2026년부터 공휴일
+  for(const [md,n,t] of solar)add(ymd(D(md)),n,t);
+  const L=LUNAR[Y];
+  if(L){for(const i of[0,2]){const c=D(L[i]);for(let k=-1;k<=1;k++)add(ymd(addDays(c,k)),i?"추석":"설날","lunar");}add(ymd(D(L[1])),"부처님오신날","wk");}
+  for(const k in EXTRA_HOL)if(+k.slice(0,4)===Y)add(k,EXTRA_HOL[k],0);
+  for(const k in E)H[k]=E[k].map(e=>e.n).filter((v,i,a)=>a.indexOf(v)===i).join("·");
+  const off=d=>d.getDay()===0||d.getDay()===6||!!H[ymd(d)];
+  for(const k of Object.keys(E).sort()){const d=parseYmd(k),es=E[k],wd=d.getDay(),dup=es.length>1;
+    const need=es.some(e=>e.t==="wk")&&(wd===0||wd===6||dup)||es.some(e=>e.t==="lunar")&&(wd===0||dup);
+    if(!need)continue;let x=addDays(d,1);while(off(x))x=addDays(x,1);
+    const n=(es.find(e=>e.t)||es[0]).n;H[ymd(x)]="대체공휴일("+n+")";}
+  return HOL_CACHE[Y]=H;
+}
+function calStart(){   // 1주차 월요일: 설정 연도에서 오늘(또는 start=)과 같은 날짜가 든 주
+  const q=CAL_Q&&CAL_Q.get("start"),t=new Date();let m=t.getMonth()+1,dd=t.getDate();
+  if(q&&/^\d{1,2}-\d{1,2}$/.test(q)){m=+q.split("-")[0];dd=+q.split("-")[1];}
+  const d=new Date(CAL_YEAR,m-1,dd);return addDays(d,-((d.getDay()+6)%7));
+}
+const dayDate=(w,d)=>addDays(parseYmd(run.date0),(w-1)*7+d);
+const holName=(w,d)=>{const x=dayDate(w,d);return holidaysOf(x.getFullYear())[ymd(x)]||null;};
+const mdTxt=x=>(x.getMonth()+1)+"/"+x.getDate();
+const isOffDay=d=>d>=5||!!(run.sched&&run.sched[d]&&run.sched[d].hol);
+const lastWorkDay=()=>{let d=4;while(d>0&&run.sched&&run.sched[d].hol)d--;return d;};   // 금요일이 공휴일이면 목요일이 그 주의 마지막 출근일
+const EVENTS=[{st:"종합운동장",n:"야구 경기"},{st:"종합운동장",n:"콘서트"},{st:"잠실",n:"공연"},{st:"서울대입구",n:"대학 축제"},{st:"건대입구",n:"대학 축제"},{st:"홍대입구",n:"거리 축제"},{st:"시청",n:"광장 행사"}];   // 행사일 (04): 평일 저녁, 그 역의 승하차 ×2
+const EVENT_P=.1;
 /* ========== 일정 (추가 기획서 04) 1차: 7일 주간, 주말 약속·휴무, 예보, 월급날, 도착 시한 ========== */
 // 약속은 한 방향만 플레이한다. go: 집 → 약속 장소, back: 약속 장소 → 집
 const APPTS=[
@@ -304,15 +342,19 @@ const APPTS=[
  {k:"family",n:"본가 방문",dests:["강변"],dir:"go",d:"캐리어를 끌고 탄다 (내 충돌 범위 +25%). 도착하면 체력 +20",carrier:true,bonus:30,sta:20},
 ];
 const isPayday=d=>run.week%4===0&&d===4;   // 4주차 금요일
-function makeWeek(){   // 주 초에 이번 주 일정을 정한다: 비(예보 70% 적중), 한산한 날, 월급날, 주말 약속 제안
+function makeWeek(){   // 주 초에 이번 주 일정을 정한다: 비(예보 70% 적중), 한산한 날, 월급날, 주말 약속 제안, 공휴일, 행사일
+  if(!run.date0)run.date0=ymd(addDays(calStart(),-7*(run.week-1)));   // 이전 저장 데이터: 지금 주를 이번 주 날짜로
+  const pmR=routeBetween(workSt(),homeSt()),evs=EVENTS.filter(e=>pmR.indexOf(e.st)>0&&pmR.indexOf(e.st)<pmR.length-1);
   run.sched=[0,1,2,3,4,5,6].map(d=>{const rain=Math.random()<.2,o={d,rain,fc:Math.random()<.7?rain:!rain,quiet:!rain&&Math.random()<.25,res:null};if(!o.rain&&!o.quiet&&d<5&&Math.random()<.15)o.packed=true;   // 만원 열차 (개선점 "더 붐비는 경우"): 평일 15%, 예보에 나온다
-    if(d>=5){const ok=APPTS.map(a=>Object.assign({},a,{dest:a.dests.filter(x=>x!==CH().home&&routeBetween(CH().home,x).length>=3)})).filter(a=>a.dest.length);
+    const hn=d<5&&!(run.week===1&&d===0)?holName(run.week,d):null;if(hn){o.hol=hn;o.packed=false;}else if(d>=5)o.hn=holName(run.week,d);   // 주말에 겹친 공휴일은 이름만 보여 준다. 공휴일은 주말처럼 (첫 출근은 평소와 같은 날)
+    else if(d<5&&evs.length&&Math.random()<EVENT_P)o.event=pick(evs);   // 행사일: 내 퇴근 구간에 행사 역이 있을 때만
+    if(d>=5||o.hol){const ok=APPTS.map(a=>Object.assign({},a,{dest:a.dests.filter(x=>x!==CH().home&&routeBetween(CH().home,x).length>=3)})).filter(a=>a.dest.length);
       if(ok.length){const a=pick(ok);o.offer={k:a.k,dest:pick(a.dest)};}}
     return o;});
   if(run.week===1)Object.assign(run.sched[0],{rain:false,fc:false,quiet:false,packed:false});   // 첫 출근은 평소와 같은 날
   run.weekShown=false;
   if(run.week>=5&&run.extraPressWk!==run.week){run.extraPress=(run.extraPress||[]).concat(pick(Object.keys(PRESS)));run.extraPressWk=run.week;}   // 16: 5주차부터 압박 한 겹씩
-  {const ev=pressCount().event,c=run.sched.filter(o=>o.d<5&&!o.packed&&!(run.week===1&&o.d===0));for(let i=0;i<ev&&c.length;i++){const o=c.splice(irand(0,c.length-1),1)[0];o.packed=true;o.rain=false;o.quiet=false;}}   // 행사 주간: 만원인 날 +1
+  {const ev=pressCount().event,c=run.sched.filter(o=>o.d<5&&!o.packed&&!o.hol&&!(run.week===1&&o.d===0));for(let i=0;i<ev&&c.length;i++){const o=c.splice(irand(0,c.length-1),1)[0];o.packed=true;o.rain=false;o.quiet=false;}}   // 행사 주간: 만원인 날 +1
   if(run.week>1)rollStock();   // 상점 진열은 한 주가 시작될 때마다 바뀐다 (10·15). 월급날 뒤의 6개는 그 주말까지
 }
 const APP=k=>APPTS.find(a=>a.k===k);
@@ -358,6 +400,8 @@ const ITEMS=[
  {k:"diary",slot:"kit",n:"다이어리",p:70,d:"계획표를 4개까지 적을 수 있음"},
  {k:"pillow",slot:"kit",n:"목베개",p:60,d:"앉았을 때 체력 회복 +20%",bad:"깊이 잠들어 양보 상황에 1초 늦게 반응"},
  {k:"book",slot:"kit",n:"책",p:30,d:"보는 척(R) 중에도 이동 속도가 줄지 않음",bad:"손잡이를 잡으면 효과 중단"},
+ {k:"umbrella",slot:"kit",n:"접이식 우산",p:40,d:"비 오는 날 부딪혀도 젖은 우산 민폐(+2)가 붙지 않음"},
+ {k:"grip",slot:"kit",n:"휴대용 손잡이",p:70,d:"손잡이가 없는 곳에서도 우클릭으로 잡을 수 있음 (효과는 절반)"},
  {k:"shades",slot:"kit",n:"선글라스",p:80,d:"시선 게이지 속도 -30%",bad:"지하라 어두워서 낌새가 0.3초 늦게 보임"},
 ];
 const IT=k=>ITEMS.find(i=>i.k===k);
@@ -770,7 +814,11 @@ let SPECIALS=true;   // 시뮬레이션에서 끄고 비교할 때 쓴다
 const SP_INFO={
  backpack:{n:"백팩",card:"큰 가방을 뒤로 메고 있다. 돌 때 등 뒤에 있으면 밀린다.",mono:"백팩이다. 등 뒤는 사각지대."},
  sprawl:{n:"넓게 앉기",card:"옆자리까지 넓게 앉아 있다. 옆은 좁은 자리.",mono:"넓게 앉았다. 옆자리는 반쪽짜리다."},
+ carrier:{n:"캐리어",card:"큰 캐리어를 옆에 세워 두었다. 덜컹하면 굴러간다.",mono:"캐리어다. 덜컹하면 굴러온다."},
+ call:{n:"큰 소리 통화",card:"앉은 채 큰 소리로 통화 중. 양옆 자리는 쉬기 어렵다.",mono:"통화 소리가 크다. 옆자리는 쉬기 힘들겠다."},
 };
+const CALL_LINES=["여보세요? 어, 나 지금 지하철!","아니 그게 아니라, 내 말 좀 들어 봐","응응, 그래서 걔가 뭐래?","하하하! 진짜로?","잠깐만, 잘 안 들려!","아 그거? 내가 보내 줄게","몰라, 나중에 다시 얘기해"];   // 하차역은 말하지 않는다 (하차역을 직접 알려 주지 않는다)
+const callNear=s=>G.ps.some(p=>p.sp==="call"&&p.state==="seated"&&p.seat&&p.seat.zone===s.zone&&p.seat.side===s.side&&Math.abs(p.seat.k-s.k)===1);
 const dex=k=>{const d=profile.dex||(profile.dex={});return d[k]||(d[k]={met:0,ok:0});};
 function spawnSpecials(){
   const g=G;if(!SPECIALS)return;
@@ -786,6 +834,19 @@ function spawnSpecials(){
       const p=pick(near(c,360));p.sp="sprawl";p.asked=false;sprawlSide(p.seat).narrow=p;
     }
   }
+  if(Math.random()<.3){   // 캐리어 (06 2차): 통로 한 칸을 막고, 덜컹할 때 굴러간다
+    const c=g.ps.filter(p=>p.state==="standing"&&!p.sp&&!p.elder&&p.delay==null&&hyp(p.x-P.x,p.y-P.y)>70);
+    if(c.length){const p=pick(near(c,300));p.sp="carrier";const h={x:p.x+16,y:p.y};constrain(h);g.carrier={owner:p,x:h.x,y:h.y,vx:0,roll:0,hit:false};}}
+  if(Math.random()<.35){   // 큰 소리 통화 (06 2차): 양옆 자리의 회복 -30%. 이어폰이면 들리지 않는다
+    const c=g.ps.filter(p=>p.state==="seated"&&!p.sp&&!p.seat.pink&&p.arch!=="sleeper");
+    if(c.length){const p=pick(near(c,360));p.sp="call";p.callT=rand(.5,3);}}
+}
+function carrierHit(){const g=G,P=g.pl;g.stamina-=bumpDmg();g.bumps++;g.shake=Math.max(g.shake,.18);if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];
+  dpSet("nobump",false,"캐리어에 부딪힘");say(P,pick(["악, 발등…","어어어"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"캐리어에 부딪힘 · 체력 -"+bumpDmg()});sfx("bump");ev("carrierHit");}
+function catchCarrier(){   // 굴러오는 캐리어를 E로 잡아 준다: +10P, 민폐 -10
+  const g=G,c=g&&g.carrier,P=g&&g.pl;if(!c||c.roll<=0||P.seat||hyp(P.x-c.x,P.y-c.y)>60)return false;
+  c.roll=0;c.vx=0;c.owner.hx=c.x-16;c.owner.hy=c.y;c.owner.wt=4;addPts(10,"캐리어 잡아 줌");g.nuis=Math.max(0,g.nuis-10);say(c.owner,pick(["앗, 감사합니다!","죄송해요, 고맙습니다"]));
+  dex("carrier").ok++;saveProfile();sfx("tick");ev("carrierOk");return true;
 }
 function sprawlSide(s){   // 넓게 앉은 승객이 좁게 만드는 옆자리 (배려석 제외)
   const c=G.seats.filter(o=>o.zone===s.zone&&o.side===s.side&&Math.abs(o.k-s.k)===1&&!o.pink&&!o.narrow);
@@ -795,7 +856,7 @@ function backpackTurn(p){   // 가방을 멘 채 몸을 돌린다. 돌기 전에
   const g=G,P=g.pl,bx=-Math.cos(p.face),by=-Math.sin(p.face),dx=P.x-p.x,dy=P.y-p.y,d=hyp(dx,dy)||1;
   p.face+=(Math.random()<.5?1:-1)*rand(1.9,3.1);p.bpT=rand(4,7);p.bpWarn=false;
   if(P.seat||P.into||d>34||(dx*bx+dy*by)/d<.2)return;
-  const k=gritK()*(P.brace?.5:1);   // 사람이 미는 힘: 버티기로 줄고 손잡이는 절반만 막는다
+  const k=gritK()*(1-.5*brK());   // 사람이 미는 힘: 버티기로 줄고 손잡이는 절반만 막는다 (휴대용 손잡이는 그 절반)
   P.vx+=dx/d*210*k;P.y+=dy/d*12*k;constrain(P);
   g.stamina-=bumpDmg();g.bumps++;g.packHits++;g.shake=Math.max(g.shake,.18);if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];
   dpSet("nobump",false,"가방에 밀림");say(P,pick(["윽","어이쿠","(밀려난다)"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"가방에 밀림 · 체력 -3"});sfx("bump");ev("packhit");
@@ -812,12 +873,22 @@ function updateSpecials(dt){
   for(const p of g.ps){
     if(!p.sp)continue;
     if(!p.spSeen&&(p.vis||0)>.6){p.spSeen=true;const d=dex(p.sp);   // 처음 만난 유형은 독백으로 소개한다
-      if(!d.met){say(g.pl,SP_INFO[p.sp].mono);g.pl.bt=2.6;toast("처음 보는 승객: "+SP_INFO[p.sp].n+". "+SP_INFO[p.sp].card);ev(p.sp==="backpack"?"metBackpack":"metSprawl");}
+      if(!d.met){say(g.pl,SP_INFO[p.sp].mono);g.pl.bt=2.6;toast("처음 보는 승객: "+SP_INFO[p.sp].n+". "+SP_INFO[p.sp].card);ev(p.sp==="backpack"?"metBackpack":p.sp==="sprawl"?"metSprawl":"met_"+p.sp);}
       d.met++;saveProfile();}
     if(p.sp==="backpack"&&p.state==="standing"&&!p.bpFront&&p.delay==null){
       p.bpT-=dt;if(p.bpT<=.6)p.bpWarn=true;   // 돌기 0.6초 전에 어깨를 들썩인다
       if(p.bpT<=0)backpackTurn(p);
     }
+    if(p.sp==="call"&&p.state==="seated"){p.callT-=dt;if(p.callT<=0){p.callT=rand(3.5,6.5);if(!eq("earphone")){say(p,pick(CALL_LINES));p.bt=2.6;}}}
+  }
+  const c=g.carrier;
+  if(c){const o=c.owner,P=g.pl;
+    if(!g.ps.includes(o)||o.state==="gone"){g.carrier=null;return;}   // 주인이 내렸다
+    if(c.roll>0){c.roll-=dt;c.x+=c.vx*dt;c.vx*=Math.pow(.3,dt);const h={x:c.x,y:c.y};constrain(h);if(Math.abs(h.x-c.x)>.5)c.vx*=-.3;c.x=h.x;c.y=h.y;
+      if(!P.seat&&!c.hit&&Math.abs(c.vx)>40&&hyp(P.x-c.x,P.y-c.y)<20){c.hit=true;carrierHit();}
+      if(c.roll<=0){c.vx=0;o.hx=c.x-16;o.hy=c.y;o.wt=4;}}   // 멈추면 주인이 가지러 온다
+    else if(o.state==="leaving"||hyp(o.x+16-c.x,o.y-c.y)<34){const k=Math.min(1,dt*6);c.x+=(o.x+16-c.x)*k;c.y+=(o.y-c.y)*k;}   // 주인 옆에 붙어 다닌다
+    if(!P.seat){const dx=P.x-c.x,dy=P.y-c.y,d=hyp(dx,dy);if(d<18&&d>.01){P.x=c.x+dx/d*18;P.y=c.y+dy/d*18;constrain(P);}}   // 세워 둔 캐리어는 통로 한 칸을 막는다
   }
 }
 
@@ -831,6 +902,8 @@ const AY0=CAR.y+8+SEAT_D+15, AY1=CAR.y+CAR.h-8-SEAT_D-15;     // 통로(좌석 �
 const BY0=CAR.y+8+13, BY1=CAR.y+CAR.h-8-13;                    // 출입문 앞 공간 이동 범위
 /* 손잡이 위치 (개선점): 좌석 앞 손잡이 줄(3D의 손잡이 봉 아래)과 출입문 양옆 기둥에서만 잡을 수 있다 */
 const POLE_Y=[370-85,370+85];
+const brK=()=>G.pl.brace?1:G.pl.grip?.5:0;   // 손잡이 효과: 손잡이 1, 휴대용 손잡이 0.5
+function nearPole(x,y){for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y)if(Math.abs(x-px)<22&&Math.abs(y-py)<30)return true;return false;}   // 출입문 옆 기둥
 function nearHandle(x,y){
   for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W;if(x>x0-4&&x<x0+BW+4&&(Math.abs(y-AY0)<26||Math.abs(y-AY1)<26))return true;}
   for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y)if(Math.abs(x-px)<22&&Math.abs(y-py)<30)return true;
@@ -867,7 +940,7 @@ const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구
 function level(){return (run.week-1)*4+Math.min(4,run.day)+(run.leg!=="am"?.5:0);}
 function startRun(){
   run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0,combo:0,cand:[],picks:[],collapseNext:0,planPts:0,weekPts:0,
-    arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0,fatigue:0,extraPress:[]};
+    arrSta:100,date0:ymd(calStart()),fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0,fatigue:0,extraPress:[]};
   run.stamina=run.arrSta=maxSta();   // 체력 능력치에 따라 최대 체력이 다르다
   run.tut=!profile.seenHelp;   // 튜토리얼 (01): 1주차 월요일 출근
   profile.runs++;saveProfile();showPlatform();
@@ -880,7 +953,7 @@ function destW(arch,legKey,name){   // 이 유형이 이 역에서 내릴 가중
 }
 function sampleDest(arch,legKey,route,from){
   const w=ARCH[arch][legKey]||ARCH[arch].pm,opts=[];
-  for(let i=from+1;i<route.length;i++){const v=destW(arch,legKey,route[i]);if(v>0)opts.push([i,v]);}
+  for(let i=from+1;i<route.length;i++){let v=destW(arch,legKey,route[i]);if(v>0&&G&&G.evSt===route[i])v*=2;if(v>0)opts.push([i,v]);}   // 행사 역은 내리는 사람이 2배
   if(w.any)for(let i=from+1;i<route.length;i++)opts.push([i,w.any/(route.length-1)]);
   if(w.beyond)opts.push([99,w.beyond]);
   if(!opts.length)return 99;
@@ -929,7 +1002,7 @@ function startLeg(doorIdx){
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
     dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,cfx:run.fx||{},eyeN:0,packHits:0,narrowSat:0,log:[],bump1:null,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
-    seek:4,fakeRate:Math.min(.22+.06*pressCount().special,.025*L+.04*pressCount().special),rivalP:Math.min(.95+.05*pressCount().rival,.55+.04*L+.08*pressCount().rival),touch:0,led:"",fx:[]};
+    seek:4,fakeRate:Math.min(.22+.06*pressCount().special,.025*L+.04*pressCount().special),rivalP:Math.min(.95+.05*pressCount().rival,.55+.04*L+.08*pressCount().rival),touch:0,led:"",fx:[],evSt:run.leg==="pm"&&run.sched&&run.sched[run.day]&&run.sched[run.day].event?run.sched[run.day].event.st:null};
   const g=G;run.collapseNext=0;
   // 좌석 승객
   let empties=L<1&&!tutLeg()?1:0;
@@ -1044,6 +1117,7 @@ function arrive(){
   const cur=g.ps.filter(p=>p.state!=="seated").length-g.ps.filter(p=>p.state!=="seated"&&p.dest===g.st).length;
   let n=clamp(Math.round(out*.8+hub+(g.target-cur)*.6+rand(-1,2)),1,18);if(cur>g.target+6)n=Math.min(n,2);
   if(xg)n=Math.round(out*xg.board);   // 환승역: 내린 만큼 다시 탄다 (승차 러시는 정차 뒤쪽)
+  if(g.evSt===g.route[g.st]){n=Math.min(30,n*2);g.led=g.route[g.st]+"역입니다. 행사를 마친 승객이 많이 탑니다.";}   // 행사일: 타는 사람도 2배
   for(let i=0;i<n;i++)spawnBoarder(xg?xg.dwell-7.5+rand(0,3.4):1.7+rand(0,2.4),null);
   // 양보 이벤트
   if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
@@ -1104,11 +1178,11 @@ function endLeg(fail){
   const am=run.leg==="am",we=run.leg==="we";
   run.arrSta=g.stamina;run.stamina=g.stamina;run.fx={};run.needCard=!we;   // 회복량은 회사·집 카드에서 정한다
   run.lateAm=am&&g.late;   // 지각: 회사 카드에 "팀장 호출"이 끼어든다
-  const lastLeg=run.leg==="pm"&&run.day===4;
+  const lastLeg=run.leg==="pm"&&run.day===lastWorkDay();
   if(run.leg==="pm"||we)run.daysDone=(run.daysDone||0)+1;
   run.fatigue=(run.fatigue||0)+Math.max(0,g.N-g.seatStops);run.stamina=Math.min(run.stamina,maxSta());run.arrSta=Math.min(run.arrSta,maxSta());   // 16: 서서 지난 정거장만큼 피로가 쌓인다   // 15: 끝까지 마친 통근일 (휴무는 세지 않는다)
   let nextTxt;
-  if(we){run.stamina=clamp(g.stamina+42+(run.appt.sta||0),1,maxSta());settleWeek();run.appt=null;nextTxt=run.day<6?"일요일로":"다음 주 월요일로";}   // 약속 뒤 밤사이 회복 (일찍 자기와 같음)
+  if(we){run.stamina=clamp(g.stamina+42+(run.appt.sta||0),1,maxSta());if(run.day>lastWorkDay())settleWeek();run.appt=null;const nd=run.day+1;nextTxt=run.day>=6?"다음 주 월요일로":isOffDay(nd)?DAYS[nd]+"로":DAYS[nd]+" 출근으로";}   // 평일 공휴일의 약속은 주를 마감하지 않는다   // 약속 뒤 밤사이 회복 (일찍 자기와 같음)
   else if(am){run.leg="pm";nextTxt="회사에서";}
   else if(!lastLeg){run.leg="am";run.day++;nextTxt="집으로";}
   if(lastLeg){
@@ -1116,7 +1190,7 @@ function endLeg(fail){
     profile.bestWeek=Math.max(profile.bestWeek,run.week);profile.best[CH().k]=Math.max(profile.best[CH().k]||0,run.week);
     weekLog();
     if(isPayday(4)){rows.push(["월급날 (상점 진열 6개)",""]);rollStock(6);}
-    settleWeek();run.needCard=false;run.day=5;nextTxt="주말로";   // 금요일 퇴근 뒤 주 마감. 주말에는 상점 (스킬은 런이 끝났을 때만, 15)
+    settleWeek();run.needCard=false;run.day=lastWorkDay()+1;nextTxt=run.day<5?DAYS[run.day]+"(공휴일)로":"주말로";   // 금요일 퇴근 뒤 주 마감. 주말에는 상점 (스킬은 런이 끝났을 때만, 15)
   }
   rows.push(["이번 편도 합계","+"+total+" P"]);
   const title=g.seatStops>=g.N-1?"완벽한 통근":g.seatStops>0?"앉아서 왔다":"서서 버텼다";
@@ -1276,7 +1350,7 @@ function trySit(target){
 function togglePlan(s){
   const g=G;if(g.pl.seat||!s.occ||s.occ==="player"||s.pink)return;
   if(g.melt>0){toast("멘붕 중에는 찜할 수 없습니다.");return;}
-  if(eq("brief")&&g.pl.brace){toast("서류 가방을 든 손으로 손잡이를 잡고 있어 찜할 수 없습니다.");return;}
+  if(eq("brief")&&(g.pl.brace||g.pl.grip)){toast("서류 가방을 든 손으로 손잡이를 잡고 있어 찜할 수 없습니다.");return;}
   const i=g.plans.findIndex(p=>p.seat===s);
   if(i>=0){const ci=g.claims.findIndex(c=>c.pid===g.plans[i].pid);if(ci>=0)g.claims.splice(ci,1);g.plans.splice(i,1);dpSet("planA",false,"찜을 취소함");return;}
   const max=1+sk("plan");if(g.plans.length>=max)g.plans.shift();
@@ -1306,7 +1380,7 @@ function say(e,txt){e.bubble=txt;e.bt=1.5;}
 const bumpDmg=()=>lineB("body",4)?2:3;   // 몸 계열 4단계: 충돌 피해 -1
 function bump(q,hard){
   const g=G;if(g.coffeeT>0){g.coffeeT=0;g.nuis+=20*(1-.2*sk("face"));toast("커피를 쏟았습니다 (민폐 +20)","bad");say(q,"앗, 뜨거…");}g.bumps++;g.bumpCd=1.05;if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];dpSet("nobump",false,"부딪힘");g.shake=Math.max(g.shake,.18);
-  g.nuis+=(hard?10:7)*(g.inFlow?2:1)*(1-.2*sk("face"));g.stamina-=bumpDmg();   // 하차 흐름을 거스르면 2배
+  g.nuis+=((hard?10:7)*(g.inFlow?2:1)+(isRain()&&!eq("umbrella")?2:0))*(1-.2*sk("face"));g.stamina-=bumpDmg();   // 하차 흐름을 거스르면 2배. 비 오는 날은 젖은 우산 +2 (접이식 우산이면 없음)
   say(g.pl,pick(["죄송합니다!","앗, 죄송해요","실례했습니다"]));
   if(q&&Math.random()<.5)say(q,pick(["아…","저기요","조심 좀…","(한숨)"]));
   sfx("bump");
@@ -1328,8 +1402,9 @@ function update(rdt){
       if(j.done)continue;
       if(j.msg&&g.t>=j.at-j.warn)ban=j.msg;
       if(g.t>=j.at){j.done=true;g.shake=.3;sfx("jolt");
-        if(!pl.seat&&!pl.brace){pl.vx+=j.dir*250*(1-[0,.25,.45,.6][balLv()])*(1-.12*(stat("bal")-3))*(isRain()?(eq("boots")?1:eq("dress")?1.4:1.2):1);if(j.warn)dpSet("firm",false,"급정거에 밀림");}
+        if(!pl.seat&&brK()<1){pl.vx+=j.dir*250*(1-brK())*(1-[0,.25,.45,.6][balLv()])*(1-.12*(stat("bal")-3))*(isRain()?(eq("boots")?1:eq("dress")?1.4:1.2):1);if(j.warn)dpSet("firm",false,"급정거에 밀림");}
         for(const q of g.ps)if(q.state==="standing"){q.sway=j.dir*rand(3,7);}
+        if(j.warn&&g.carrier&&g.carrier.roll<=0&&g.carrier.owner.state==="standing"){const c=g.carrier;c.roll=1.6;c.vx=j.dir*170;c.hit=false;if(!c.said){c.said=1;say(c.owner,"어, 내 캐리어!");}}   // 급정거에 캐리어가 굴러간다
       }
     }
     banner(ban);
@@ -1436,20 +1511,20 @@ function update(rdt){
         if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");dpSet("yield",false,"양보하지 않음");}}
     }
   }
-  prompt(g.melt>0&&!pl.seat?"멘붕! 가만히 서서 심호흡 "+Math.max(0,3-g.breath).toFixed(1)+"초 (또는 자리에 앉기)":g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":pl.seat&&pl.seat.narrow&&!pl.seat.narrow.asked?"좁은 자리 (회복 절반). <kbd>Q</kbd> 실례합니다 (60% 성공, 실패하면 민폐 +5)":pl.phone?"휴대폰 보는 척 (눈에 덜 띄지만 시야가 좁고 걸음이 느립니다)":null);
+  prompt(g.carrier&&g.carrier.roll>0&&!pl.seat&&hyp(pl.x-g.carrier.x,pl.y-g.carrier.y)<60?"<kbd>E</kbd> 굴러오는 캐리어 잡기 (+10P, 민폐 -10)":g.melt>0&&!pl.seat?"멘붕! 가만히 서서 심호흡 "+Math.max(0,3-g.breath).toFixed(1)+"초 (또는 자리에 앉기)":g.yieldEv&&g.yieldEv.active?"<kbd>E</kbd> 자리 양보하기 (+25P, 민폐 -30)":g.exitBlock?"내리는 사람이 먼저. <kbd>A</kbd>/<kbd>D</kbd>로 몸을 옆으로 돌려 길을 터 주세요 (돌린 쪽을 막습니다)":pl.seat&&pl.seat.narrow&&!pl.seat.narrow.asked?"좁은 자리 (회복 절반). <kbd>Q</kbd> 실례합니다 (60% 성공, 실패하면 민폐 +5)":pl.phone?"휴대폰 보는 척 (눈에 덜 띄지만 시야가 좁고 걸음이 느립니다)":null);
   // 플레이어
   let touching=false;
   if(!pl.seat){
-    {const want=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space||keys.Mouse2),ok=want&&nearHandle(pl.x,pl.y);
-      if(want&&!ok&&!pl.noHandle){pl.noHandle=true;toast("여기에는 잡을 손잡이가 없습니다. 좌석 앞이나 문 옆 기둥으로 가세요.");}
+    {const want=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space||keys.Mouse2),ok=want&&nearHandle(pl.x,pl.y),grip=want&&!ok&&eq("grip");
+      if(want&&!ok&&!grip&&!pl.noHandle){pl.noHandle=true;toast("여기에는 잡을 손잡이가 없습니다. 좌석 앞이나 문 옆 기둥으로 가세요.");}
       if(!want)pl.noHandle=false;
-      pl.brace=ok;}
+      pl.brace=ok;pl.grip=grip;}   // 휴대용 손잡이 (10): 손잡이가 없는 곳에서 절반 효과
     let ix=(keys.KeyD?1:0)-(keys.KeyA?1:0),iy=(keys.KeyS?1:0)-(keys.KeyW?1:0);
     if(view==="q"){const fw=-iy,rt=ix,gc=Math.cos(pl.gaze),gs=Math.sin(pl.gaze);ix=gc*fw-gs*rt;iy=gs*fw+gc*rt;if(Math.abs(ix)<1e-6)ix=0;if(Math.abs(iy)<1e-6)iy=0;}   // 3D: W는 시선 방향으로
-    if(pl.brace)ix=iy=0;
+    if(pl.brace||pl.grip)ix=iy=0;
     if(pl.turn){if(!keys.KeyA&&!keys.KeyD&&!keys.KeyW&&!keys.KeyS)pl.turnRel=true;
       if(!pl.turnRel)ix=iy=0;else if(ix||iy){pl.turn=null;pl.screen=null;}}
-    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1)*(pl.phone&&!(eq("book")&&!pl.brace)?.7:1)*walkK()*(1+.06*(stat("agi")-3)),ik=g.cfx.tipsy?Math.min(1,rdt*4):eq("runner")?Math.min(1,rdt*9):1;   // 러닝화도 관성이 붙는다   // 회식 뒤에는 걸음에 관성이 붙는다
+    const m=hyp(ix,iy)||1,sp=128*(g.cfx.speed||1)*(pl.phone&&!(eq("book")&&!pl.brace&&!pl.grip)?.7:1)*walkK()*(1+.06*(stat("agi")-3)),ik=g.cfx.tipsy?Math.min(1,rdt*4):eq("runner")?Math.min(1,rdt*9):1;   // 러닝화도 관성이 붙는다   // 회식 뒤에는 걸음에 관성이 붙는다
     pl.wx=(pl.wx||0)+(ix/m*sp-(pl.wx||0))*ik;pl.wy=(pl.wy||0)+(iy/m*sp-(pl.wy||0))*ik;
     const mvx=pl.wx+pl.vx,mvy=pl.wy;
     pl.vx*=Math.pow(.012,rdt);if(Math.abs(pl.vx)<3)pl.vx=0;
@@ -1469,7 +1544,7 @@ function update(rdt){
         const o=R-d,nx=dx/d,ny=dy/d,an=q.state==="toSeat"||lv?.85:q.slot&&q.state==="standing"?.1:.4;
         // 떠밀림: 내가 움직이지 않는데 걸어오는 승객이 미는 경우. 버티기로 줄고, 손잡이는 절반만 막는다
         const walking=q.state==="toSeat"||lv||(q.state==="standing"&&!q.slot&&hyp(q.x-q.hx,q.y-q.hy)>10);
-        const pk=!(ix||iy)&&walking?(stat("grit")>=4&&q.state==="standing"?0:gritK()*(pl.brace?.5:1)):1;   // 버티기 4 이상: 걸어가는 승객과의 가벼운 접촉에는 밀리지 않음
+        const pk=!(ix||iy)&&walking?(stat("grit")>=4&&q.state==="standing"?0:gritK()*(1-.5*brK())):1;   // 버티기 4 이상: 걸어가는 승객과의 가벼운 접촉에는 밀리지 않음
         pl.x+=nx*o*(1-an)*pk;pl.y+=ny*o*(1-an)*pk;if(q.state==="standing"||q.state==="toSeat"||lv){const qa=an+(1-an)*(1-pk);q.x-=nx*o*qa;q.y-=ny*o*qa;constrain(q);}
         touching=true;
         // 비집고 들어가기: 좌석 앞 사람을 계속 밀면 결국 비켜 준다 (민폐 크게 상승)
@@ -1489,9 +1564,12 @@ function update(rdt){
       const adx=Math.abs(pl.x-dr.cx),zone=DOOR_W*.75;
       if(adx<zone&&pl.y>AY1-20){
         let n=0;for(const q of g.ps)if(q.state==="leaving"&&q.step===0&&q.door===dr&&q.y<pl.y+12&&hyp(q.x-pl.x,q.y-pl.y)<110)n++;
-        if(n){g.inFlow=true;const push=Math.min(150,24*n)*Math.pow(1.3,pressCount().event)*(1-adx/zone)*gritK()*(pl.brace?.5:1);   // 16 행사 주간: ×1.3
-          pl.y+=push*rdt;pl.x+=Math.sign(dr.cx-pl.x)*push*.3*rdt;constrain(pl);}
-        if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)&&sk("xfer")<2){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
+        const hold=pl.brace&&nearPole(pl.x,pl.y);   // 문턱에서 버티기 (05): 문 옆 기둥을 잡고 있으면 쓸려 내리지 않는 대신 체력과 민폐
+        if(n){g.inFlow=true;const push=Math.min(150,24*n)*Math.pow(1.3,pressCount().event)*(1-adx/zone)*gritK()*(hold?.15:1-.5*brK());   // 16 행사 주간: ×1.3
+          pl.y+=push*rdt;pl.x+=Math.sign(dr.cx-pl.x)*push*.3*rdt;constrain(pl);
+          if(hold){g.stamina-=4*rdt;g.nuis+=3*(1-.2*sk("face"))*rdt;g.holdT=(g.holdT||0)+rdt;
+            if(!g.holdSaid){g.holdSaid=true;say(pl,"(기둥을 꽉 잡는다)");toast("문턱에서 기둥을 잡고 버팁니다. 내리는 사람을 막고 있어 체력과 민폐가 오릅니다.");ev("hold");}}}
+        if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)&&sk("xfer")<2&&!hold){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
       }
     }
     let near=0;for(const q of movers)if(hyp(q.x-pl.x,q.y-pl.y)<56)near++;
@@ -1500,7 +1578,7 @@ function update(rdt){
     g.stamina-=(g.lean?LEAN_K:1)*(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(1-.06*(stat("sta")-3))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
   }else{
-    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:isEndSeat(pl.seat)?END_REC:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*dt);   // 좁은 자리는 회복이 절반
+    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:isEndSeat(pl.seat)?END_REC:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*(!eq("earphone")&&callNear(pl.seat)?.7:1)*dt);   // 큰 소리 통화 옆자리: 회복 -30% (이어폰이면 무시)   // 좁은 자리는 회복이 절반
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
   if(pl.turn){const s=pl.turn.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>30||Math.abs(pl.y-s.fy)>30){pl.turn=null;}}
@@ -1517,7 +1595,7 @@ function update(rdt){
   // 찜한 승객이 그냥 사라진 경우 정리 (자리가 비어 있으면 유지)
   if(g.melt>0){   // 멘붕: 20초. 자리에 앉거나 3초 심호흡(이동·손잡이 없이 가만히)으로 풀린다
     g.melt-=rdt;g.meltSay-=rdt;
-    const still=!pl.seat&&!pl.brace&&!keys.KeyW&&!keys.KeyA&&!keys.KeyS&&!keys.KeyD;
+    const still=!pl.seat&&!pl.brace&&!pl.grip&&!keys.KeyW&&!keys.KeyA&&!keys.KeyS&&!keys.KeyD;
     g.breath=still?g.breath+rdt:0;
     if(g.meltSay<=0&&!pl.seat){g.meltSay=4;say(pl,pick(["계획이… 계획이 뭐였지","07:16 착석… 아니, 지금 몇 시","플랜 B가… C가… 아니","…괜찮아. 괜찮지 않아"]));}
     if(pl.seat)meltEnd("앉으니 정신이 돌아왔습니다.");
@@ -1687,6 +1765,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   for(let b=0;b<3;b++)for(let k=0;k<BENCH;k++){const x=DOORS[b].x+DOOR_W+SEAT_W*(k+.5);for(const y of[AY0-6,AY1+6]){ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.stroke();}}
   drawCone();
   // 사람 (y 정렬)
+  if(g.carrier){const c=g.carrier;ctx.fillStyle="#3f63a0";ctx.strokeStyle="#14181c";ctx.lineWidth=1.5;ctx.fillRect(c.x-7,c.y-9,14,18);ctx.strokeRect(c.x-7,c.y-9,14,18);}   // 캐리어
   const list=g.ps.slice().sort((a,b)=>a.y-b.y);
   for(const p of list){
     const ts=p.vis>.3?tellState(p):0;let ox=0,oy=0;
@@ -1717,7 +1796,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   // 플레이어
   const P=g.pl;
   if(!P.seat){ctx.strokeStyle="rgba(20,24,28,.85)";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(P.x,P.y,17+Math.sin(time*5)*1.2,0,TAU);ctx.stroke();
-    if(P.brace){ctx.fillStyle="#14181c";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("꽉!",P.x,P.y-24);}}
+    if(P.brace||P.grip){ctx.fillStyle="#14181c";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("꽉!",P.x,P.y-24);}}
   drawPerson(P.x,P.y,P.face,{shirt:CH().look.pin,hair:CH().look.hair,skin:"#f1c9a5",arch:"me"},!!P.seat,true,time);
   if(P.seat){ctx.strokeStyle="#00A84D";ctx.lineWidth=3;rr(P.seat.x-SEAT_W/2-1,P.seat.y-SEAT_D/2-2,SEAT_W+2,SEAT_D+4,8);ctx.stroke();}
   // 말풍선
@@ -1945,7 +2024,7 @@ function drawQ(time){
   // 내 위치 표시
   const my=P.seat?P.seat.y-52:P.y-54+Math.sin(time*5)*2;
   ctx.fillStyle="#00A84D";ctx.strokeStyle="#14181c";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(P.x-7,my);ctx.lineTo(P.x+7,my);ctx.lineTo(P.x,my+9);ctx.closePath();ctx.fill();ctx.stroke();
-  if(!P.seat&&P.brace){ctx.fillStyle="#14181c";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText("꽉!",P.x+22,P.y-30);}
+  if(!P.seat&&(P.brace||P.grip)){ctx.fillStyle="#14181c";ctx.font="800 12px "+FONT;ctx.textAlign="center";ctx.fillText("꽉!",P.x+22,P.y-30);}
   for(const e of g.ps)if(e.bubble)bubble(e.x,(e.seat?e.seat.y:e.y)-52,e.bubble,false);
   if(P.bubble)bubble(P.x,P.y-64,P.bubble,true);
   for(const f of g.fx){ctx.globalAlpha=1-f.t/1.3;ctx.fillStyle="#007a38";ctx.font="800 15px "+FONT;ctx.textAlign="center";ctx.fillText(f.txt,f.x,f.y-30-f.t*26);ctx.globalAlpha=1;}
@@ -2156,6 +2235,7 @@ const MODS=[{name:"평소와 같은 날",crowd:1},{name:"평소와 같은 날",c
 function showPlatform(){
   mode="platform";G=null;
   if(!run.sched)makeWeek();
+  if(run.leg==="am"&&run.sched[run.day].hol){if(run.day===0&&!run.weekShown){run.weekShown=true;showWeek(showWeekend);return;}showWeekend();return;}   // 공휴일 (04): 주말처럼 약속 또는 휴무
   saveRun("platform");
   {const day=run.sched[run.day];run.mod=day.rain?MODS[2]:day.quiet?MODS[4]:day.packed?MODS[5]:run.day===0&&run.leg==="am"&&run.week===1?MODS[0]:pick([MODS[0],MODS[0],MODS[3]]);}   // 비·한산은 그날 일정대로, 지연은 당일
   run.trains=0;run.trainMul=1;run.nextCrowd=[0,1,2].map(()=>({w:rand(.45,1.55)}));
@@ -2164,6 +2244,7 @@ function showPlatform(){
   const dv=[run.crowd[0].w,(run.crowd[0].w+run.crowd[1].w)/2,(run.crowd[1].w+run.crowd[2].w)/2,run.crowd[2].w].map(v=>v+(run.fx&&run.fx.exactBoard||sk("regular")?0:rand(-.18,.18)));
   run.cand=genCandidates((run.fx&&run.fx.cand||0)+(sk("routine")?1:0));run.picks=[];run.dv=dv;run.reroll=sk("routine")>=3;
   run.doorSeats=sk("regular")>=2?[0,1,2,3].map(()=>irand(0,2)):null;
+  {const e=run.leg==="pm"&&run.sched[run.day].event;if(e)toast("오늘 저녁 "+e.st+"에서 "+e.n+". 그 역에서 많이 내리고 탑니다.");}
   if(run.day===0&&run.leg==="am"&&!run.weekShown){run.weekShown=true;showWeek(()=>afterPlatform());return;}
   afterPlatform();
 }
@@ -2218,7 +2299,9 @@ const GUIDE=[
  ["곧 내릴 사람 읽기","앉은 승객은 내리기 전에 몸짓(낌새)을 보인다. 짐을 챙기거나 휴대폰을 넣는 식이다. 낌새가 보이기 전에 찜해 두고 그 자리에 앉으면 '계획대로', 끝자리를 계획대로 앉으면 '완벽한 계획대로'. 페이크 동작에 속지 말 것. 오래 빤히 보면 눈이 마주쳐 민폐가 오른다."],
  ["자리마다 다르다","끝자리(칸막이 옆 양 끝)는 앉아 있을 때 회복이 가장 좋지만, 비면 모두가 노려서 경쟁이 가장 세다. 넓게 앉은 승객 옆의 좁은 자리는 회복이 절반이다. 임산부 배려석에 앉으면 시선이 따갑고 민폐가 오른다. 나머지는 보통 자리."],
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
- ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 대신 자리가 가장 많이 나는 역이기도 하다."],
+ ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 문 옆 기둥을 잡고 있으면 문턱에서 버틸 수 있지만, 내리는 사람을 막고 있어 체력이 빠지고 민폐가 오른다. 대신 환승역은 자리가 가장 많이 나는 역이기도 하다."],
+ ["특수 승객","백팩은 돌 때 등 뒤를 친다. 넓게 앉은 승객 옆은 좁은 자리. 캐리어는 통로를 막고, 덜컹하면 굴러온다. 굴러오는 캐리어를 E로 잡아 주면 고마워한다. 큰 소리로 통화하는 승객의 양옆 자리는 쉬기 어렵다(이어폰이면 괜찮다)."],
+ ["공휴일과 행사일","달력의 공휴일에는 출근하지 않고 주말처럼 약속에 나가거나 쉰다. ★ 행사일에는 퇴근길의 행사 역(야구장, 공연장, 축제)에서 내리는 사람도 타는 사람도 두 배다. 주간 일정에서 미리 볼 수 있다. 비 오는 날 부딪히면 젖은 우산 때문에 민폐가 조금 더 오른다."],
  ["누적 피로와 주차","서서 지난 정거장만큼 피로가 쌓여 최대 체력이 줄어든다(체력 막대 오른쪽의 회색). 주말에 쉬는 날이나 일찍 자기·계단으로 퇴근 카드로 푼다. 주차가 오를수록 새 압박이 얹히고, 주간 일정에서 미리 알려 준다."],
  ["체력·민폐·멘붕","체력이 바닥나면 그 통근은 실패. 앉아 있으면 회복된다. 부딪히거나 빤히 보거나 배려석에 앉으면 민폐가 오르고, 가득 차도 실패. 계획이 틀어지면 붕괴 스택이 쌓이고, 다 차면 멘붕(시야가 좁아짐): 가만히 서서 심호흡하거나 앉으면 풀린다."],
  ["포인트와 성장","번 포인트는 통근이 끝날 때마다 바로 지갑에 들어온다. 런 도중에는 평일 퇴근 뒤 집이나 주말에 상점에서 쓰고, 패시브 스킬은 탈락하거나 퇴사해 런이 끝났을 때만 찍는다. 오래 버틸수록 끝날 때 버틴 날 보너스를 더 받는다."],
@@ -2258,12 +2341,13 @@ function skipTrain(){   // 열차 한 대 보내기: 다음 열차는 대체로 
   toast(run.trains>slackN()?"열차를 보냈습니다. 이대로면 지각입니다.":"열차를 한 대 보냈습니다.",run.trains>slackN()?"bad":"");sfx("tick");showDoors();
 }
 function showWeek(next,done){   // 주간 일정: 7칸에 날짜 유형, 예보, 한산한 날, 월급날, 주말 약속 제안. 지난 날에는 체크 또는 줄 긋기
-  const cell=o=>{const we=o.d>=5,a=o.offer&&APP(o.offer.k),r=o.res;
-    return `<div class="wd${r==="x"?" strike":""}${o.d===run.day?" now":""}"><b>${DAYS[o.d].slice(0,1)}</b><span>${we?(a?a.n+"<br><small>"+o.offer.dest+"</small>":"휴무"):isPayday(o.d)?"출근<br><small>월급날</small>":"출근"}</span>
-     <i>${o.fc?"☂":"☀"}${o.quiet&&!we?" 한산":o.packed&&!we?" 만원":""}</i>${r?`<em>${r==="x"?"✕":"✔"}</em>`:""}</div>`;};
-  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 · 주간 일정</span><h2>${done?"이번 주 돌아보기":"이번 주는 이렇습니다"}</h2>
-   <p class="sub"><b>${pressLine()}</b>${run.week>=2?"<br><small>"+pressList().join(" · ")+"</small>":""}<br>${fatTxt()}.</p><p class="sub">예보는 70%쯤 맞습니다. 한산한 날은 승객이 적고, 만원인 날은 훨씬 붐빕니다. 4주차 금요일은 월급날이라 퇴근길이 가장 붐빕니다. 주말에는 약속에 나가거나 쉴 수 있습니다.</p>
-   <div class="week">${run.sched.map(cell).join("")}</div>
+  const cell=o=>{const we=o.d>=5||!!o.hol,a=o.offer&&APP(o.offer.k),r=o.res;
+    return `<div class="wd${r==="x"?" strike":""}${o.d===run.day?" now":""}${o.hol?" hol":""}"><b>${DAYS[o.d].slice(0,1)} <small>${mdTxt(dayDate(run.week,o.d))}</small></b><span>${o.hol||o.hn?`<small class="hn">${o.hol||o.hn}</small><br>`:""}${we?(a?a.n+"<br><small>"+o.offer.dest+"</small>":"휴무"):isPayday(o.d)?"출근<br><small>월급날</small>":"출근"}</span>
+     <i>${o.fc?"☂":"☀"}${o.quiet&&!we?" 한산":o.packed&&!we?" 만원":""}${o.event&&!we?" ★ 행사":""}</i>${r?`<em>${r==="x"?"✕":"✔"}</em>`:""}</div>`;};
+  const evl=run.sched.filter(o=>o.event&&!o.hol).map(o=>`★ ${DAYS[o.d]} 저녁 ${o.event.st} ${o.event.n}`),hl=run.sched.filter(o=>o.hol).map(o=>`${DAYS[o.d]} ${o.hol}`);
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 · ${mdTxt(dayDate(run.week,0))}~${mdTxt(dayDate(run.week,6))} · 주간 일정</span><h2>${done?"이번 주 돌아보기":"이번 주는 이렇습니다"}</h2>
+   <p class="sub"><b>${pressLine()}</b>${run.week>=2?"<br><small>"+pressList().join(" · ")+"</small>":""}<br>${fatTxt()}.</p><p class="sub">예보는 70%쯤 맞습니다. 한산한 날은 승객이 적고, 만원인 날은 훨씬 붐빕니다. 4주차 금요일은 월급날이라 퇴근길이 가장 붐빕니다. 주말과 공휴일에는 약속에 나가거나 쉴 수 있습니다. ★ 행사일에는 퇴근길의 행사 역에서 많이 내리고 탑니다.</p>
+   <div class="week">${run.sched.map(cell).join("")}</div>${hl.length||evl.length?`<p class="sub">${hl.length?"공휴일: "+hl.join(", "):""}${hl.length&&evl.length?"<br>":""}${evl.join("<br>")}</p>`:""}${DEBUG?`<p class="sub"><small>개발용: ${CAL_YEAR}년 달력${LUNAR[CAL_YEAR]?"":" (음력 공휴일 표 없음)"} · 주소 뒤에 ?debug=1&amp;year=2027&amp;start=05-04 로 연도·시작 날짜를 바꿉니다 (새 런부터)</small></p>`:""}
    <div class="btns"><button class="btn go" id="b1">${done?"주말로":"월요일 출근 준비"}</button></div>`);
   $("b1").onclick=next;
 }
@@ -2271,19 +2355,24 @@ function settleWeek(){   // 한 주(또는 주말 약속)의 통계를 마감한
   run.points=0;run.weekPts=0;saveProfile();   // 15: 포인트는 이미 지갑에 있다. 이번 주 통계만 비운다
 }
 function showWeekend(){   // 토·일: 약속 1개 제안 / 휴무. 상점도 여기서 (스킬은 런이 끝났을 때만, 15)
-  mode="weekend";G=null;run.leg="we";saveRun("weekend");
+  mode="weekend";G=null;run.leg="we";run.needCard=false;saveRun("weekend");
   const o=run.sched[run.day],a=o.offer&&APP(o.offer.k),n=a?routeBetween(CH().home,o.offer.dest).length-1:0;
-  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} · 주말</span><h2>${DAYS[run.day]}은 어떻게 보낼까요?</h2>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${mdTxt(dayDate(run.week,run.day))} · ${o.hol?"공휴일 · "+o.hol:"주말"}</span><h2>${o.hol?o.hol+"에는":DAYS[run.day]+"은"} 어떻게 보낼까요?</h2>
    <p class="sub">현재 체력 <b>${Math.round(run.stamina)}</b> / ${maxSta()} · ${fatTxt()}. 피로는 쉬는 날에만 크게 풀립니다. 쉬면 체력이 모두 회복됩니다. 약속에 나가면 포인트를 받지만 체력은 밤사이 일부만 회복됩니다.</p>
    <div class="plans">${a?`<button class="pl" id="bgo"><span class="pn"><b>${a.n} · ${o.offer.dest}</b>${a.d}. ${a.dir==="go"?CH().home+" → "+o.offer.dest:o.offer.dest+" → "+CH().home+" (귀가길)"}, ${n}정거장</span><span class="pp">+${a.bonus}P</span></button>`:""}
    <button class="pl" id="brest"><span class="pn"><b>쉬기</b>집에서 쉰다. 누적 피로 -${FAT.restDay}, 체력 완전 회복, 포인트 없음</span></button></div>
    <div class="btns"><button class="btn" id="bit">상점</button><button class="btn ghost" id="bwk">주간 일정</button><button class="btn ghost" id="bq">여기서 퇴사 (스킬 찍기)</button></div>`);
   if(a)$("bgo").onclick=()=>{run.appt=Object.assign({},a,{dest:o.offer.dest});run.needCard=false;sfx("tick");showPlatform();};
-  $("brest").onclick=()=>{o.res="ok";run.fatigue=Math.max(0,(run.fatigue||0)-FAT.restDay);run.stamina=maxSta();sfx("tick");nextWeekendDay();};
+  $("brest").onclick=()=>{sfx("tick");restDay();};
   $("bit").onclick=()=>showItemShop(showWeekend);$("bwk").onclick=()=>showWeek(showWeekend,true);
   $("bq").onclick=()=>finishRun("quit",null,0);
 }
-function nextWeekendDay(){if(run.day<6){run.day++;showWeekend();}else{startWeek();showPlatform();}}
+function nextWeekendDay(){   // 쉬는 날(주말·공휴일) 다음: 또 쉬는 날이면 그 화면, 평일이면 출근, 일요일 다음은 새 주
+  if(run.day>=6){startWeek();showPlatform();return;}
+  run.day++;if(isOffDay(run.day)){showWeekend();return;}
+  run.leg="am";run.appt=null;run.needCard=false;showPlatform();
+}
+function restDay(){const o=run.sched[run.day];o.res="ok";run.fatigue=Math.max(0,(run.fatigue||0)-FAT.restDay);run.stamina=maxSta();nextWeekendDay();}   // 쉬기: 누적 피로 -15, 체력 완전 회복
 function restWeekend(){run.fatigue=Math.max(0,(run.fatigue||0)-2*FAT.restDay);run.stamina=maxSta();startWeek();}   // 시뮬레이션: 주말을 모두 쉰다
 function startWeek(){   // 새 주 월요일
   run.week++;run.day=0;run.leg="am";run.combo=0;run.appt=null;run.sched=null;
@@ -2434,7 +2523,7 @@ addEventListener("keydown",e=>{
   if(e.code==="Tab"){e.preventDefault();if(mode==="play"){profile.dpFold=!profile.dpFold;saveProfile();}return;}   // 계획표 접기
   if(e.code==="Escape"||e.code==="KeyP"){if(mode==="play")setPause(!paused);return;}
   if(mode!=="play"||paused)return;
-  if(e.code==="KeyE")trySit(null);
+  if(e.code==="KeyE"){if(catchCarrier())return;trySit(null);}
   if((e.code==="KeyA"||e.code==="KeyD")&&G&&!G.pl.seat){   // 내리는 사람 앞이면 A/D는 이동 대신 몸을 90도 돌려 길을 터 준다
     const P=G.pl,s=G.seats.find(x=>x.exiting&&Math.abs(P.x-x.fx)<14&&Math.abs(P.y-x.fy)<24);
     if(s)turnBody(s,(e.code==="KeyD"?1:-1)*(view==="q"&&-Math.sin(P.gaze)<0?-1:1));

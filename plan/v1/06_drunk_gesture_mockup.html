@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>취객 몸짓 시안</title>
+<style>
+:root{--bg:#f6f7f5;--card:#fff;--ink:#1f2a44;--sub:#5b6472;--line:#00A84D;--warn:#E5484D;--bd:#dfe3e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--card:#1e2329;--ink:#e8ecef;--sub:#9aa3ad;--bd:#323a43}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 8px}
+.sub{color:var(--sub);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.card b{display:block;font-size:16px}.card p{margin:6px 0 0;color:var(--sub);font-size:13.5px}
+svg{width:100%;height:auto;display:block;background:linear-gradient(#eef3f6,#e2e8ec);border-radius:8px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) svg{background:linear-gradient(#26303a,#1f262d)}}
+table{border-collapse:collapse;width:100%;background:var(--card);border-radius:10px;overflow:hidden}
+td,th{border-bottom:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:top;font-size:14px}
+th{background:rgba(0,168,77,.1)}
+.tag{display:inline-block;font-size:12px;font-weight:800;border-radius:99px;padding:1px 8px;background:rgba(0,168,77,.14);color:var(--line)}
+.q{background:rgba(229,72,77,.08);border-left:4px solid var(--warn);padding:10px 12px;border-radius:6px}
+/* 몸짓 애니메이션 */
+.fig{stroke:#1f2a44;stroke-width:5;stroke-linecap:round;fill:none}
+.head{fill:#f2c9a0;stroke:#1f2a44;stroke-width:3}
+.cheek{fill:#ef7b7b;opacity:.75}
+.body{fill:#6b7a8c;stroke:#1f2a44;stroke-width:3}
+.pole{stroke:#9aa7b2;stroke-width:6}
+.seat{fill:#9fcbec;stroke:#1f2a44;stroke-width:2}
+.zone{fill:rgba(229,72,77,.12);stroke:#E5484D;stroke-dasharray:6 6}
+@keyframes sway{0%,100%{transform:translateX(-18px) rotate(-9deg)}50%{transform:translateX(18px) rotate(9deg)}}
+@keyframes hang{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes doze{0%,30%{transform:rotate(0)}60%,85%{transform:rotate(-24deg)}100%{transform:rotate(0)}}
+@keyframes lurch{0%,60%{transform:translateX(0) rotate(0)}70%{transform:translateX(34px) rotate(16deg)}85%{transform:translateX(30px) rotate(12deg)}100%{transform:translateX(0) rotate(0)}}
+@keyframes walk{0%{offset-distance:0%}100%{offset-distance:100%}}
+.a-sway{transform-origin:120px 190px;animation:sway 2.4s ease-in-out infinite}
+.a-hang{transform-origin:120px 30px;animation:hang 1.8s ease-in-out infinite}
+.a-doze{transform-origin:120px 150px;animation:doze 4.5s ease-in-out infinite}
+.a-lurch{transform-origin:120px 190px;animation:lurch 3.2s ease-in-out infinite}
+.walker{offset-path:path("M40 70 C90 20 120 120 170 60 S260 110 300 50 S380 100 420 70");animation:walk 7s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){.a-sway,.a-hang,.a-doze,.a-lurch,.walker{animation:none}}
+</style></head><body><main>
+<span class="tag">06 특수 승객 2차 · 시안</span>
+<h1>취객 몸짓 시안</h1>
+<p class="sub">06 기획서의 결정대로 취객은 구현 전에 몸짓부터 확인합니다. 아래 네 가지 몸짓 가운데 넣을 것을 골라 주세요. 그림은 3D 승객 모델에 붙일 동작의 느낌만 보여 주는 시안입니다.</p>
+
+<h2>몸짓 후보</h2>
+<div class="grid">
+ <div class="card">
+  <svg viewBox="0 0 240 220" aria-label="비틀거리며 서 있기"><line class="fig" x1="20" y1="205" x2="220" y2="205" style="stroke-width:2;opacity:.4"/>
+   <g class="a-sway"><line class="fig" x1="110" y1="150" x2="98" y2="200"/><line class="fig" x1="130" y1="150" x2="142" y2="200"/><rect class="body" x="98" y="80" width="44" height="74" rx="14"/><line class="fig" x1="100" y1="95" x2="76" y2="140"/><line class="fig" x1="140" y1="95" x2="166" y2="132"/><circle class="head" cx="120" cy="60" r="20"/><circle class="cheek" cx="110" cy="66" r="4"/><circle class="cheek" cx="130" cy="66" r="4"/></g></svg>
+  <b>A. 비틀거림</b><p>제자리에서 좌우로 크게 흔들린다. 흔들릴 때마다 옆 사람과 부딪힐 수 있다. 가장 알아보기 쉬운 기본 몸짓.</p></div>
+ <div class="card">
+  <svg viewBox="0 0 240 220" aria-label="손잡이에 매달리기"><line class="pole" x1="20" y1="22" x2="220" y2="22"/>
+   <g class="a-hang"><line class="fig" x1="120" y1="26" x2="120" y2="78"/><line class="fig" x1="110" y1="160" x2="104" y2="205"/><line class="fig" x1="130" y1="160" x2="138" y2="205"/><rect class="body" x="98" y="88" width="44" height="76" rx="14"/><line class="fig" x1="140" y1="100" x2="160" y2="140"/><circle class="head" cx="104" cy="78" r="19"/><circle class="cheek" cx="96" cy="84" r="4"/></g></svg>
+  <b>B. 손잡이에 매달리기</b><p>손잡이에 한 팔로 매달려 시계추처럼 흔들린다. 그 손잡이 앞자리는 서 있기 불편하다. 기획서의 "가끔 손잡이에 매달림".</p></div>
+ <div class="card">
+  <svg viewBox="0 0 240 220" aria-label="앉아서 졸다 기울어짐"><rect class="seat" x="40" y="150" width="160" height="22" rx="6"/><rect class="seat" x="40" y="96" width="160" height="16" rx="6" style="opacity:.6"/>
+   <g class="a-doze"><line class="fig" x1="112" y1="168" x2="104" y2="205"/><line class="fig" x1="132" y1="168" x2="140" y2="205"/><rect class="body" x="98" y="100" width="44" height="66" rx="14"/><circle class="head" cx="120" cy="82" r="19"/><circle class="cheek" cx="111" cy="88" r="4"/><circle class="cheek" cx="129" cy="88" r="4"/></g></svg>
+  <b>C. 앉아서 졸다 기울어짐</b><p>앉은 채 꾸벅꾸벅 졸다 옆자리로 기운다. 잠들면 종점까지 내리지 않는다는 낌새. 옆자리는 회복 -30%.</p></div>
+ <div class="card">
+  <svg viewBox="0 0 240 220" aria-label="갑자기 쏠리기"><line class="fig" x1="20" y1="205" x2="220" y2="205" style="stroke-width:2;opacity:.4"/>
+   <g class="a-lurch"><line class="fig" x1="110" y1="150" x2="98" y2="200"/><line class="fig" x1="130" y1="150" x2="142" y2="200"/><rect class="body" x="98" y="80" width="44" height="74" rx="14"/><line class="fig" x1="100" y1="95" x2="80" y2="134"/><line class="fig" x1="140" y1="95" x2="176" y2="110"/><circle class="head" cx="120" cy="60" r="20"/><circle class="cheek" cx="110" cy="66" r="4"/></g></svg>
+  <b>D. 갑자기 쏠리기</b><p>가만히 있다가 덜컹할 때 한쪽으로 확 쏠린다. 백팩처럼 직전에 어깨가 들썩이는 예고를 준다.</p></div>
+</div>
+
+<h2>통로에서 움직이는 모습 (위에서 본 그림)</h2>
+<div class="card">
+ <svg viewBox="0 0 460 140" aria-label="불규칙한 이동 경로"><rect x="10" y="10" width="440" height="120" rx="10" fill="none" stroke="#9aa7b2" stroke-width="2"/>
+  <path d="M40 70 C90 20 120 120 170 60 S260 110 300 50 S380 100 420 70" fill="none" stroke="#E5484D" stroke-width="2" stroke-dasharray="5 6" opacity=".6"/>
+  <g class="walker"><circle class="zone" r="34"/><circle r="11" fill="#6b7a8c" stroke="#1f2a44" stroke-width="2.5"/></g></svg>
+ <p>통로를 지그재그로 오가고, 빨간 점선 원 안에 있으면 체력이 깎인다(민폐 게이지가 아니라 체력). 거리를 두는 것이 대응이다.</p>
+</div>
+
+<h2>규칙 (06 기획서 + 제안 수치)</h2>
+<table>
+<tr><th>항목</th><th>내용</th></tr>
+<tr><td>등장</td><td>퇴근길과 주말 밤(약속 귀가길). 한 칸에 1명. 처음 만나면 독백으로 소개</td></tr>
+<tr><td>가까이 있을 때</td><td>반경 안에 있으면 체력 초당 -1 (민폐 게이지가 아님)</td></tr>
+<tr><td>옆자리</td><td>앉은 취객의 양옆 자리는 회복 -30% (큰 소리 통화와 같은 값)</td></tr>
+<tr><td>잠든 취객</td><td>잠들면 종점까지 내리지 않는다. 그 앞에서 기다려도 자리가 나지 않는다는 낌새로 읽는다</td></tr>
+<tr><td>대응</td><td>거리 두기. 다른 칸으로 옮기는 조작은 없다</td></tr>
+</table>
+
+<h2>골라 주실 것</h2>
+<div class="q">
+ <p><b>1. 넣을 몸짓</b>: A~D 가운데 고르기. 추천은 <b>A + C</b>입니다. 서 있을 때(A)와 앉아 있을 때(C)를 하나씩 두면 상태가 잘 구분됩니다. B는 손잡이 위치 판정과 겹쳐 규칙이 늘고, D는 백팩의 "돌기 전 들썩임"과 비슷합니다.</p>
+ <p><b>2. 체력 감소 반경과 값</b>: 반경 약 1m(승객 두 명 거리), 초당 -1을 제안합니다.</p>
+ <p><b>3. 등장 시점</b>: 기획서대로 퇴근길과 주말 밤만 나오게 할지, 금요일 퇴근길에만 나오게 할지.</p>
+</div>
+</main></body></html>

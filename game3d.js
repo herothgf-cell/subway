@@ -177,7 +177,7 @@ function syncMe(g,dt,time){
   const want=Math.PI/2-(P.turn?P.face:P.gaze);let d=want-me.hold.rotation.y;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;me.hold.rotation.y+=d*Math.min(1,dt*12);
   C.setSit(p3,false);p3.root.position.set(0,.86*(p3.o.h||1),0);
   C.reach(p3.arms[1],V(.245,-.04,.04));C.reach(p3.arms[-1],V(-.245,-.04,.04));p3.neck.rotation.set(.05,0,0);
-  if(P.brace)C.reach(p3.arms[1],V(.2,.84,.08));                                                                 // 손잡이를 잡는다
+  if(P.brace||P.grip)C.reach(p3.arms[1],V(.2,.84,.08));                                                                 // 손잡이를 잡는다
   if(P.turn){const s=P.turn.side*(Math.cos(me.hold.rotation.y)>0?1:-1);C.reach(p3.arms[1],V(.1,.3,.44));C.reach(p3.arms[-1],V(-.1,.3,.44));p3.neck.rotation.y=-s*.9;}   // 몸을 돌리고 팔로 막는다
   const sp=Math.hypot(P.x-me.lx,P.y-me.ly)*S/Math.max(dt,.001),k=Math.min(1,sp/1.2);me.lx=P.x;me.ly=P.y;me.walk+=dt*11*k;legs(p3,me.walk,k);
 }
@@ -193,6 +193,9 @@ function overlay(g,time){
   // 보고 있는 승객
   if(focus&&focus.state!=="gone"&&g.ps.includes(focus)){const sx=focus.seat?focus.seat.x:focus.x,sy=focus.seat?focus.seat.y:focus.y,q=proj(X(sx),focus.seat?1.12:1.3,Z(sy));
     if(q){const r=34+Math.sin(time*6)*2;ctx.strokeStyle="rgba(31,42,68,.85)";ctx.lineWidth=3;for(const [a,b] of[[-1,-1],[1,-1],[-1,1],[1,1]]){ctx.beginPath();ctx.moveTo(q[0]+a*r-a*11,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r);ctx.lineTo(q[0]+a*r,q[1]+b*r-b*11);ctx.stroke();}}}
+  {const c=typeof G!=="undefined"&&G&&G.carrier;   // 캐리어 (06 2차)
+    if(c&&!R.carM){const m=new THREE.Group();m.add(C.box(.38,.56,.24,"#3f63a0"));const hd=C.box(.04,.28,.04,"#22262b");hd.position.set(0,.42,0);m.add(hd);const bar=C.box(.2,.04,.05,"#22262b");bar.position.set(0,.56,0);m.add(bar);R.scene.add(m);R.carM=m;}
+    if(R.carM){R.carM.visible=!!c;if(c){R.carM.position.set(X(c.x),.3,Z(c.y));R.carM.rotation.z=c.roll>0?Math.sin(time*18)*.14:0;}}}
   if(R.spBag)R.spBag.visible=typeof G!=="undefined"&&!!G&&G.seats.some(o=>o.narrow)&&time-(R.spBagT||0)<.5;
   // 시선 눈치: 화면 가운데의 옅은 원이 정면 범위(대략). 정면으로 본 승객 머리 위에 눈 게이지가 차오르고, 원 밖에 두면 곁눈질이다
   if(typeof GAZE!=="undefined"&&GAZE){

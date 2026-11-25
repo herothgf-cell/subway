@@ -41,9 +41,9 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <div class="tw"><table>
 <tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
 <tr><td>2</td><td>달력 구조</td><td><span class="st ok">구현됨</span></td><td>7일 주간, 4주차 금요일 월급날</td></tr>
-<tr><td>3</td><td>날짜 유형</td><td><span class="st part">일부 구현</span></td><td>출근일, 약속, 휴무, 월급날. 공휴일은 없다. 동행자는 V1 제외</td></tr>
+<tr><td>3</td><td>날짜 유형</td><td><span class="st part">일부 구현</span></td><td>출근일, 약속, 휴무, 월급날, 공휴일(2026-11-26, 실제 달력). 동행자는 V1 제외</td></tr>
 <tr><td>4</td><td>주말 약속</td><td><span class="st part">일부 구현</span></td><td>4종(친구 모임, 결혼식, 야구 관람, 본가 방문). 데이트는 V1 제외. 연속 거절 규칙은 없다</td></tr>
-<tr><td>5</td><td>그날의 변수</td><td><span class="st part">일부 구현</span></td><td>비, 열차 지연, 한산한 날. 행사일은 없다. 한파·폭염은 V1 제외. 16 난이도 문서에 따라 바뀔 예정</td></tr>
+<tr><td>5</td><td>그날의 변수</td><td><span class="st part">일부 구현</span></td><td>비, 열차 지연, 한산한 날, 만원 열차, 행사일(2026-11-26). 한파·폭염은 V1 제외</td></tr>
 <tr><td>6</td><td>도착 시한 (지각)</td><td><span class="st part">일부 구현</span></td><td>여유 N대, 열차 한 대 보내기, 지각 -30%, 팀장 호출. 순환선 돌아가기는 없다</td></tr>
 <tr><td>7</td><td>화면</td><td><span class="st part">일부 구현</span></td><td>주간 일정 7칸, 체크와 줄 긋기. 계획 미리 적기는 없다</td></tr>
 <tr><td>8</td><td>정산 주기</td><td><span class="st part">일부 구현</span></td><td>월간 결산은 없다. 15 성장 구조 문서에 따라 바뀔 예정</td></tr>
@@ -71,7 +71,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>출근일</td><td>월~금</td><td>집 ↔ 회사</td><td>기본. 요일이 갈수록 혼잡 (현재 규칙)</td><td><span class="st ok">구현됨</span></td></tr>
 <tr><td>약속</td><td>토·일</td><td>집 ↔ 약속 장소</td><td>목적지가 매번 다름. 동행자가 붙을 수 있음 (<a href="99_misc_ideas_v1.html">99</a>)</td><td><span class="st part">일부 구현</span> 한 방향만. 동행자는 <span class="st cut">V1 제외</span></td></tr>
 <tr><td>휴무</td><td>토·일</td><td>없음</td><td>체력 완전 회복. 포인트 없음</td><td><span class="st ok">구현됨</span></td></tr>
-<tr><td>공휴일</td><td>평일 중 가끔</td><td>약속 또는 휴무</td><td>주말과 같게 처리</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>공휴일</td><td>평일 중 가끔</td><td>약속 또는 휴무</td><td>주말과 같게 처리</td><td><span class="st ok">구현됨 (2026-11-26)</span><br>실제 달력(기본 2026년, 대체공휴일 포함). 1주차는 설정 연도에서 오늘과 같은 날짜가 든 주. 금요일이 공휴일이면 그 전 출근일에 주 마감. 1주차 월요일은 출근. 개발용 <code>?year=2027&amp;start=05-04</code></td></tr>
 <tr><td>월급날</td><td>4주차 금요일</td><td>집 ↔ 회사</td><td>퇴근길 최대 혼잡. 완주하면 상점 품목 추가 (<a href="10_item_v1.html">10</a>)</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 
@@ -98,7 +98,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>비</td><td>젖은 우산으로 승객 간격이 좁아짐, 바닥 미끄러움(밀림 +20%)</td><td>전날 예보 (70% 적중)</td><td><span class="st ok">구현됨</span></td></tr>
 <tr><td>열차 지연</td><td>승강장 대기 인원이 한 번에 탐</td><td>당일 승강장에서</td><td><span class="st ok">구현됨</span></td></tr>
 <tr><td>한산한 날</td><td>서 있는 승객 -30%</td><td>주간 일정에 표시 (연휴 전날 등)</td><td><span class="st ok">구현됨</span> -25%</td></tr>
-<tr><td>행사일</td><td>특정 역 승하차 급증 (야구, 콘서트, 불꽃축제)</td><td>주간 일정에 표시</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>행사일</td><td>특정 역 승하차 급증 (야구, 콘서트, 불꽃축제)</td><td>주간 일정에 표시</td><td><span class="st ok">구현됨 (2026-11-26)</span><br>평일 10%, 내 퇴근 구간 안쪽에 행사 역(종합운동장, 잠실, 서울대입구, 건대입구, 홍대입구, 시청)이 있을 때. 그날 퇴근길에 그 역의 하차 가중치 ×2, 승차 ×2. 주간 일정에 ★. 불꽃축제는 2호선에 역이 없어 뺐다</td></tr>
 <tr><td>한파·폭염</td><td>두꺼운 옷으로 모두의 부피 증가 / 서 있을 때 체력 소모 +10%</td><td>주간 일정에 표시</td><td><span class="st cut">V1 제외</span></td></tr>
 </table></div>
 
@@ -149,7 +149,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>월급날</b>: 4주차 금요일 퇴근 승객 ×1.25. 완주하면 주말 상점 진열 6개.</li>
 <li>두 번째 알람 스킬(09, 계획 계열): 여유 +1대 / 열차를 보내기 전에 다음 열차 안내판을 미리 봄. 40 / 180P.</li>
 <li>기획서와 다르게 한 곳: 결정 때 "약속은 친구 모임만 귀가, 나머지는 가는 길"로 정했지만, 야구 관람의 특징(경기 종료 인파)이 귀가길에만 의미가 있어 <b>야구 관람도 귀가길</b>로 넣었다.</li>
-<li>뒤로 미룬 것 <span class="st wait">보류</span>: 공휴일, 행사일의 일반 통근 영향, 약속 보상 아이템, 계획 미리 적기와 보너스, 일정별 전용 계획(12), 연속 거절 시 보상 감소, 월간 결산.</li>
+<li>뒤로 미룬 것 <span class="st wait">보류</span>: 약속 보상 아이템, 계획 미리 적기와 보너스, 일정별 전용 계획(12), 연속 거절 시 보상 감소, 월간 결산.</li>
 <li>V1에서 뺀 것 <span class="st cut">V1 제외</span> (2026-11-25 결정): 데이트(99), 동행자(99), 한파·폭염(99 계절).</li>
 </ul>
 

@@ -70,7 +70,7 @@ for(const name in BOTS){if(ONLY&&!ONLY.split(",").includes(name))continue;
     "눈 마주침/편도":avg(legs.map(l=>l.eyeN||0)).toFixed(2),
     "쓸려 내림/편도":avg(legs.map(l=>l.sweeps||0)).toFixed(2),
     // 2026-11-26 (다음 구현 순서 2단계): 주차별 곡선과 편도 한 번의 체력
-    "주차별 생존(그 주를 다 버틴 런)":Array.from({length:WEEKS},(_,i)=>pct(runs.filter(r=>r.some(l=>l.week===i+1&&l.day===4&&l.leg==="pm"&&!l.fail)).length/RUNS)).join(" / "),
+    "주차별 생존(그 주를 다 버틴 런)":Array.from({length:WEEKS},(_,i)=>pct(runs.filter(r=>r.some(l=>l.week===i+1&&l.wkDone)).length/RUNS)).join(" / "),
     "탈락 주차 평균":f1(avg(runs.map(r=>{const f=r.find(l=>l.fail);return f?f.week:WEEKS+1;}))),
     "편도 체력 변화(완주, 시작→도착)":f1(avg(done.map(l=>l.start)))+" → "+f1(avg(done.map(l=>l.stamina))),
     "도착 체력 분포(완주) 0-29/30-69/70-99/100":(()=>{const a=done.map(l=>l.stamina),n=a.length||1;return [a.filter(v=>v<30).length,a.filter(v=>v>=30&&v<70).length,a.filter(v=>v>=70&&v<99.5).length,a.filter(v=>v>=99.5).length].map(v=>pct(v/n)).join(" / ");})(),

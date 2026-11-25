@@ -103,7 +103,7 @@ var __bot=(function(){
     profile.skills=Object.assign({},cfg.skills||{});profile.points=0;
     startRun();const legs=[];
     while(run&&run.week<=maxWeeks){
-      const info={week:run.week,day:run.day,leg:run.leg,start:run.stamina};
+      const info={week:run.week,day:run.day,leg:run.leg,start:run.stamina},fw0=run.fullWeeks||0;
       if(cfg.planPolicy)botPickPlans(cfg);
       startLeg(pickDoor(cfg));st={};last=null;
       if(G.dp&&G.dp.some(d=>d.k==="stand"))st.noSit=()=>G.st<standHalf();
@@ -113,7 +113,7 @@ var __bot=(function(){
         if(mode==="reboard"){let b=0,bn=1e9;DOORS.forEach((d,i)=>{const n=G.ps.filter(p=>p.state!=="seated"&&Math.abs(p.x-d.cx)<110).length;if(n<bn){bn=n;b=i;}});reboard(cfg.readsBoard?b:irand(0,3));continue;}
         tick(cfg);update(DT);}
       if(!last){info.fail="timeout";legs.push(info);break;}
-      Object.assign(info,last);legs.push(info);
+      Object.assign(info,last);if(run&&(run.fullWeeks||0)>fw0)info.wkDone=true;legs.push(info);
       if(run){
         if(run.needCard){showCard();   // 회사·집 카드: base는 기준 선택만, rest는 회복량이 큰 것, random은 아무거나
           const o=run.cardOpts,work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,pol=cfg.cardPolicy||"base";
@@ -125,6 +125,7 @@ var __bot=(function(){
           info.card=k;chooseCard(k);}
         else if(run.day>=5){restWeekend();if(run.week<=maxWeeks)showPlatform();}   // 주말은 쉰다 (04)
         else showPlatform();
+        while(run&&mode==="weekend"&&run.week<=maxWeeks)restDay();   // 평일 공휴일 (04): 쉰다
       }
     }
     run=null;return legs;

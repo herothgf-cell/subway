@@ -42,11 +42,11 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
 <tr><td>1</td><td>목적</td><td>-</td><td>설명</td></tr>
 <tr><td>2</td><td>원칙</td><td>-</td><td>버티기·손잡이 절반 규칙은 백팩에 적용돼 있다. 한 칸의 특수 승객은 유형이 2종이라 최대 2명이다</td></tr>
-<tr><td>3</td><td>유형</td><td><span class="st part">일부 구현</span></td><td>10종 가운데 백팩, 넓게 앉기 2종만 있다. 나머지 8종은 보류. "기대어 잠든 승객"은 99에 남긴 "앉아서 할 거리" 아이디어와 연결된다. 매너 점수는 V1 제외</td></tr>
+<tr><td>3</td><td>유형</td><td><span class="st part">일부 구현</span></td><td>10종 가운데 백팩, 넓게 앉기, 캐리어, 큰 소리 통화 4종(2026-11-26 2차). 취객은 몸짓 시안 확인 중(<a href="06_drunk_gesture_mockup.html">시안</a>), 나머지 5종은 보류. "기대어 잠든 승객"은 99에 남긴 "앉아서 할 거리" 아이디어와 연결된다. 매너 점수는 V1 제외</td></tr>
 <tr><td>4</td><td>양심 승객</td><td><span class="st part">일부 구현</span></td><td>어르신 양보만 있다. 임산부 배지, 유모차·휠체어, 다친 승객은 보류. 이 확장은 99에 남긴 "앉아서 할 거리" 아이디어와 연결된다</td></tr>
 <tr><td>5</td><td>등장 규칙</td><td><span class="st part">일부 구현</span></td><td>등장 수, 첫 만남 독백, 만남·대응 기록은 있다. 시간대·구간 가중치와 도감 화면은 없다. 주차별 강화는 16에서 정한다</td></tr>
 <tr><td>6</td><td>도입 순서</td><td><span class="st part">일부 구현</span></td><td>1단계(백팩, 넓게 앉기)만 끝났다</td></tr>
-<tr><td>7</td><td>미결 사항</td><td>-</td><td>취객은 2차에서 몸짓 시안을 먼저 본다</td></tr>
+<tr><td>7</td><td>미결 사항</td><td>-</td><td>취객은 2차에서 몸짓 시안을 먼저 본다 → <a href="06_drunk_gesture_mockup.html">시안</a> 확인 대기</td></tr>
 </table></div>
 <h2>1. 목적</h2>
 <ul>
@@ -87,8 +87,8 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>취객</td><td>비틀거리며 불규칙하게 이동, 가끔 손잡이에 매달림</td><td>가까이 있으면 민폐 게이지가 아닌 <b>체력</b>이 깎임. 옆자리 회복 -30%</td><td>거리 두기. 잠들면 종점까지 안 내리는 자리</td><td>퇴근, 주말 밤</td><td><span class="st wait">보류</span><br>몸짓 시안 확인 뒤</td></tr>
 <tr><td>통로 판매·홍보</td><td>객차 끝에서 끝으로 일정 속도로 걸어감</td><td>지나가는 동안 통로의 서 있는 승객이 양옆으로 밀림</td><td>오는 방향을 보고 좌석 앞 줄로 비켜서기. 밀려난 틈에 생긴 길 이용</td><td>낮, 한산한 날</td><td><span class="st wait">보류</span></td></tr>
 <tr><td>등산 단체</td><td>4~6명이 모여 서서 대화</td><td>통로 한 구역을 통째로 막음</td><td>사당 등 특정 역에서 한꺼번에 내림 → 미리 그 앞 좌석을 노림</td><td>주말 오전</td><td><span class="st wait">보류</span></td></tr>
-<tr><td>캐리어</td><td>캐리어를 옆에 세워 둠. 급정거 때 캐리어가 굴러감</td><td>통로 한 칸 차단, 굴러온 캐리어에 맞으면 충돌</td><td>우회. 굴러가는 캐리어를 E로 잡아 주면 +10P, 민폐 -10</td><td>강변, 홍대입구, 주말</td><td><span class="st wait">보류</span><br>04의 "본가 방문"은 내가 캐리어를 끄는 규칙이고 이 유형과 다르다</td></tr>
-<tr><td>큰 소리 통화</td><td>앉아서 계속 통화</td><td>주변 좌석 2칸의 체력 회복 -30%</td><td>이어폰 아이템으로 무시 (<a href="10_item_v1.html">10</a>). 통화 내용에서 하차역을 들을 수 있음 (확실 힌트)</td><td>항상</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>캐리어</td><td>캐리어를 옆에 세워 둠. 급정거 때 캐리어가 굴러감</td><td>통로 한 칸 차단, 굴러온 캐리어에 맞으면 충돌</td><td>우회. 굴러가는 캐리어를 E로 잡아 주면 +10P, 민폐 -10</td><td>강변, 홍대입구, 주말</td><td><span class="st ok">구현됨 (2026-11-26)</span> 통근의 30%, 경고가 뜬 급정거에 굴러감. 등장 장소 조건은 아직 없다<br>04의 "본가 방문"은 내가 캐리어를 끄는 규칙이고 이 유형과 다르다</td></tr>
+<tr><td>큰 소리 통화</td><td>앉아서 계속 통화</td><td>주변 좌석 2칸의 체력 회복 -30%</td><td>이어폰 아이템으로 무시 (<a href="10_item_v1.html">10</a>). 통화 내용에서 하차역을 들을 수 있음 (확실 힌트)</td><td>항상</td><td><span class="st ok">구현됨 (2026-11-26)</span> 통근의 35%, 양옆 자리 회복 -30%. <b>다르게 구현</b>: 통화로 하차역을 알려 주는 부분은 뺐다("하차역을 직접 알려 주지 않는다" 원칙)</td></tr>
 <tr><td>기대어 잠든 승객</td><td>옆사람 쪽으로 점점 기울어짐</td><td>옆자리에 앉으면 주기적으로 체력 회복이 멈춤</td><td>어깨를 살짝 피하기(A/D 타이밍). 끝까지 받아 주면 매너 +</td><td>출근, 막차</td><td><span class="st wait">보류</span><br>99에 남긴 "앉아서 할 거리" 아이디어와 연결된다. 매너 점수와 막차는 <span class="st cut">V1 제외</span></td></tr>
 <tr><td>뛰어 타는 승객</td><td>문 닫히기 직전 뛰어 들어옴</td><td>문 앞 승객을 연쇄로 밀침</td><td>정차 중 문 앞에 서 있지 않기</td><td>모든 역, 낮은 확률</td><td><span class="st wait">보류</span></td></tr>
 <tr><td>현장학습 단체</td><td>어린이 여러 명 + 인솔자. 줄지어 이동</td><td>줄을 끊고 지나가면 민폐 +15</td><td>줄이 지나갈 때까지 기다리기. 한꺼번에 내려 자리가 많이 남</td><td>평일 낮, 공휴일</td><td><span class="st wait">보류</span></td></tr>
@@ -118,7 +118,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <p class="status"><b>구현</b>: 1단계 / <b>보류</b>: 2·3단계</p>
 <ol>
 <li>백팩, 넓게 앉기 — 기존 충돌·좌석 시스템만으로 구현 가능<span class="st ok">구현됨</span></li>
-<li>취객, 캐리어 — 움직이는 장애물 처리 필요<span class="st wait">보류</span></li>
+<li>취객, 캐리어 — 움직이는 장애물 처리 필요. 캐리어는 구현(2026-11-26), 취객은 시안 확인 대기<span class="st part">일부 구현</span></li>
 <li>통로 판매·홍보, 단체 — 여러 승객을 동시에 움직이는 처리 필요<span class="st wait">보류</span></li>
 </ol>
 
