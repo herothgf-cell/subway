@@ -236,7 +236,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
     <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div><div id="tutmemo"></div>
     <div id="bottom">
       <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
-      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>Shift</kbd>손잡이 잡기</span><span><kbd>R</kbd>휴대폰 보는 척</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>Tab</kbd>계획표 접기</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지 · 가이드</span>
+      <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>우클릭</kbd>/<kbd>Shift</kbd>손잡이 잡기</span><span><kbd>R</kbd>휴대폰 보는 척</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>Tab</kbd>계획표 접기</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지 · 가이드</span>
       <span id="planslots"></span>
     </div>
   </div>
@@ -1027,7 +1027,7 @@ const TUT=[
   t=>`마우스로 시선을 돌려 앉은 승객을 살펴보자. 차림새와 몸짓이 내릴 역의 단서다. (${Math.min(3,t.seen.size)}/3)`,
   t=>`과잠 대학생(객차 가운데 자리)은 ${t.stop}에서 자주 내린다. 그 사람을 보고 클릭(또는 F)해서 자리를 찜.`,
   t=>t.missed?"…괜찮아. 플랜 B가 있어. 다른 승객의 몸짓을 보고, 자리가 비면 E로 앉자.":`찜한 자리 앞에 서서 기다리자. ${t.stop}에서 일어나면 A/D로 몸을 돌려 길을 터 주고, E로 앉기.`,
-  t=>"계획대로. 앉아 있으면 체력이 돌아온다. 서 있을 땐 ‘덜컹!’에 Shift로 손잡이, 어르신이 오면 E로 양보. 이제 "+G.route[G.N]+"까지."];
+  t=>"계획대로. 앉아 있으면 체력이 돌아온다. 서 있을 땐 ‘덜컹!’에 우클릭(Shift)으로 손잡이, 어르신이 오면 E로 양보. 이제 "+G.route[G.N]+"까지."];
 function tutTick(){
   const g=G,t=g.tut,pl=g.pl;
   if(g.stamina<20)g.stamina=20;if(g.nuis>90)g.nuis=90;   // 튜토리얼 통근은 탈락하지 않는다
@@ -1403,7 +1403,7 @@ function update(rdt){
   // 플레이어
   let touching=false;
   if(!pl.seat){
-    {const want=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space),ok=want&&nearHandle(pl.x,pl.y);
+    {const want=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space||keys.Mouse2),ok=want&&nearHandle(pl.x,pl.y);
       if(want&&!ok&&!pl.noHandle){pl.noHandle=true;toast("여기에는 잡을 손잡이가 없습니다. 좌석 앞이나 문 옆 기둥으로 가세요.");}
       if(!want)pl.noHandle=false;
       pl.brace=ok;}
@@ -2164,7 +2164,7 @@ function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계
 }
 /* ========== 가이드 (개선점: 가이드 버튼). 화면에 표시하지 않는 규칙(자리 등급 등)은 여기에서만 알려 준다 ========== */
 const GUIDE=[
- ["조작","WASD 이동, 마우스로 둘러보기(화면 클릭). 보고 있는 승객을 클릭하거나 F로 그 자리를 찜하고, E로 앉기·일어서기·양보. Shift 또는 Space로 손잡이를 잡고, Tab으로 계획표를 접고 편다. V는 3D와 탑뷰 전환, M은 안내방송 끄기, Esc는 일시정지."],
+ ["조작","WASD 이동, 마우스로 둘러보기(화면 클릭). 보고 있는 승객을 클릭하거나 F로 그 자리를 찜하고, E로 앉기·일어서기·양보. 마우스 오른쪽 버튼(누르고 있는 동안)이나 Shift·Space로 손잡이를 잡고, Tab으로 계획표를 접고 편다. V는 3D와 탑뷰 전환, M은 안내방송 끄기, Esc는 일시정지."],
  ["곧 내릴 사람 읽기","앉은 승객은 내리기 전에 몸짓(낌새)을 보인다. 짐을 챙기거나 휴대폰을 넣는 식이다. 낌새가 보이기 전에 찜해 두고 그 자리에 앉으면 '계획대로', 끝자리를 계획대로 앉으면 '완벽한 계획대로'. 페이크 동작에 속지 말 것. 오래 빤히 보면 눈이 마주쳐 민폐가 오른다."],
  ["자리마다 다르다","끝자리(칸막이 옆 양 끝)는 앉아 있을 때 회복이 가장 좋지만, 비면 모두가 노려서 경쟁이 가장 세다. 넓게 앉은 승객 옆의 좁은 자리는 회복이 절반이다. 임산부 배려석에 앉으면 시선이 따갑고 민폐가 오른다. 나머지는 보통 자리."],
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
@@ -2274,7 +2274,7 @@ function showItemShop(after){   // 상점: 진열 4개 (런이 끝날 때마다 
 }
 function setPause(v){
   if(mode!=="play")return;paused=v;annPause(v);
-  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
+  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · 우클릭/Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
     <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="bg">가이드</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
     $("b1").onclick=()=>setPause(false);$("bg").onclick=()=>showGuide(()=>setPause(true));$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
@@ -2408,8 +2408,14 @@ frame.addEventListener("mousemove",e=>{
   if(view==="q"){if(locked()&&G&&mode==="play"&&!paused){G.pl.gazeT+=e.movementX*.0026;pitch3=clamp(pitch3+e.movementY*.002,-.55,.5);}return;}
   const p=toWorld(e);mouse.x=p.x;mouse.y=p.y;mouse.inside=true;});
 frame.addEventListener("mouseleave",()=>{mouse.inside=false;});
+frame.addEventListener("contextmenu",e=>e.preventDefault());
+addEventListener("mouseup",e=>{if(e.button===2)keys.Mouse2=false;});
 cv.addEventListener("mousedown",e=>{
   if(mode!=="play"||paused)return;
+  if(e.button===2){   // 우클릭을 누르고 있는 동안 손잡이를 잡는다 (Shift·Space와 같음)
+    e.preventDefault();if(view==="q"&&!locked()&&frame.requestPointerLock)frame.requestPointerLock();
+    keys.Mouse2=true;return;}
+  if(e.button!==0)return;
   if(view==="q"){   // 3D: 첫 클릭은 마우스 잠금, 그다음부터는 보고 있는 승객 찜 또는 빈자리 앉기
     if(!locked()){frame.requestPointerLock&&frame.requestPointerLock();return;}
     if(focus&&focus.state==="seated")togglePlan(focus.seat);else if(!G.pl.seat)trySit(null);
