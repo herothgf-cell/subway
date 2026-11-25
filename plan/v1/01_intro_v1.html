@@ -29,10 +29,24 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">01</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
 <h1>인트로</h1><p>첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>)를 확인해 장마다 표시했다. <span class="st ok">구현됨</span> <span class="st part">일부 구현</span> <span class="st wait">보류</span> <span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>2</td><td>진행 순서 (시안 먼저)</td><td><span class="st ok">구현됨</span></td><td>시안 <code>intro-flow.html</code> 확인 뒤 게임에 넣었다</td></tr>
+<tr><td>3</td><td>컷 구성</td><td><span class="st ok">구현됨</span></td><td>컷 ①~④(3·5·4·3초)와 ⑤ 캐릭터 선택. 두 번째 실행부터 컷 ③만</td></tr>
+<tr><td>4</td><td>타이틀 화면</td><td><span class="st part">일부 구현</span></td><td>배경과 전광판 기록은 있다. 메뉴는 출근하기 / 불러오기 두 개로 다르게 구현</td></tr>
+<tr><td>5</td><td>튜토리얼</td><td><span class="st part">일부 구현</span></td><td>6단계 플래너 메모, 탈락 없음. 다시 보기는 없다</td></tr>
+<tr><td>9</td><td>1차 구현 내용</td><td><span class="st ok">구현됨</span></td><td>저장 슬롯 3개가 추가됐다</td></tr>
+</table></div>
+
 <h2>1. 목적</h2>
 <ul>
 <li>처음 켠 사람이 <b>30초 안에</b> "누구인지(파워 J 직장인), 무엇을 하는지(계획한 자리에 앉기), 왜 하는지(서서 가면 하루가 무너짐)"를 알게 한다.</li>
@@ -40,47 +54,50 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>인트로 끝이 곧 첫 통근(튜토리얼)의 시작이 되도록 끊김 없이 잇는다.</li>
 </ul>
 
-<h2>2. 진행 순서 (시안 먼저)</h2>
+<h2>2. 진행 순서 (시안 먼저) <span class="st ok">구현됨</span></h2>
 <p class="note">인트로는 바로 개발하지 않는다. <b>시안 흐름을 먼저 확인</b>한 뒤 개발한다.</p>
 <div class="tw"><table>
-<tr><th>단계</th><th>산출물</th><th>확인할 것</th></tr>
-<tr><td>① 시안 흐름</td><td><code>intro-flow.html</code>: 컷 ①~⑤와 타이틀 화면을 정지 화면으로 이어 붙인 클릭형 스토리보드. 게임 코드와 분리된 단독 파일</td><td>컷 순서와 길이, 문구, 화면 구도, 톤</td></tr>
-<tr><td>② 검토</td><td>시안을 보고 수정 의견 반영 (필요하면 2~3안 비교)</td><td>확정 여부</td></tr>
-<tr><td>③ 개발</td><td>확정된 흐름만 게임(<code>index.html</code>)에 구현</td><td>건너뛰기, 재실행 시 생략, 튜토리얼 연결</td></tr>
+<tr><th>단계</th><th>산출물</th><th>확인할 것</th><th>상태</th></tr>
+<tr><td>① 시안 흐름</td><td><code>intro-flow.html</code>: 컷 ①~⑤와 타이틀 화면을 정지 화면으로 이어 붙인 클릭형 스토리보드. 게임 코드와 분리된 단독 파일</td><td>컷 순서와 길이, 문구, 화면 구도, 톤</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>② 검토</td><td>시안을 보고 수정 의견 반영 (필요하면 2~3안 비교)</td><td>확정 여부</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>③ 개발</td><td>확정된 흐름만 게임(<code>index.html</code>)에 구현</td><td>건너뛰기, 재실행 시 생략, 튜토리얼 연결</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
 <li>시안은 저장소의 기존 시안 파일(<code>concept-compare.html</code>, <code>character-lineup.html</code>)과 같은 방식으로 만든다.</li>
 <li>아래 컷 구성과 튜토리얼 단계는 시안의 출발점이며, 시안 확인 과정에서 바뀔 수 있다.</li>
 </ul>
 
-<h2>3. 컷 구성</h2>
+<h2>3. 컷 구성 <span class="st ok">구현됨</span></h2>
 <div class="tw"><table>
-<tr><th>컷</th><th>화면</th><th>텍스트</th><th>길이</th></tr>
-<tr><td>① 알람</td><td>어두운 방, 휴대폰 알람 06:30. 알람이 울리기 1초 전에 손이 먼저 끈다.</td><td>(무음)</td><td>3초</td></tr>
-<tr><td>② 플래너</td><td>분 단위로 적힌 다이어리. 06:30 기상, 07:12 신림역 3-2 승강장, 07:14 탑승, <b>07:16 착석</b>에 형광펜.</td><td>"오늘도 계획대로."</td><td>5초</td></tr>
-<tr><td>③ 승강장</td><td>2호선 승강장에 줄 선 사람들. 열차가 들어오며 전광판에 타이틀 로고가 흐른다.</td><td>계획대로, 2호선</td><td>4초</td></tr>
-<tr><td>④ 문 열림</td><td>문이 열리고 꽉 찬 객차. 플래너의 "07:16 착석"에 금이 간다.</td><td>"…계획에 없던 인파다."</td><td>3초</td></tr>
-<tr><td>⑤ 캐릭터 선택</td><td>사원증 카드 형태의 캐릭터 선택 화면 (02 문서)</td><td>-</td><td>조작</td></tr>
+<tr><th>컷</th><th>화면</th><th>텍스트</th><th>길이</th><th>상태</th></tr>
+<tr><td>① 알람</td><td>어두운 방, 휴대폰 알람 06:30. 알람이 울리기 1초 전에 손이 먼저 끈다.</td><td>(무음)</td><td>3초</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>② 플래너</td><td>분 단위로 적힌 다이어리. 06:30 기상, 07:12 신림역 3-2 승강장, 07:14 탑승, <b>07:16 착석</b>에 형광펜.</td><td>"오늘도 계획대로."</td><td>5초</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>③ 승강장</td><td>2호선 승강장에 줄 선 사람들. 열차가 들어오며 전광판에 타이틀 로고가 흐른다.</td><td>계획대로, 2호선</td><td>4초</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>④ 문 열림</td><td>문이 열리고 꽉 찬 객차. 플래너의 "07:16 착석"에 금이 간다.</td><td>"…계획에 없던 인파다."</td><td>3초</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>⑤ 캐릭터 선택</td><td>사원증 카드 형태의 캐릭터 선택 화면 (02 문서)</td><td>-</td><td>조작</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <p class="note">모든 컷은 아무 키나 누르면 넘어간다. 두 번째 실행부터는 ③ 타이틀만 보여 주고 바로 메뉴로 간다.</p>
+<p class="status"><b>다르게 구현</b>: 컷 ③의 로고와 전광판 문구는 "계획대로, 지하철"이다. 컷 ②의 제목은 "1주차 월요일"이고, 시각·문·자리는 캐릭터마다 다르다. 클릭으로도 넘어가고 Esc는 남은 컷을 모두 건너뛴다.</p>
 
-<h2>4. 타이틀 화면</h2>
+<h2>4. 타이틀 화면 <span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 스크린도어 너머로 지나가는 열차, 역명판 메뉴, 전광판의 최장 개근 기록. / <b>다르게 구현</b>: 메뉴는 출근하기(새로 시작) / 불러오기 두 개다(2026-11-24 결정). 둘 다 저장 슬롯 3개 중 하나를 고른 뒤 진행한다. / <b>보류</b>: 새 주 시작, 캐릭터, 스킬, 기록 메뉴는 타이틀에 두지 않는다. 캐릭터는 출근하기 뒤에 고른다.</p>
 <ul>
 <li>배경: 승강장 스크린도어 너머로 열차가 주기적으로 지나간다. 역명판에 메뉴가 적혀 있다.</li>
 <li>메뉴: <b>출근하기</b>(이어하기) / 새 주 시작 / 캐릭터 / 스킬 / 기록</li>
 <li>열차 도착 안내 전광판에 최고 기록(최장 개근 주차)을 흘려보낸다.</li>
 </ul>
 
-<h2>5. 튜토리얼 (1주차 월요일 출근)</h2>
+<h2>5. 튜토리얼 (1주차 월요일 출근) <span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 서 있는 승객 12명, 플래너 메모 6단계(왼쪽 아래), 탈락 없음(체력 최저 20, 민폐 최대 90), 끝나면 <code>seenHelp</code> 켜짐. / <b>다르게 구현</b>: 단계는 구간이 아니라 완료 조건으로 넘어간다. 2단계는 몇 걸음(60px) 움직이면 끝난다. 5단계는 3번째 역에서 앉는 것이고 한계획이면 서울대입구다. 6단계는 플래너 메모로 안내한다. / <b>보류</b>: 설정에서 다시 보기(설정 화면이 없다).</p>
 <p>별도 모드를 만들지 않고, 첫 통근을 한산하게 조정해 단계별로 가르친다. 서 있는 승객 12명(평소 월요일 24명의 절반).</p>
 <div class="tw"><table>
-<tr><th>단계</th><th>구간</th><th>배우는 것</th><th>완료 조건</th></tr>
-<tr><td>1</td><td>승강장</td><td>탈 문 고르기, 혼잡도 안내판</td><td>문 선택</td></tr>
-<tr><td>2</td><td>1번째 역 사이</td><td>WASD 이동, 부딪히면 민폐</td><td>객차 가운데까지 이동</td></tr>
-<tr><td>3</td><td>2번째 역 사이</td><td>마우스 시선, 승객 차림새 읽기</td><td>승객 3명 살펴보기</td></tr>
-<tr><td>4</td><td>3번째 역 사이</td><td>찜하기 (과잠 대학생이 서울대입구에서 내리도록 고정)</td><td>찜 1회</td></tr>
-<tr><td>5</td><td>서울대입구 정차</td><td>자리 앞 선점, E로 앉기, "계획대로!" 연출</td><td>착석</td></tr>
-<tr><td>6</td><td>이후</td><td>손잡이(Shift), 양보 상황은 말풍선 안내만</td><td>강남 도착</td></tr>
+<tr><th>단계</th><th>구간</th><th>배우는 것</th><th>완료 조건</th><th>상태</th></tr>
+<tr><td>1</td><td>승강장</td><td>탈 문 고르기, 혼잡도 안내판</td><td>문 선택</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>2</td><td>1번째 역 사이</td><td>WASD 이동, 부딪히면 민폐</td><td>객차 가운데까지 이동</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>3</td><td>2번째 역 사이</td><td>마우스 시선, 승객 차림새 읽기</td><td>승객 3명 살펴보기</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>4</td><td>3번째 역 사이</td><td>찜하기 (과잠 대학생이 서울대입구에서 내리도록 고정)</td><td>찜 1회</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>5</td><td>서울대입구 정차</td><td>자리 앞 선점, E로 앉기, "계획대로!" 연출</td><td>착석</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>6</td><td>이후</td><td>손잡이(Shift), 양보 상황은 말풍선 안내만</td><td>강남 도착</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
 <li>안내는 화면을 멈추지 않고, 주인공의 <b>플래너 메모</b> 형태로 좌측 하단에 뜬다.</li>
@@ -107,12 +124,14 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li><s>효과음과 안내방송</s> → ① 알람 진동만 짧게, ③ 열차 진입음 + 안내방송 한 줄, ④ 문 열림 소리. 나머지 무음.</li>
 </ul>
 
-<h2>9. 1차 구현 내용 (2026-11-24)</h2>
+<h2>9. 1차 구현 내용 (2026-11-24) <span class="st ok">구현됨</span></h2>
 <ul>
 <li><b>처음 실행</b>: 컷 ①~④(3·5·4·3초, 시안 <code>intro-flow.html</code>과 같은 그림·문구) → ⑤ 사원증 카드 선택 → 1주차 월요일 출근(튜토리얼). 클릭이나 아무 키로 다음 컷, Esc로 건너뛰기. 플래너 내용(시각·문·자리)은 캐릭터마다 다르다.</li>
 <li><b>두 번째 실행부터</b>: 컷 ③(열차 진입과 로고)만 보여 주고 타이틀 화면으로.</li>
 <li><b>타이틀 화면</b> (2026-11-24 수정): 스크린도어 너머로 열차가 지나가고, 역명판에 제목 "계획대로, 지하철"과 부제 "파워 J 직장인의 출퇴근 자리 사수기", 메뉴는 <b>출근하기</b>(새로 시작 → 캐릭터 선택) / <b>불러오기</b>(저장한 런 이어 하기) 두 개. 전광판에 최장 개근 기록이 흐른다. 스킬은 주말 화면과 런 종료 화면에서만 쓴다.</li>
 <li><b>불러오기</b>: 통근 직전(승강장)과 주말 화면에서 런을 저장하고, 런이 끝나면 지운다.</li>
+<li><b>저장 슬롯</b> (2026-11-24 결정): 슬롯 3개. 출근하기 → 슬롯 고르기(쓰던 슬롯은 두 번 눌러 덮어쓰기) → 캐릭터 선택. 불러오기 → 슬롯 고르기 → 이어 하기. 인트로·튜토리얼을 본 기록은 슬롯을 바꿔도 유지된다.</li>
+<li><b>이전 플레이어</b>: 인트로가 생기기 전에 출근한 적이 있으면 컷 ③부터 보여 주고 튜토리얼은 하지 않는다.</li>
 <li><b>튜토리얼</b>: 1주차 월요일 출근을 한산하게(서 있는 승객 12명, 경쟁 승객 1명, 특수 승객 없음) 진행하고, 화면을 멈추지 않는 플래너 메모(왼쪽 아래, 손글씨)로 6단계를 안내한다. 1 문 고르기 → 2 WASD 이동 → 3 승객 3명 살펴보기 → 4 과잠 대학생 찜 → 5 3번째 역(한계획은 서울대입구)에서 착석 → 6 손잡이·양보 안내. 단계는 완료 조건으로 넘어가고, 대학생 자리를 놓치면 "…괜찮아. 플랜 B가 있어." 메모로 바뀐다. 체력은 20 아래로 내려가지 않고 민폐로도 탈락하지 않는다. 끝나면 프로필의 <code>seenHelp</code>가 켜진다.</li>
 <li><b>주인공 외형</b>(시안 <code>protagonist-lineup.html</code>에서 선택): 한계획 하늘색 옥스퍼드, 오신입 맨투맨+헤드폰, 유감각 비니+카멜 코트, 정부장 회색 정장+빨간 넥타이.</li>
 <li>기획서와 다르게 한 곳: 타이틀 메뉴는 기획자 결정에 따라 출근하기·불러오기만 둔다. 캐릭터·스킬·기록, 인트로·튜토리얼 다시 보기 메뉴는 없다.</li>

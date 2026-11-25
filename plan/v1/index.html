@@ -31,12 +31,12 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
 .list .tag.ok{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
 .st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line)}
-.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.wait{color:var(--sub)}.st.ask{background:var(--y);border-color:var(--y);color:#1d2320}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.cut{color:var(--sub);background:var(--code)}.st.wait{color:var(--sub)}.st.ask{background:var(--y);border-color:var(--y);color:#1d2320}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span>계획대로, 2호선</span><span class="tag v">v1</span><span class="tag">초안 2026-11-24</span></div>
-<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 14건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
-<p style="margin-top:8px">함께 보는 문서: <a href="../../PLAN.md">PLAN.md</a> (현재 게임 기준 기획서, v3) · <a href="DECISIONS.md">DECISIONS.md</a> (결정 기록)</p></header>
+<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 17건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
+<p style="margin-top:8px">함께 보는 문서: <a href="../../PLAN.md">PLAN.md</a> (현재 게임 기준 기획서, v4) · <a href="DECISIONS.md">DECISIONS.md</a> (결정 기록)</p></header>
 <div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag ok">1차 구현</span></a>
 <a href="02_character_v1.html"><span class="num">02</span><span><b>캐릭터 설정 및 능력치</b><span class="d">캐릭터별 집·회사 구간, 능력치 6종, 고유 특성</span></span><span class="tag ok">1차 구현</span></a>
 <a href="03_line_expansion_v1.html"><span class="num">03</span><span><b>지하철 노선 확장</b><span class="d">신림~강남에서 2호선 순환선 전체로, 구간별 특성</span></span><span class="tag ok">1차 구현</span></a>
@@ -50,7 +50,11 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <a href="11_seat_grade_v1.html"><span class="num">11</span><span><b>좌석 등급</b><span class="d">자리와 입석 위치의 등급</span></span><span class="tag ok">1차 구현</span></a>
 <a href="12_daily_plan_v1.html"><span class="num">12</span><span><b>오늘의 계획표</b><span class="d">통근별 목표 선택, 루틴 콤보, 멘붕</span></span><span class="tag ok">구현됨</span></a>
 <a href="13_misc_ideas_v1.html"><span class="num">13</span><span><b>기타 아이디어</b><span class="d">동행과 지하철 매너, 단골 승객, 막차 등</span></span><span class="tag">V1 제외</span></a>
-<a href="14_diary_v1.html"><span class="num">14</span><span><b>출근 일기</b><span class="d">사건 기록, 문장 틀, 가상 시각, 이미지로 저장</span></span><span class="tag ok">구현됨</span></a></div>
+<a href="14_diary_v1.html"><span class="num">14</span><span><b>출근 일기</b><span class="d">사건 기록, 문장 틀, 가상 시각, 이미지로 저장</span></span><span class="tag ok">구현됨</span></a>
+<a href="15_growth_loop_v1.html"><span class="num">15</span><span><b>성장 구조</b><span class="d">시작 → 실패 → 스킬 찍기의 반복, 스킬·상점을 여는 시점, 버틴 날 보너스</span></span><span class="tag">결정 · 미구현</span></a>
+<a href="16_difficulty_fatigue_v1.html"><span class="num">16</span><span><b>난이도와 누적 피로</b><span class="d">주차마다 얹히는 압박, 서서 간 만큼 쌓이는 피로</span></span><span class="tag">결정 · 미구현</span></a>
+<a href="17_card_choice_v1.html"><span class="num">17</span><span><b>회사·집 선택지</b><span class="d">체력 말고 다른 것을 주고받는 로그라이크식 카드 31종 초안</span></span><span class="tag">결정 · 미구현</span></a></div>
+<p class="note">각 기획서 머리에 <b>구현 현황 표</b>가 있고, 장과 표의 행마다 <span class="st ok">구현됨</span> <span class="st part">일부 구현</span> <span class="st wait">보류</span> <span class="st cut">V1 제외</span> 표시가 붙어 있습니다 (2026-11-25 기준, 코드와 대조).</p>
 <h2>구현 현황</h2>
 <p>게임 본체는 어깨 너머 3D(<code>index.html</code>, V 키로 탑뷰 전환)입니다. 쿼터뷰 2.5D 버전은 뺐습니다.</p>
 <div class="tw"><table>
@@ -70,7 +74,10 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>5</td><td>01 인트로 (1차)</td><td><span class="st ok">구현됨</span></td><td>첫 실행 컷 ①~④ → 캐릭터 선택 → 튜토리얼 출근(플래너 메모 6단계). 두 번째부터 컷 ③ → 타이틀(출근하기 / 불러오기). 런 저장·불러오기. 캐릭터 선택 카드에 3D 모습</td></tr>
 <tr><td>6</td><td>11 좌석 등급 (1차)</td><td><span class="st ok">구현됨</span></td><td>끝자리 S(회복 ×1.3, 경쟁 강화), 문 옆에 기대기(소모 ×0.6), 승객 카드의 자리 등급, 찜 S 배지, 완벽한 계획대로(+10P). 남은 것: 연결 통로·통로 가운데 입석, 옆 승객 보정(06), 약냉방칸·햇빛(13)</td></tr>
 <tr><td>7</td><td>13 기타 아이디어 (계절, 동행과 매너, 매너 점수, 단골 승객, 막차, 출발 시각 고르기)</td><td><span class="st wait">V1 제외</span></td><td>2026-11-25 결정: V1 다음 단계의 기획·구현 때 참고할 아이디어로 남긴다. 다른 문서가 13에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)도 V1에서는 넣지 않는다</td></tr>
-<tr><td>8</td><td>개선점 목록 처리</td><td><span class="st ok">1차 처리</span></td><td>10건 처리. 상점·스킬 밸런스는 기획 논의 때, 일기 디자인은 나중에</td></tr>
+<tr><td>8</td><td>개선점 목록 처리</td><td><span class="st ok">1차 처리</span></td><td>12건 처리. 상점·스킬 접근 2건은 15에서 결정(미구현), 일기 디자인은 나중에</td></tr>
+<tr><td>9</td><td>15 성장 구조</td><td><span class="st wait">결정 · 미구현</span></td><td>주말 화면의 스킬 버튼 제거, 평일 퇴근 뒤 상점, 포인트 지갑 하나로, 버틴 날 보너스. 수치는 가정값</td></tr>
+<tr><td>9</td><td>16 난이도와 누적 피로</td><td><span class="st wait">결정 · 미구현</span></td><td>주차별 압박과 주간 일정 예고, 누적 피로. 구현 전에 잘 앉는 봇으로 지금 곡선부터 잰다</td></tr>
+<tr><td>9</td><td>17 회사·집 선택지</td><td><span class="st wait">결정 · 미구현</span></td><td>기준 회복 통일, 네 가지 축, 카드 31종 초안. 1차에 넣을 카드 수와 등급·다시 뽑기는 미결. 16과 함께 넣는다</td></tr>
 </table></div>
 
 <h2>검토 중인 제안 (결정 대기)</h2>
@@ -79,12 +86,14 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 
 <h2>기획 논의 사항</h2>
 <p>기획 방향을 정해야 하는 큰 주제입니다. 방향이 정해지면 해당 기획서에 반영하고, 필요하면 새 기획서로 만듭니다.</p>
-<p class="note"><b>2026-11-25 결정</b>: ① 성장 구조는 <b>시작 → 실패 → 스킬 찍기</b>의 반복으로 간다. 패시브 스킬은 탈락·퇴사 시점에만 찍고, 상점은 평일 퇴근 뒤에도 쓸 수 있게 한다 (세부는 아래 주제들과 함께 정한다). ② 13 기타 아이디어는 V1에서 제외하고 다음 단계의 참고 아이디어로 남긴다. 아래 세 주제(난이도, 회사·집 선택지, 앉아서 할 거리)는 제안을 검토하는 중이다.</p>
+<p class="note"><b>2026-11-25에 다섯 주제 모두 방향을 정했습니다.</b> 지금은 논의를 기다리는 주제가 없습니다.</p>
 <div class="tw"><table>
-<tr><th>날짜</th><th>주제</th><th>내용</th><th>현재 상태 (코드 기준)</th></tr>
-<tr><td>2026-11-24</td><td>체력 채우기 말고 다른 회사·집 선택지</td><td>앉아서 가면 체력이 차므로, 회사·집 카드에서 체력을 채워 주는 선택지만으로는 고르는 재미가 약하다. 체력 말고 다른 것을 주고받는 선택지가 필요하다 (예: 다음 통근의 정보, 계획 후보, 포인트, 아이템, 관계)</td><td>회사 카드 4종·집 카드 6종 대부분이 체력 회복량과 포인트를 맞바꾼다 (<a href="08_work_home_event_v1.html">08</a>). 2026-11-24에 앉았을 때 회복을 1 → 0.65로 낮췄다</td></tr>
-<tr><td>2026-11-24</td><td>앉아서 할 거리</td><td>앉은 뒤에는 할 일이 적다. 앉아 있는 동안의 플레이를 기획해야 한다 (예: 양보 판단, 옆자리 눈치, 휴대폰·독서 미니 활동, 다음 통근 계획, 졸음 참기)</td><td>앉으면 시간이 3배로 흐르고, X로 도착까지 건너뛸 수 있다. 양보 이벤트와 좁은 자리 "실례합니다"(Q) 정도가 있다</td></tr>
-<tr><td>2026-11-24</td><td>날이 갈수록 어려워지는 난이도</td><td>요일·주차가 지날수록 어려워지는 흐름을 더 분명하게 만들어야 한다</td><td>레벨 = (주차-1)×4 + 요일(최대 4) + 퇴근 0.5. 서 있는 승객 46 + 3.2×레벨, 페이크 확률·경쟁자 반응이 레벨에 따라 오른다. 2주차부터 체감 차이가 크지 않다</td></tr>
+<tr><th>주제</th><th>결정 (2026-11-25)</th><th>정리한 문서</th><th>상태</th></tr>
+<tr><td>성장 구조: 스킬·상점을 언제 쓸 수 있나</td><td>시작 → 실패 → 스킬 찍기의 반복. 스킬은 탈락·퇴사 시점에만, 상점은 평일 퇴근 뒤에도. 이번 주에 번 포인트까지 상점에서 쓰고, 버틴 날 수에 비례한 보너스를 준다</td><td><a href="15_growth_loop_v1.html">15 성장 구조</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
+<tr><td>날이 갈수록 어려워지는 난이도</td><td>주차마다 새 압박을 하나씩 얹고 주간 일정에서 미리 알린다. 서서 간 만큼 쌓이는 누적 피로가 최대 체력을 깎고 주말 휴무로만 크게 풀린다</td><td><a href="16_difficulty_fatigue_v1.html">16 난이도와 누적 피로</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
+<tr><td>체력 채우기 말고 다른 회사·집 선택지</td><td>체력 회복을 기준값으로 통일하고, 카드는 정보·계획·포인트와 물건·통근 조건을 주고받는다. 로그라이크의 선택처럼 다양하게</td><td><a href="17_card_choice_v1.html">17 회사·집 선택지</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
+<tr><td>앉아서 할 거리</td><td>앉아서 할 일 고르기, 앉은 자리에 찾아오는 사건, 졸음 참기를 아이디어로 남기고 다음 개발 때 검토한다</td><td><a href="13_misc_ideas_v1.html">13 기타 아이디어</a> 7-1장</td><td><span class="st cut">V1 제외</span></td></tr>
+<tr><td>13 기타 아이디어의 범위</td><td>V1에서 제외한다. 다음 단계의 기획·구현 때 참고할 아이디어로 남긴다</td><td><a href="13_misc_ideas_v1.html">13 기타 아이디어</a></td><td><span class="st cut">V1 제외</span></td></tr>
 </table></div>
 
 <h2>개선점 목록 (기능 구현 완료 후 처리)</h2>
@@ -106,11 +115,27 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <br>· 유료: Artlist "Seoul Transportation" 팩(승강장 진입·스크린도어·안내방송)
 <br>추천: 서울 고유 멜로디는 국립국악원 이용 조건을 먼저 확인하고, 문 열림·주행음은 Freesound CC0/CC BY 음원으로</td><td><span class="st ok">처리함 (2026-11-25)</span></td></tr>
 <tr><td>2026-11-24</td><td>겹쳐서 투명해지는 표현</td><td>겹친 부분이 투명하게 보여서 상황을 판단하기 어렵다</td><td>좌석 쪽을 바라볼 때 내 몸이 앞 승객을 가리면 내 캐릭터를 16% 불투명도로 흐리게 하고 외곽선을 끈다(<code>game3d.js</code> <code>syncMe</code>). 흐려진 내 몸 너머로 승객이 겹쳐 보인다. 대안: 카메라를 옆으로 비키기, 내 몸은 외곽선만 남기기, 투명 대신 숨기기</td><td><span class="st ok">처리함 (2026-11-25)</span></td></tr>
-<tr><td>2026-11-24</td><td>상점이 퇴사해야만 보임</td><td>아이템 상점을 퇴사(런 종료)해야 보는 것이 애매하다. 퇴근 후 집에서 쇼핑으로 스트레스를 푸는 식이 자연스럽다</td><td>상점은 주말 화면(금요일 퇴근 뒤)과 런이 끝난 뒤에만 열린다. 평일 퇴근 뒤 집 카드에는 상점이 없다</td><td><span class="st wait">보류 (기획 논의 때 함께)</span></td></tr>
-<tr><td>2026-11-24</td><td>스킬·상점 접근 경로와 밸런스 방향</td><td>퇴사해야 패시브 스킬을 찍는 구조는 "처음에 빨리 실패해야" 성장할 수 있는 길이 된다 (상점 포함). 어떤 방향으로 밸런스를 잡을지 논의 필요 (아래 "기획 논의 사항"과 연결)</td><td>포인트는 금요일 정산·약속·런 종료 때 프로필로 들어간다. 스킬·상점은 주말 화면과 런 종료 화면에서만 쓸 수 있어, 첫 주를 못 넘기는 사람은 일찍 퇴사(실패)할수록 먼저 성장한다</td><td><span class="st wait">보류 (기획 논의 때 함께)</span></td></tr>
+<tr><td>2026-11-24</td><td>상점이 퇴사해야만 보임</td><td>아이템 상점을 퇴사(런 종료)해야 보는 것이 애매하다. 퇴근 후 집에서 쇼핑으로 스트레스를 푸는 식이 자연스럽다</td><td>상점은 주말 화면(금요일 퇴근 뒤)과 런이 끝난 뒤에만 열린다. 평일 퇴근 뒤 집 카드에는 상점이 없다</td><td><span class="st wait">15에서 결정 (미구현)</span></td></tr>
+<tr><td>2026-11-24</td><td>스킬·상점 접근 경로와 밸런스 방향</td><td>퇴사해야 패시브 스킬을 찍는 구조는 "처음에 빨리 실패해야" 성장할 수 있는 길이 된다 (상점 포함). 어떤 방향으로 밸런스를 잡을지 논의 필요 (아래 "기획 논의 사항"과 연결)</td><td>포인트는 금요일 정산·약속·런 종료 때 프로필로 들어간다. 스킬·상점은 주말 화면과 런 종료 화면에서만 쓸 수 있어, 첫 주를 못 넘기는 사람은 일찍 퇴사(실패)할수록 먼저 성장한다</td><td><span class="st wait">15에서 결정 (미구현)</span></td></tr>
 <tr><td>2026-11-25</td><td>가이드 버튼</td><td>게임에 대한 가이드를 보여 주는 버튼을 둔다. 자리 등급(끝자리 S, 좁은 자리, 배려석, 문 옆에 기대기)처럼 화면에 표시하지 않는 규칙은 여기에서만 안내한다</td><td>가이드 화면이 없다. 자리 등급은 내부 규칙으로만 돌고 화면에는 표시하지 않는다(11). 조작은 하단 키 설명과 튜토리얼 메모로만 알려 준다</td><td><span class="st ok">처리함 (2026-11-25)</span></td></tr>
 <tr><td>2026-11-25</td><td>캐릭터 선택의 시작 버튼</td><td>캐릭터 선택 화면에서 시작 버튼을 보려면 스크롤해야 해서 헤맨다</td><td>화면 아래쪽 버튼 줄을 팝업 바닥에 고정했다(모든 팝업 공통). 내용이 길어도 버튼은 늘 보인다</td><td><span class="st ok">처리함 (2026-11-25)</span></td></tr>
 <tr><td>2026-11-25</td><td>팝업이 뜰 때 마우스 잠금</td><td>게임 실패 등으로 팝업이 뜰 때 Esc를 한 번 눌러야 마우스를 쓸 수 있다. 팝업이 뜨면 바로 마우스로 누를 수 있어야 한다</td><td>팝업(시트)을 띄울 때 3D 마우스 잠금을 바로 푼다</td><td><span class="st ok">처리함 (2026-11-25)</span></td></tr>
+</table></div>
+
+<h2>코드와 문서가 어긋난 곳 (2026-11-25 대조에서 발견)</h2>
+<p class="note">기획서를 코드와 대조하면서 찾은 것입니다. 기획서에는 코드의 실제 동작을 적어 두었고, 아래는 <b>게임 쪽을 고칠지 정해야 하는 것</b>입니다. 아직 고치지 않았습니다.</p>
+<div class="tw"><table>
+<tr><th>문서</th><th>어긋난 내용</th><th>지금 코드의 동작</th></tr>
+<tr><td>12</td><td>계획 "환승역 노리기"의 설명이 "환승역(사당·교대)"로 고정돼 있다</td><td>캐릭터 구간에 환승역이 없어도 후보에 나오고, 첫 역을 출발할 때 실패로 확정된다. 손해만 보는 후보가 된다</td></tr>
+<tr><td>12</td><td>계획 "서서 가기"가 구간 길이와 무관하게 4정거장 고정이다</td><td>유감각(6정거장)은 구간의 3분의 2를, 정부장(15정거장)은 4분의 1만 서면 된다</td></tr>
+<tr><td>14</td><td>주말 약속 통근의 일기 머리말과 저장 파일 이름이 "퇴근", "18:32 출발"로 나온다</td><td>사건 시각은 주말 기준(13:05)이라 머리말과 맞지 않는다</td></tr>
+<tr><td>10</td><td>상점 안내문은 "한 주가 끝날 때마다 바뀝니다"</td><td>진열은 런이 끝날 때와 월급날 완주 때만 다시 뽑는다</td></tr>
+<tr><td>08</td><td>회식 카드 문구는 "내일 출근 체력 -8"</td><td>그날 밤 집 카드의 회복에서 8을 뺀다. 결과는 같지만 표시되는 시점이 다르다</td></tr>
+<tr><td>08</td><td>기획서의 "팀장 호출: 칼퇴 선택 불가"</td><td>칼퇴는 그대로 나오고, 그날 회사 카드의 회복이 선택지마다 -6이다. 지각하면 항상 뜬다</td></tr>
+<tr><td>02</td><td>기획서의 "능력치 합 18~19"</td><td>유감각은 합이 17이다 (난이도 조정으로 체력을 1로 낮춤)</td></tr>
+<tr><td>04</td><td>기획서의 "4주차 금요일은 월급날"</td><td>4의 배수 주차마다 월급날이다 (8주차, 12주차에도 온다)</td></tr>
+<tr><td>11</td><td>자리 등급 표시를 뺀 뒤 쓰지 않는 코드가 남아 있다</td><td><code>seatGrade</code>, <code>GRADE_TXT</code>는 정의만 있고 쓰는 곳이 없다</td></tr>
+<tr><td>03</td><td>역 정보 검수는 끝났다고 결정 기록에 있다</td><td>코드 주석에는 "최종 검수 필요"가 남아 있다</td></tr>
 </table></div>
 
 <h2>문서 사이의 관계</h2>
@@ -119,7 +144,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>틀</td><td>01 인트로, 02 캐릭터, 03 노선 확장, 04 일정</td><td>누가, 어디를, 언제 다니는지</td></tr>
 <tr><td>통근 한 판</td><td>05 환승역, 06 특수 승객, 07 시선 눈치, 11 좌석 등급</td><td>객차 안에서 벌어지는 일</td></tr>
 <tr><td>J 성격</td><td>12 오늘의 계획표, 13 동행과 매너, 14 출근 일기</td><td>스스로 정한 목표와 조건</td></tr>
-<tr><td>통근 사이·성장</td><td>08 회사·집 이벤트, 09 패시브 스킬, 10 아이템</td><td>다음 통근을 준비하는 선택</td></tr>
+<tr><td>통근 사이·성장</td><td>08 회사·집 이벤트, 09 패시브 스킬, 10 아이템, 17 회사·집 선택지</td><td>다음 통근을 준비하는 선택</td></tr>
+<tr><td>한 런의 틀</td><td>15 성장 구조, 16 난이도와 누적 피로</td><td>한 런이 어떻게 시작해서 어떻게 끝나고, 무엇이 남는지</td></tr>
 </table></div>
 <h2>미결 사항 결정 방식</h2>
 <ul>
@@ -151,6 +177,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-25</td><td>개선점 목록 1차 처리: 손잡이 위치, 들키지 않기 판정, 만원 열차, 계획표 위치·접기, 외곽선 표현, 앉은 시점·어르신 표지, 역 신호음 교체, 가이드, 시험 키. 상점·스킬 밸런스는 기획 논의로 보류</td></tr>
 <tr><td>2026-11-25</td><td>개선점 2건 추가·처리: 캐릭터 선택 시작 버튼 고정, 팝업이 뜰 때 마우스 잠금 해제</td></tr>
 <tr><td>2026-11-25</td><td>기획 논의 결정: 성장 구조(시작 → 실패 → 스킬, 상점은 퇴근 뒤에도), 13 기타 아이디어는 V1 제외</td></tr>
+<tr><td>2026-11-25</td><td>기획 논의 다섯 주제 정리: 새 기획서 15 성장 구조, 16 난이도와 누적 피로, 17 회사·집 선택지 추가. 앉아서 할 거리는 13에 아이디어로 남김. 모든 기획서에 장·행 단위의 구현 현황 표시 추가, PLAN.md v4</td></tr>
 </table></div>
 <h2>제안 도입 순서 (초안)</h2>
 <p class="note">처음 제안한 순서입니다. 실제 진행 순서는 위 "구현 현황" 표를 따릅니다.</p>

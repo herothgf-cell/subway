@@ -29,12 +29,28 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">13</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">아이디어</span><span class="tag">초안 2026-11-24</span></div>
 <h1>기타 아이디어</h1><p>동행과 지하철 매너, 단골 승객, 막차 등</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>1</td><td>지하철 매너와 동행</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다</td></tr>
+<tr><td>2</td><td>매너 점수</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다</td></tr>
+<tr><td>3</td><td>단골 승객</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다 (스킬 "단골 칸"은 다른 기능이다)</td></tr>
+<tr><td>4</td><td>막차</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다. 약속 "친구 모임"의 붐비는 귀갓길만 있다</td></tr>
+<tr><td>5</td><td>출근 일기</td><td><span class="st ok">구현됨</span></td><td><a href="14_diary_v1.html">14 출근 일기</a>로 옮겨 구현했다</td></tr>
+<tr><td>6</td><td>계절</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다</td></tr>
+<tr><td>7</td><td>출발 시각 고르기</td><td><span class="st cut">V1 제외</span></td><td>코드에 없다</td></tr>
+<tr><td>7-1</td><td>앉아서 할 거리</td><td><span class="st cut">V1 제외</span></td><td>2026-11-25 논의에서 나온 제안. 다음 단계에 검토</td></tr>
+<tr><td>8</td><td>그 밖의 후보</td><td><span class="st cut">V1 제외</span></td><td>"안내방송", "주간 목표와 업적" 등. 코드에 없다</td></tr>
+</table></div>
 <p class="note"><b>2026-11-25 결정: 이 문서의 내용은 V1에서 제외한다.</b> V1 다음 단계의 기획·구현 때 참고할 아이디어로 남겨 둔다. 출근 일기만 <a href="14_diary_v1.html">14</a>로 옮겨 구현했다.</p>
-<h2>1. 지하철 매너와 동행 (주말 데이트)</h2>
+<h2>1. 지하철 매너와 동행 (주말 데이트) <span class="st cut">V1 제외</span></h2>
 <p>주말 약속에 동행자가 붙는 날은 "내가 앉는 것"에서 <b>"같이 잘 가는 것"</b>으로 목표가 바뀐다.</p>
 
 <h3>동행자 규칙</h3>
@@ -72,7 +88,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </ul>
 <p class="note">동행자의 성별과 관계는 캐릭터 설정에 따라 바뀌도록 "동행자"로 일반화해 두고, 한계획의 기본 설정을 여자 친구로 한다.</p>
 
-<h2>2. 매너 점수 (민폐의 반대편)</h2>
+<h2>2. 매너 점수 (민폐의 반대편) <span class="st cut">V1 제외</span></h2>
 <ul>
 <li>현재는 잘못하면 깎이는 민폐 게이지만 있다. 잘한 행동을 쌓는 <b>매너 점수</b>를 더한다.</li>
 <li>획득: 내리는 사람 먼저 보내기, 가방 앞으로 메기, 굴러가는 캐리어 잡아 주기, 유모차 공간 비켜 주기, 양보.</li>
@@ -80,7 +96,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>한 주 매너 점수 1위 기록을 "이번 주의 모범 승객"으로 플래너에 남긴다.</li>
 </ul>
 
-<h2>3. 단골 승객</h2>
+<h2>3. 단골 승객 <span class="st cut">V1 제외</span></h2>
 <ul>
 <li>매일 같은 시간, 같은 칸에 타는 고정 NPC 3~4명. 차림새는 매일 조금씩 바뀌지만 얼굴과 하차역은 같다.</li>
 <li>플레이어가 하차역을 한 번 확인하면 플래너의 <b>메모</b>에 기록되어, 다음부터 카드에 표시된다.</li>
@@ -88,17 +104,17 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>단골도 플레이어를 알아본다: 자리를 여러 번 뺏으면 경쟁자가 되고, 양보한 적이 있으면 내릴 때 눈짓을 준다.</li>
 </ul>
 
-<h2>4. 막차</h2>
+<h2>4. 막차 <span class="st cut">V1 제외</span></h2>
 <ul>
 <li>야근·회식·친구 모임 뒤에 타는 특수 통근. 승객은 적지만 취객과 잠든 승객 비율이 높다.</li>
 <li>앉으면 <b>졸음</b> 게이지가 찬다. 내릴 역 직전에 타이밍 입력으로 깨어나지 못하면 지나친다 (되돌아오며 체력 -15).</li>
 <li>"못 앉아서 힘든 게임"이 이 통근에서만 "앉아서 위험한 게임"으로 뒤집힌다.</li>
 </ul>
 
-<h2>5. 출근 일기</h2>
+<h2>5. 출근 일기 <span class="st ok">구현됨 (14로 옮김)</span></h2>
 <p class="note">정식 구현하면서 독립 문서로 옮겼다: <a href="14_diary_v1.html">14 출근 일기</a>. 작성 규칙, 문장 틀 전체, 이미지 저장 사양은 그 문서에서 관리한다.</p>
 
-<h2>6. 계절</h2>
+<h2>6. 계절 <span class="st cut">V1 제외</span></h2>
 <p>달이 바뀌면 계절이 바뀐다. 계절은 주차별 난이도와 <b>별개의 축</b>으로, 같은 구간의 조건과 풍경을 바꿔 오래 플레이해도 새롭게 한다.</p>
 
 <h3>주기</h3>
@@ -138,7 +154,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>약냉방칸, 계절 한정 승객·행사</li>
 </ol>
 
-<h2>7. 출발 시각 고르기 (추가 아이디어, 2026-11-24)</h2>
+<h2>7. 출발 시각 고르기 (추가 아이디어, 2026-11-24) <span class="st cut">V1 제외</span></h2>
 <p>퇴근 뒤 집에서 다음 날 <b>일어날 시각·출발 시각</b>을 고른다. 출발 시각에 따라 그날 출근 열차의 혼잡도가 달라진다. J 성격("06:30 기상, 07:12 승강장")을 직접 계획하는 장치.</p>
 <div class="tw"><table>
 <tr><th>선택 (예시)</th><th>출근 열차</th><th>대가</th></tr>
@@ -152,7 +168,21 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>미결: 퇴근 시각도 회사에서 고를지(야근·칼퇴와 연결), 기상 시각과 출발 시각을 나눌지, 캐릭터마다 기본 시각을 다르게 할지, 단계 수(3단계 / 10분 단위).</li>
 </ul>
 
-<h2>8. 그 밖의 후보</h2>
+<h2>7-1. 앉아서 할 거리 <span class="st cut">V1 제외 · 다음 단계 검토</span></h2>
+<p class="note">2026-11-25 기획 논의에서 나온 제안이다. V1에는 넣지 않고, 다음 단계의 기획·구현 때 검토한다.</p>
+<p><b>배경</b>: 앉으면 목표를 이룬 셈이라 그 뒤가 비어 있다. 지금은 앉으면 시간이 3배로 흐르고 X로 도착까지 건너뛸 수 있으며, 할 일은 자리 양보와 좁은 자리의 "실례합니다"(Q)뿐이다.</p>
+<div class="tw"><table>
+<tr><th>안</th><th>내용</th><th>장점</th><th>걸리는 점</th></tr>
+<tr><td>D-1. 앉아서 할 일 고르기</td><td>앉으면 셋 중 하나를 고른다. <b>눈 붙이기</b>: 체력을 빨리 회복하지만 양보 상황에 늦게 반응하고 내릴 역을 지나칠 수 있다. <b>플래너 정리</b>: 다음 통근의 계획표 후보 1개를 미리 정하거나 바꾼다. <b>둘러보기</b>: 지금처럼 관찰하고 다음 자리를 준비한다</td><td>앉은 시간이 자원이 된다. 앉기만 해서는 회복이 느리게 바꾸면 체력이 남아도는 문제(<a href="17_card_choice_v1.html">17</a>)도 함께 풀린다</td><td>앉은 뒤에 고르는 화면이 하나 더 생긴다. 건너뛰기(X)와의 관계를 정해야 한다</td></tr>
+<tr><td>D-2. 앉은 자리에 찾아오는 사건</td><td>기대어 잠든 승객(A/D로 어깨 피하기), 임산부 배지를 단 승객·다친 승객에게 양보, 옆자리의 큰 소리 통화 등 <a href="06_special_passenger_v1.html">06</a>의 남은 유형을 앉은 상태의 사건으로 넣는다</td><td>새 기획 없이 06의 2차를 앞당기면 된다</td><td>사건이 잦으면 "앉아도 쉴 수 없다"가 되어 앉는 보람이 줄어든다</td></tr>
+<tr><td>D-3. 졸음 참기</td><td>앉으면 졸음이 차고, 내릴 역 직전에 타이밍을 맞춰 깨어나지 못하면 지나친다 (되돌아오며 체력 -15). 아래 4장 "막차"의 규칙을 평소 통근에도 쓴다</td><td>"앉아서 위험한" 긴장이 생긴다</td><td>타이밍 입력이 이 게임의 읽기·계획 플레이와 결이 다르다. 짜증이 될 수 있다</td></tr>
+</table></div>
+<ul>
+<li>검토할 때의 추천 조합: D-1을 뼈대로 하고 D-2를 함께 넣는다. D-3은 D-1의 "눈 붙이기" 안에 가벼운 형태로만 둔다.</li>
+<li>관련: <a href="11_seat_grade_v1.html">11 좌석 등급</a>(자리마다 다른 회복), <a href="16_difficulty_fatigue_v1.html">16 누적 피로</a>(앉아서 간 정거장은 피로가 쌓이지 않는다).</li>
+</ul>
+
+<h2>8. 그 밖의 후보 <span class="st cut">V1 제외</span></h2>
 <div class="tw"><table>
 <tr><th>아이디어</th><th>내용</th></tr>
 <tr><td>내 출근길</td><td>집·회사 역을 직접 지정하는 사용자 정의 캐릭터 (<a href="02_character_v1.html">02</a>)</td></tr>

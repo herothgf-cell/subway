@@ -29,59 +29,81 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">09</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">확장</span><span class="tag">초안 2026-11-24</span></div>
 <h1>패시브 스킬 상세</h1><p>현재 7종 수치, 계열 구조, 신규 5종, 포인트 경제</p></header>
+<p class="note">스킬과 상점을 여는 시점은 <a href="15_growth_loop_v1.html">15 성장 구조</a>의 결정(2026-11-25)에 따라 바뀔 예정이다.</p>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>의 <code>SKILLS</code>, <code>LINES</code>, <code>lineB</code>, <code>showShop</code>)를 확인해 적었다. <span class="st ok">구현됨</span><span class="st part">일부 구현</span><span class="st wait">보류</span><span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>1. 목적</td><td>기존 7종 정리, 신규 스킬과 계열 구조</td><td>-</td><td>설명용 장</td></tr>
+<tr><td>2. 현재 스킬</td><td>기존 7종의 효과와 비용</td><td><span class="st ok">구현됨</span></td><td>2·3단계 비용이 2배. 균형 감각은 -25% / -45% / -60%</td></tr>
+<tr><td>3. 계열 구조</td><td>눈치·몸·계획 계열, 4·7단계 보너스</td><td><span class="st ok">구현됨</span></td><td>눈치·계획 7단계 보너스는 결정대로 다른 효과</td></tr>
+<tr><td>4. 신규 스킬</td><td>포커페이스, 단골 칸, 환승 고수, 칼각 루틴, 두 번째 알람</td><td><span class="st ok">구현됨</span></td><td>5종 모두. 2·3단계 비용 2배, 단골 칸 2단계는 다른 표시</td></tr>
+<tr><td>5. 포인트 경제</td><td>획득처와 주당 획득량 가정</td><td><span class="st ok">구현됨</span></td><td>획득 값은 코드와 같다. 주당 획득량 가정은 시뮬레이션 값으로 바뀌었다</td></tr>
+<tr><td>6. 화면</td><td>노선도 모양 스킬 화면, 초기화</td><td><span class="st ok">구현됨</span></td><td>여는 시점은 15 성장 구조에서 바뀔 예정</td></tr>
+<tr><td>7. 미결 사항</td><td>주당 포인트, 균형 감각 3단계, 정부장 비용</td><td>-</td><td>모두 정해졌다</td></tr>
+<tr><td>8. 1차 구현 내용</td><td>실제로 들어간 규칙</td><td><span class="st ok">구현됨</span></td><td>두 번째 알람이 04 일정과 함께 들어와 12종</td></tr>
+</table></div>
+
 <h2>1. 목적</h2>
 <ul>
 <li>현재 구현된 7종의 수치를 정리하고, 추가 기획(환승, 시선, 계획표, 일정)에 맞는 신규 스킬과 <b>계열 구조</b>를 더한다.</li>
 <li>스킬은 런이 끝나도 남는 영구 성장이다. 아이템(<a href="10_item_v1.html">10</a>)은 장단점이 있는 선택, 능력치(<a href="02_character_v1.html">02</a>)는 캐릭터의 시작 값으로 구분한다.</li>
 </ul>
 
-<h2>2. 현재 스킬 (구현 기준)</h2>
+<h2>2. 현재 스킬 (구현 기준)<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 7종 모두, 효과는 표와 같다. / <b>다르게 구현</b>: 비용은 1단계만 그대로이고 2·3단계는 2배다(코드 값은 상태 열). 균형 감각은 -28% / -56% / -84% → -25% / -45% / -60%. 전부 찍는 비용은 1,400P → 2,490P. 비용을 올리기 전에 찍은 스킬은 초기화할 때 그때 낸 값으로 환급한다.</p>
 <div class="tw"><table>
-<tr><th>스킬</th><th>1단계</th><th>2단계</th><th>3단계</th><th>비용</th></tr>
-<tr><td>관찰력</td><td>자주 내리는 역 <b>후보 2곳</b> 표시 (노선 순서, 어느 쪽이 유력한지는 알려 주지 않음), 낌새가 일찍 보임</td><td>페이크 간파, 더 일찍 보임</td><td>2정거장 안에 내릴 승객에 "곧 내릴 것 같다" 표시 (몇 정거장인지는 알려 주지 않음)</td><td>40 / 90 / 160</td></tr>
-<tr><td>균형 감각</td><td>급정거 밀림 -28%</td><td>-56%</td><td>-84%</td><td>30 / 70 / 120</td></tr>
-<tr><td>출근 체력</td><td>서 있을 때 소모 -12%</td><td>-24%</td><td>-36%</td><td>40 / 80 / 140</td></tr>
-<tr><td>플랜 B</td><td>찜 슬롯 2개</td><td>찜 슬롯 3개</td><td>-</td><td>60 / 130</td></tr>
-<tr><td>"잠시만요"</td><td>Q로 길 트기 (대기 12초)</td><td>대기 7초</td><td>-</td><td>50 / 110</td></tr>
-<tr><td>빠른 엉덩이</td><td>착석 거리 +25%, 경쟁자 반응 지연</td><td>+50%, 더 지연</td><td>-</td><td>50 / 100</td></tr>
-<tr><td>철면피</td><td>민폐 상승 -20%</td><td>-40%</td><td>-</td><td>40 / 90</td></tr>
+<tr><th>스킬</th><th>1단계</th><th>2단계</th><th>3단계</th><th>비용</th><th>상태</th></tr>
+<tr><td>관찰력</td><td>자주 내리는 역 <b>후보 2곳</b> 표시 (노선 순서, 어느 쪽이 유력한지는 알려 주지 않음), 낌새가 일찍 보임</td><td>페이크 간파, 더 일찍 보임</td><td>2정거장 안에 내릴 승객에 "곧 내릴 것 같다" 표시 (몇 정거장인지는 알려 주지 않음)</td><td>40 / 90 / 160</td><td><span class="st ok">구현됨</span> 비용 40 / 180 / 320</td></tr>
+<tr><td>균형 감각</td><td>급정거 밀림 -28%</td><td>-56%</td><td>-84%</td><td>30 / 70 / 120</td><td><span class="st ok">구현됨</span> -25% / -45% / -60%, 비용 30 / 140 / 240</td></tr>
+<tr><td>출근 체력</td><td>서 있을 때 소모 -12%</td><td>-24%</td><td>-36%</td><td>40 / 80 / 140</td><td><span class="st ok">구현됨</span> 비용 40 / 160 / 280</td></tr>
+<tr><td>플랜 B</td><td>찜 슬롯 2개</td><td>찜 슬롯 3개</td><td>-</td><td>60 / 130</td><td><span class="st ok">구현됨</span> 비용 60 / 260</td></tr>
+<tr><td>"잠시만요"</td><td>Q로 길 트기 (대기 12초)</td><td>대기 7초</td><td>-</td><td>50 / 110</td><td><span class="st ok">구현됨</span> 비용 50 / 220</td></tr>
+<tr><td>빠른 엉덩이</td><td>착석 거리 +25%, 경쟁자 반응 지연</td><td>+50%, 더 지연</td><td>-</td><td>50 / 100</td><td><span class="st ok">구현됨</span> 비용 50 / 200</td></tr>
+<tr><td>철면피</td><td>민폐 상승 -20%</td><td>-40%</td><td>-</td><td>40 / 90</td><td><span class="st ok">구현됨</span> 비용 40 / 180</td></tr>
 </table></div>
 <p>전부 찍는 데 1,400P가 든다.</p>
 <p class="note"><b>원칙 (2026-11-24 결정)</b>: 스킬은 하차역을 직접 알려 주지 않는다. 관찰력은 짐작할 근거를 늘려 줄 뿐이고, 확정은 승객의 몸짓을 보고 플레이어가 한다. 표시된 후보 2곳 안에서 실제로 내리는 비율은 출근 59~70%, 퇴근 55%다 (통근 600회 표본). 어깨너머 화면은 스킬 없이도 정확한 하차역을 보여 주므로 <a href="07_gaze_v1.html">07 시선 눈치</a> 때 2초 주시와 들킬 위험을 붙여 정리한다.</p>
 
-<h2>3. 계열 구조</h2>
+<h2>3. 계열 구조<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 세 계열과 4·7단계 보너스 6개 모두. / <b>다르게 구현</b>(2026-11-24 결정): 눈치 7단계는 하차역 공개 → 통근 시작 때 3정거장 안에 내릴 앉은 승객 1명의 낌새가 처음부터 보임. 계획 7단계는 체력 피해 없음 → 통근마다 첫 계획 실패 1회는 붕괴 스택이 쌓이지 않음. 계획 4단계의 +10%는 "계획대로!"와 "환승 계획대로!" 착석 포인트에만 붙는다.</p>
 <p>스킬을 세 계열로 묶고, 계열마다 투자한 단계 수에 따라 <b>계열 보너스</b>를 준다. 한 계열에 집중할지 고르게 찍을지가 선택이 된다.</p>
 <div class="tw"><table>
-<tr><th>계열</th><th>스킬</th><th>4단계 투자 보너스</th><th>7단계 투자 보너스</th></tr>
-<tr><td><b>눈치</b> (읽기)</td><td>관찰력, 포커페이스(신규), 단골 칸(신규)</td><td>시야각 +10°</td><td>통근마다 승객 1명의 하차역이 처음부터 공개</td></tr>
-<tr><td><b>몸</b> (움직이기)</td><td>균형 감각, 출근 체력, 빠른 엉덩이, 환승 고수(신규)</td><td>충돌 시 체력 피해 -1</td><td>통근마다 1회, 체력이 0이 될 때 15로 버팀</td></tr>
-<tr><td><b>계획</b> (J)</td><td>플랜 B, "잠시만요", 철면피, 칼각 루틴(신규), 두 번째 알람(신규)</td><td>"계획대로!" 포인트 +10%</td><td>계획 붕괴 시 체력 피해 없음</td></tr>
+<tr><th>계열</th><th>스킬</th><th>4단계 투자 보너스</th><th>7단계 투자 보너스</th><th>상태</th></tr>
+<tr><td><b>눈치</b> (읽기)</td><td>관찰력, 포커페이스(신규), 단골 칸(신규)</td><td>시야각 +10°</td><td>통근마다 승객 1명의 하차역이 처음부터 공개</td><td><span class="st ok">구현됨</span> 7단계는 낌새 미리 보기로 바뀜</td></tr>
+<tr><td><b>몸</b> (움직이기)</td><td>균형 감각, 출근 체력, 빠른 엉덩이, 환승 고수(신규)</td><td>충돌 시 체력 피해 -1</td><td>통근마다 1회, 체력이 0이 될 때 15로 버팀</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td><b>계획</b> (J)</td><td>플랜 B, "잠시만요", 철면피, 칼각 루틴(신규), 두 번째 알람(신규)</td><td>"계획대로!" 포인트 +10%</td><td>계획 붕괴 시 체력 피해 없음</td><td><span class="st ok">구현됨</span> 7단계는 첫 실패의 붕괴 스택 면제로 바뀜</td></tr>
 </table></div>
 
-<h2>4. 신규 스킬</h2>
+<h2>4. 신규 스킬<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 5종 모두. 두 번째 알람은 04 일정과 함께 들어왔다. / <b>다르게 구현</b>: 2·3단계 비용 2배(코드 값은 상태 열). 단골 칸 2단계는 칸 안의 빈자리 수 → 문마다 "그 앞 좌석 중 2정거장 안에 빌 자리 수". 환승 고수 2단계의 경쟁자 반응 지연은 환승역에 정차한 동안 적용한다. 칼각 루틴 3단계는 통근마다 후보 1개를 같은 별 수의 다른 계획으로 새로 뽑는다. 신규 5종 합계는 980P → 1,720P, 기존과 합쳐 2,380P → 4,210P.</p>
 <div class="tw"><table>
-<tr><th>스킬</th><th>계열</th><th>단계별 효과</th><th>비용</th><th>관련 기획</th></tr>
-<tr><td>포커페이스</td><td>눈치</td><td>시선 게이지 속도 -20% / -40%</td><td>50 / 110</td><td><a href="07_gaze_v1.html">07 시선 눈치</a></td></tr>
-<tr><td>단골 칸</td><td>눈치</td><td>승강장 혼잡 안내판 오차 없음 / 탑승 전 칸 안의 빈자리 수 표시</td><td>40 / 100</td><td>승강장 선택</td></tr>
-<tr><td>환승 고수</td><td>몸</td><td>사람에게 떠밀리는 거리 -40% (버티기 능력치와 곱함) / 쓸려 내림 면역 + 승차 러시 경쟁자 반응 지연</td><td>50 / 120</td><td><a href="05_transfer_v1.html">05 환승역</a></td></tr>
-<tr><td>칼각 루틴</td><td>계획</td><td>계획표 후보 +1 / 루틴 콤보 최대치 +2 / 계획 1개 교체권</td><td>60 / 120 / 200</td><td><a href="12_daily_plan_v1.html">12 계획표</a></td></tr>
-<tr><td>두 번째 알람</td><td>계획</td><td>도착 시한 여유 +1대 / 열차 보내기 시 다음 열차 혼잡도 미리 보기</td><td>40 / 90</td><td><a href="04_schedule_v1.html">04 일정</a></td></tr>
+<tr><th>스킬</th><th>계열</th><th>단계별 효과</th><th>비용</th><th>관련 기획</th><th>상태</th></tr>
+<tr><td>포커페이스</td><td>눈치</td><td>시선 게이지 속도 -20% / -40%</td><td>50 / 110</td><td><a href="07_gaze_v1.html">07 시선 눈치</a></td><td><span class="st ok">구현됨</span> 비용 50 / 220</td></tr>
+<tr><td>단골 칸</td><td>눈치</td><td>승강장 혼잡 안내판 오차 없음 / 탑승 전 칸 안의 빈자리 수 표시</td><td>40 / 100</td><td>승강장 선택</td><td><span class="st ok">구현됨</span> 2단계는 "곧 빌 자리 수", 비용 40 / 200</td></tr>
+<tr><td>환승 고수</td><td>몸</td><td>사람에게 떠밀리는 거리 -40% (버티기 능력치와 곱함) / 쓸려 내림 면역 + 승차 러시 경쟁자 반응 지연</td><td>50 / 120</td><td><a href="05_transfer_v1.html">05 환승역</a></td><td><span class="st ok">구현됨</span> 비용 50 / 240</td></tr>
+<tr><td>칼각 루틴</td><td>계획</td><td>계획표 후보 +1 / 루틴 콤보 최대치 +2 / 계획 1개 교체권</td><td>60 / 120 / 200</td><td><a href="12_daily_plan_v1.html">12 계획표</a></td><td><span class="st ok">구현됨</span> 비용 60 / 240 / 400</td></tr>
+<tr><td>두 번째 알람</td><td>계획</td><td>도착 시한 여유 +1대 / 열차 보내기 시 다음 열차 혼잡도 미리 보기</td><td>40 / 90</td><td><a href="04_schedule_v1.html">04 일정</a></td><td><span class="st ok">구현됨</span> 비용 40 / 180</td></tr>
 </table></div>
 <p class="note">밀림 관련 스킬은 능력치 구분(<a href="02_character_v1.html">02</a>)을 따른다. <b>균형 감각</b>은 열차가 만드는 밀림(급정거)만, <b>환승 고수</b>는 사람이 만드는 밀림만 줄인다. 손잡이는 앞쪽은 완전히, 뒤쪽은 절반만 막는다.</p>
 <p>신규 5종을 전부 찍으면 980P. 기존과 합쳐 2,380P.</p>
 
-<h2>5. 포인트 경제 (가정)</h2>
+<h2>5. 포인트 경제 (가정)<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 표의 획득 값은 코드와 같다. 주마다 번 포인트와 계획표로 번 포인트를 따로 기록한다(<code>weekLog</code>). / <b>다르게 구현</b>: 주당 획득량 가정 250~400P는 시뮬레이션 값(숙련 594P, 보통 199P, 초보 79P)으로 바뀌었고, 그에 맞춰 2·3단계 비용을 2배로 올렸다. 완성까지 걸리는 주 수(4~5주, 7~8주)는 새 비용으로 다시 재지 않았다.</p>
 <div class="tw"><table>
-<tr><th>획득처</th><th>값</th></tr>
-<tr><td>"계획대로!" 착석</td><td>+30P</td></tr>
-<tr><td>눈치 착석</td><td>+12P</td></tr>
-<tr><td>자리 양보</td><td>+25P</td></tr>
-<tr><td>한 주 개근</td><td>+80P</td></tr>
-<tr><td>편도 완주 등 기타</td><td>코드 수치 확인 필요</td></tr>
+<tr><th>획득처</th><th>값</th><th>상태</th></tr>
+<tr><td>"계획대로!" 착석</td><td>+30P</td><td><span class="st ok">구현됨</span> 환승역에서는 "환승 계획대로!" +40P, 끝자리면 +10P 추가</td></tr>
+<tr><td>눈치 착석</td><td>+12P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>자리 양보</td><td>+25P</td><td><span class="st ok">구현됨</span> 정장 +20%, 정장과 구두 +30%</td></tr>
+<tr><td>한 주 개근</td><td>+80P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>편도 완주 등 기타</td><td>코드 수치 확인 필요</td><td><span class="st ok">구현됨</span> 코드 값: 도착 +10P, 무충돌 +15P, 남은 체력 ÷ 10, 계획표 보상(12), 야근 +20P·회식 +30P(08), 주말 약속 +30~80P(04). 지각과 반차는 그 편도 합계 -30%</td></tr>
 </table></div>
 <ul>
 <li>가정: 익숙해진 플레이어가 한 주(10회 통근)에 <b>250~400P</b>를 번다. 이 경우 기존 7종 완성에 약 4~5주, 신규 포함 전체 완성에 약 7~8주가 걸린다.</li>
@@ -89,7 +111,9 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>첫 주에 1~2개는 반드시 찍을 수 있어야 한다. 가장 싼 1단계(30~40P)는 그대로 둔다.</li>
 </ul>
 
-<h2>6. 화면</h2>
+<h2>6. 화면<span class="st ok">구현됨</span></h2>
+<p class="note">스킬과 상점을 여는 시점은 <a href="15_growth_loop_v1.html">15 성장 구조</a>의 결정(2026-11-25)에 따라 바뀔 예정이다.</p>
+<p class="status"><b>구현</b>: 계열별 세 줄 노선 모양, 찍은 단계에 불, 4·7단계 보너스 지점 표시, 전체 초기화(쓴 포인트의 90% 환급, 두 번 눌러 확인). 스킬 화면은 지금 주말 화면의 "패시브 스킬" 버튼과 런이 끝난 화면(탈락·퇴사)에서 열린다. 타이틀에는 없다. / <b>다르게 구현</b>: 초기화는 "주 시작 전" 조건 없이 스킬 화면이 열려 있으면 언제든 할 수 있다(주말 포함).</p>
 <ul>
 <li>스킬 화면은 <b>노선도</b> 모양: 세 계열이 세 개의 노선, 스킬 단계가 역이다. 찍은 역에 불이 들어오고 계열 보너스는 환승역 표시로 보여 준다.</li>
 <li>되돌리기: 주 시작 전에 한해 전체 초기화 가능 (포인트 90% 환급). 여러 빌드를 시험해 보도록 유도한다.</li>
@@ -100,35 +124,36 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <ul>
 <li><s>주당 포인트 획득량 가정</s> → 결정(2026-11-24): 시뮬레이션 1주차 획득은 숙련 594P(개근한 주 1,038P), 보통 199P, 초보 79P. 1단계 비용은 그대로 두고 <b>2·3단계 비용을 2배</b>로 올린다. 신규 스킬도 같은 배수.</li>
 <li><s>균형 감각 3단계(-84%)</s> → 결정: 급정거 밀림 <b>-25% / -45% / -60%</b>.</li>
-<li>캐릭터 고유 특성과 겹치는 스킬(정부장 = 관찰력 2단계 기본)의 비용 처리 → 02 캐릭터 구현 때 정한다.</li>
+<li><s>캐릭터 고유 특성과 겹치는 스킬(정부장 = 관찰력 2단계 기본)의 비용 처리</s> → 결정(02 캐릭터 구현 때): 비용 처리는 하지 않는다. 정부장은 관찰력 2단계의 페이크 간파만 기본으로 갖고, 유감각은 관찰력 1단계의 후보 2곳 표시만 기본으로 갖는다.</li>
 </ul>
 
-<h2>8. 1차 구현 내용 (2026-11-24)</h2>
+<h2>8. 1차 구현 내용 (2026-11-24)<span class="st ok">구현됨</span></h2>
 <p>결정 내용은 <code>DECISIONS.md</code>의 09 항목에 있다. 실제로 들어간 규칙:</p>
 <div class="tw"><table>
-<tr><th>스킬</th><th>계열</th><th>단계별 효과</th><th>비용</th></tr>
-<tr><td>관찰력</td><td>눈치</td><td>2장과 같음</td><td>40 / 180 / 320</td></tr>
-<tr><td>포커페이스</td><td>눈치</td><td>시선 게이지 속도 -20% / -40%</td><td>50 / 220</td></tr>
-<tr><td>단골 칸</td><td>눈치</td><td>승강장 안내판 오차 없음 / 문마다 "그 앞 좌석 중 2정거장 안에 빌 자리 수" 표시 (누가 내릴지는 알려 주지 않음)</td><td>40 / 200</td></tr>
-<tr><td>균형 감각</td><td>몸</td><td>급정거 밀림 -25% / -45% / -60%</td><td>30 / 140 / 240</td></tr>
-<tr><td>출근 체력</td><td>몸</td><td>2장과 같음</td><td>40 / 160 / 280</td></tr>
-<tr><td>빠른 엉덩이</td><td>몸</td><td>2장과 같음</td><td>50 / 200</td></tr>
-<tr><td>환승 고수</td><td>몸</td><td>사람에게 떠밀리는 거리 -40% / 쓸려 내림 면역 + 환승역 정차 중 경쟁자 반응 지연</td><td>50 / 240</td></tr>
-<tr><td>플랜 B</td><td>계획</td><td>2장과 같음</td><td>60 / 260</td></tr>
-<tr><td>"잠시만요"</td><td>계획</td><td>2장과 같음</td><td>50 / 220</td></tr>
-<tr><td>철면피</td><td>계획</td><td>2장과 같음</td><td>40 / 180</td></tr>
-<tr><td>칼각 루틴</td><td>계획</td><td>계획표 후보 +1 / 루틴 콤보 최대치 +2 / 통근마다 후보 1개 교체</td><td>60 / 240 / 400</td></tr>
+<tr><th>스킬</th><th>계열</th><th>단계별 효과</th><th>비용</th><th>상태</th></tr>
+<tr><td>관찰력</td><td>눈치</td><td>2장과 같음</td><td>40 / 180 / 320</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>포커페이스</td><td>눈치</td><td>시선 게이지 속도 -20% / -40%</td><td>50 / 220</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>단골 칸</td><td>눈치</td><td>승강장 안내판 오차 없음 / 문마다 "그 앞 좌석 중 2정거장 안에 빌 자리 수" 표시 (누가 내릴지는 알려 주지 않음)</td><td>40 / 200</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>균형 감각</td><td>몸</td><td>급정거 밀림 -25% / -45% / -60%</td><td>30 / 140 / 240</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>출근 체력</td><td>몸</td><td>2장과 같음</td><td>40 / 160 / 280</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>빠른 엉덩이</td><td>몸</td><td>2장과 같음</td><td>50 / 200</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>환승 고수</td><td>몸</td><td>사람에게 떠밀리는 거리 -40% / 쓸려 내림 면역 + 환승역 정차 중 경쟁자 반응 지연</td><td>50 / 240</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>플랜 B</td><td>계획</td><td>2장과 같음</td><td>60 / 260</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>"잠시만요"</td><td>계획</td><td>2장과 같음</td><td>50 / 220</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>철면피</td><td>계획</td><td>2장과 같음</td><td>40 / 180</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>칼각 루틴</td><td>계획</td><td>계획표 후보 +1 / 루틴 콤보 최대치 +2 / 통근마다 후보 1개 교체</td><td>60 / 240 / 400</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>두 번째 알람</td><td>계획</td><td>도착 시한 여유 +1대 / 열차를 보내기 전에 다음 열차 혼잡도 미리 보기 (04 일정과 함께 추가)</td><td>40 / 180</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <div class="tw"><table>
-<tr><th>계열</th><th>4단계 보너스</th><th>7단계 보너스</th></tr>
-<tr><td>눈치</td><td>시야각 +10°</td><td>통근 시작 때 3정거장 안에 내릴 앉은 승객 1명의 낌새가 처음부터 보인다 (몇 정거장인지는 모름)</td></tr>
-<tr><td>몸</td><td>충돌 체력 피해 3 → 2 (백팩에 밀림 포함)</td><td>통근마다 1회, 체력이 0이 될 때 15로 버팀</td></tr>
-<tr><td>계획</td><td>"계획대로!" 착석 포인트 +10%</td><td>통근마다 첫 계획 실패 1회는 붕괴 스택이 쌓이지 않음</td></tr>
+<tr><th>계열</th><th>4단계 보너스</th><th>7단계 보너스</th><th>상태</th></tr>
+<tr><td>눈치</td><td>시야각 +10°</td><td>통근 시작 때 3정거장 안에 내릴 앉은 승객 1명의 낌새가 처음부터 보인다 (몇 정거장인지는 모름)</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>몸</td><td>충돌 체력 피해 3 → 2 (백팩에 밀림 포함)</td><td>통근마다 1회, 체력이 0이 될 때 15로 버팀</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>계획</td><td>"계획대로!" 착석 포인트 +10%</td><td>통근마다 첫 계획 실패 1회는 붕괴 스택이 쌓이지 않음</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
-<li>두 번째 알람은 04 일정 때 넣는다. 눈치 계열은 최대 7단계라 7단계 보너스를 받으려면 세 스킬을 모두 끝까지 찍어야 한다.</li>
+<li>두 번째 알람은 04 일정과 함께 들어왔다(위 표). 계획 계열은 최대 11단계가 되었다. 눈치 계열은 최대 7단계라 7단계 보너스를 받으려면 세 스킬을 모두 끝까지 찍어야 한다.</li>
 <li>단골 칸 2단계: 문서의 "칸 안의 빈자리 수"는 출발 때 빈자리가 거의 없어(월요일 출근 1석, 그 밖에는 0석) 늘 0이 된다. 그래서 문마다 그 앞 좌석 중 2정거장 안에 빌 자리 수로 바꿨다.</li>
-<li>초기화: 스킬 화면에서 언제든(런 시작 전) 전체 초기화, 쓴 포인트의 90% 환급. 비용을 올리기 전에 찍은 스킬은 그때 낸 값을 기준으로 환급한다.</li>
+<li>초기화: 스킬 화면에서 언제든(런이 끝난 화면과 주말 화면) 전체 초기화, 쓴 포인트의 90% 환급. 비용을 올리기 전에 찍은 스킬은 그때 낸 값을 기준으로 환급한다.</li>
 </ul>
 
 <nav class="foot"><a href="08_work_home_event_v1.html">← 08 회사·집 이벤트</a><a href="index.html">목록</a><a href="10_item_v1.html">10 아이템 →</a></nav>

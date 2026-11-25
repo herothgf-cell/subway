@@ -29,17 +29,35 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">12</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
 <h1>오늘의 계획표</h1><p>통근별 목표 선택, 루틴 콤보, 멘붕</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>의 <code>DPLANS</code>, <code>genCandidates</code>, <code>dpSet</code>, <code>dpFinal</code>, <code>addCollapse</code>, <code>meltAt</code>)를 확인해 적었다. <span class="st ok">구현됨</span><span class="st part">일부 구현</span><span class="st wait">보류</span><span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>1. 목적</td><td>"계획대로"를 규칙으로, 통근마다 고르는 목표</td><td>-</td><td>설명용 장</td></tr>
+<tr><td>2. 흐름</td><td>후보 5개 → 0~3개 적기 → 통근 중 표시 → 정산</td><td><span class="st ok">구현됨</span></td><td>화면 이름은 출근길·퇴근길 계획표. Tab으로 접는다</td></tr>
+<tr><td>3. 계획 목록</td><td>계획 18종과 후보 뽑는 규칙</td><td><span class="st part">일부 구현</span></td><td>18종 모두 판정한다. 그날의 변수에 맞춰 후보를 거르는 것은 백팩만</td></tr>
+<tr><td>4. 정산과 루틴 콤보</td><td>전부 달성 +20P, 콤보 1당 +10%</td><td><span class="st part">일부 구현</span></td><td>콤보에 따른 독백·걸음, 금색 스티커는 없다</td></tr>
+<tr><td>5. 계획 붕괴와 멘붕</td><td>붕괴 스택 3종, 멘붕 20초, 해제</td><td><span class="st ok">구현됨</span></td><td>한도는 멘탈 능력치에 따라 2·3·4</td></tr>
+<tr><td>6. 일정별 전용 계획</td><td>데이트, 결혼식, 야구 관람, 월급날</td><td><span class="st wait">보류</span></td><td>코드에 없다. 데이트는 V1 제외</td></tr>
+<tr><td>7. 연동</td><td>08 집 카드, 09 스킬, 10 아이템, 04 플래너</td><td>-</td><td>앞의 셋은 구현, 주간 플래너에 미리 적기는 보류</td></tr>
+<tr><td>8. 미결 사항</td><td>포인트 증가, 실패 확정 시점, 멘붕 악순환</td><td>-</td><td>모두 정해졌다</td></tr>
+</table></div>
+
 <h2>1. 목적</h2>
 <ul>
 <li>게임 제목 "계획대로"를 규칙으로 만든다. 현재 J 성격은 <b>자리 찜</b> 하나로만 표현된다.</li>
 <li>통근마다 스스로 고른 목표를 두어, 같은 구간도 매번 다르게 플레이하게 한다.</li>
 </ul>
 
-<h2>2. 흐름</h2>
+<h2>2. 흐름<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 후보 5개(★ 2, ★★ 2, ★★★ 1), 0~3개 적기, 통근 중 화면의 계획표에 체크·줄 긋기, 도착 뒤 정산. 후보는 집 카드 "내일 계획 세우기" +2, 칼각 루틴 +1로 늘고, 다이어리를 챙기면 4개까지 적는다. / <b>다르게 구현</b>: 화면 이름은 "오늘의 계획표"가 아니라 출근길·퇴근길 계획표(주말 약속은 가는 길·귀갓길)다. 플래너가 아니라 통근 직전의 별도 화면에서 고른다. 통근 중 계획표는 Tab으로 접고 펼 수 있다(2026-11-25).</p>
 <ol>
 <li>통근 시작 전 플래너에 후보 <b>5개</b>가 제시된다.</li>
 <li>그중 <b>3개</b>를 골라 오늘의 계획표에 적는다. (0~3개 자유. 적게 적으면 위험도 보상도 작다)</li>
@@ -47,37 +65,39 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>도착 후 정산: 달성 수에 따라 보상과 루틴 콤보가 정해진다.</li>
 </ol>
 
-<h2>3. 계획 목록</h2>
+<h2>3. 계획 목록<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 18종 모두 후보에 나오고 판정한다. 난이도와 보상은 표와 같다. 후보 구성(★ 2, ★★ 2, ★★★ 1), 모순 조합 제외, 즉시 알림과 독백. / <b>보류</b>: 그날의 변수에 맞춰 후보를 거르는 것. 지금은 "백팩은 앞으로"만 백팩을 멘 날에 나오고, 비나 환승역 유무는 보지 않는다. 구간에 환승역이 없어도 "환승역 노리기"가 후보에 나오고, 첫 역을 출발할 때 실패로 확정된다. / <b>V1 제외</b>: 동행에 따른 후보 거르기(13). / <b>다르게 구현</b>: 들키지 않기는 "앉을 때까지 눈 마주침 0회"(배려석이 아닌 자리에 앉는 순간 달성, 2026-11-25). 환승역 노리기는 환승역에 정차한 동안 배려석이 아닌 자리에 앉으면 달성. 백팩은 앞으로는 "혼잡 구간 내내"가 아니라 주행 중 서 있는 동안 뒤로 멘 시간이 합쳐서 3초를 넘으면 실패. 한 바퀴 훑기는 앉은 승객과 서 있는 승객을 가리지 않는다.</p>
 <div class="tw"><table>
-<tr><th>분류</th><th>계획</th><th>달성 조건</th><th>난이도</th><th>보상</th></tr>
-<tr><td rowspan="5">착석</td><td>일찍 앉기</td><td>3정거장 안에 착석</td><td>★</td><td>15P</td></tr>
-<tr><td>계획대로 앉기</td><td>찜한 자리에 낌새 전 착석 1회</td><td>★★</td><td>25P</td></tr>
-<tr><td>끝자리</td><td>끝자리에 착석 (벤치 양끝 자리 중 배려석이 아닌 자리, 칸당 6석)</td><td>★★★</td><td>40P</td></tr>
-<tr><td>환승역 노리기</td><td>환승역에서 빈 자리에 착석</td><td>★★</td><td>25P</td></tr>
-<tr><td>앉아서 도착</td><td>종점에 앉은 채로 도착 (배려석 제외)</td><td>★</td><td>15P</td></tr>
-<tr><td rowspan="4">이동</td><td>무접촉 통근</td><td>충돌 0회</td><td>★★★</td><td>40P (기존 무충돌 +15P와 별도)</td></tr>
-<tr><td>조용한 통근</td><td>민폐 게이지 30 이하 유지</td><td>★★</td><td>25P</td></tr>
-<tr><td>단단한 하체</td><td>경고가 뜬 급정거에 한 번도 밀리지 않기 (경고 없는 출발 직후 흔들림은 판정하지 않음)</td><td>★</td><td>15P</td></tr>
-<tr><td>체력 관리</td><td>체력 50 이상으로 도착</td><td>★</td><td>15P</td></tr>
-<tr><td rowspan="4">눈치</td><td>정확한 눈</td><td>찜한 승객이 찜한 뒤 바로 다음 정차역에서 하차 1회</td><td>★★</td><td>25P</td></tr>
-<tr><td>들키지 않기</td><td>눈 마주침 0회 (07 시선 눈치와 함께 구현됨)</td><td>★★</td><td>25P</td></tr>
-<tr><td>속지 않기</td><td>페이크 동작 중인 승객을 찜하지 않기 (찜하는 순간 실패)</td><td>★★★</td><td>40P</td></tr>
-<tr><td>한 바퀴 훑기</td><td>서로 다른 승객 5명을 0.5초 이상 살펴보기</td><td>★</td><td>15P</td></tr>
-<tr><td rowspan="3">매너</td><td>양보 한 번</td><td>자리 양보 1회. 이 계획을 적은 날은 앉으면 양보 상황이 반드시 생긴다. 끝까지 앉지 못했으면 무효</td><td>★★</td><td>25P (양보 보상과 별도)</td></tr>
-<tr><td>백팩은 앞으로</td><td>혼잡 구간 내내 가방 앞으로 메기</td><td>★</td><td>15P</td></tr>
-<tr><td>먼저 내리세요</td><td>내리는 사람 앞에서 몸을 돌려 길 터 주기 1회</td><td>★</td><td>15P</td></tr>
-<tr><td rowspan="2">절제</td><td>서서 가기</td><td>출발 후 구간의 절반(8정거장이면 4정거장) 동안 앉지 않기</td><td>★★</td><td>25P</td></tr>
-<tr><td>플랜 A만</td><td>찜은 정확히 한 번. 취소하거나 바꾸면 실패, 찜을 하지 않아도 실패</td><td>★★★</td><td>40P</td></tr>
+<tr><th>분류</th><th>계획</th><th>달성 조건</th><th>난이도</th><th>보상</th><th>상태</th></tr>
+<tr><td rowspan="5">착석</td><td>일찍 앉기</td><td>3정거장 안에 착석</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>계획대로 앉기</td><td>찜한 자리에 낌새 전 착석 1회</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>끝자리</td><td>끝자리에 착석 (벤치 양끝 자리 중 배려석이 아닌 자리, 칸당 6석)</td><td>★★★</td><td>40P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>환승역 노리기</td><td>환승역에서 빈 자리에 착석</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span> 정차 중 착석, 배려석 제외</td></tr>
+<tr><td>앉아서 도착</td><td>종점에 앉은 채로 도착 (배려석 제외)</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td rowspan="4">이동</td><td>무접촉 통근</td><td>충돌 0회</td><td>★★★</td><td>40P (기존 무충돌 +15P와 별도)</td><td><span class="st ok">구현됨</span> 백팩에 밀려도 실패</td></tr>
+<tr><td>조용한 통근</td><td>민폐 게이지 30 이하 유지</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>단단한 하체</td><td>경고가 뜬 급정거에 한 번도 밀리지 않기 (경고 없는 출발 직후 흔들림은 판정하지 않음)</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>체력 관리</td><td>체력 50 이상으로 도착</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td rowspan="4">눈치</td><td>정확한 눈</td><td>찜한 승객이 찜한 뒤 바로 다음 정차역에서 하차 1회</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>들키지 않기</td><td>눈 마주침 0회 (07 시선 눈치와 함께 구현됨)</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span> 앉을 때까지만 판정</td></tr>
+<tr><td>속지 않기</td><td>페이크 동작 중인 승객을 찜하지 않기 (찜하는 순간 실패)</td><td>★★★</td><td>40P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>한 바퀴 훑기</td><td>서로 다른 승객 5명을 0.5초 이상 살펴보기</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td rowspan="3">매너</td><td>양보 한 번</td><td>자리 양보 1회. 이 계획을 적은 날은 앉으면 양보 상황이 반드시 생긴다. 끝까지 앉지 못했으면 무효</td><td>★★</td><td>25P (양보 보상과 별도)</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>백팩은 앞으로</td><td>혼잡 구간 내내 가방 앞으로 메기</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span> 뒤로 멘 시간 3초까지 봐줌. 백팩을 멘 날에만 후보</td></tr>
+<tr><td>먼저 내리세요</td><td>내리는 사람 앞에서 몸을 돌려 길 터 주기 1회</td><td>★</td><td>15P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td rowspan="2">절제</td><td>서서 가기</td><td>출발 후 구간의 절반(8정거장이면 4정거장) 동안 앉지 않기</td><td>★★</td><td>25P</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>플랜 A만</td><td>찜은 정확히 한 번. 취소하거나 바꾸면 실패, 찜을 하지 않아도 실패</td><td>★★★</td><td>40P</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
 <li>후보 5개는 난이도 ★ 2개, ★★ 2개, ★★★ 1개로 구성한다. 그날의 변수(비, 환승역 유무, 동행)에 맞지 않는 항목은 빼고 뽑는다.</li>
 <li>서로 모순되는 조합(일찍 앉기 + 서서 가기)은 함께 제시하지 않는다.</li>
 <li>"일찍 앉기"는 배려석에 앉은 것을 달성으로 치지 않는다. 탈락한 통근은 달성한 계획이 있어도 보상을 주지 않는다.</li>
-<li>판정할 시스템이 아직 없는 항목은 그 시스템이 들어올 때 후보에 넣는다: "들키지 않기"(<a href="07_gaze_v1.html">07</a>), "백팩은 앞으로"(<a href="10_item_v1.html">10</a>), "환승역 노리기"(<a href="05_transfer_v1.html">05</a>).</li>
+<li>판정할 시스템이 아직 없는 항목은 그 시스템이 들어올 때 후보에 넣는다: "들키지 않기"(<a href="07_gaze_v1.html">07</a>), "백팩은 앞으로"(<a href="10_item_v1.html">10</a>), "환승역 노리기"(<a href="05_transfer_v1.html">05</a>). 05·07·10이 모두 들어와 지금은 세 항목 다 후보에 나온다.</li>
 <li>계획이 달성되거나 실패가 확정되면 <b>그 즉시</b> 계획표에 체크 또는 줄 긋기로 알리고 독백을 띄운다.</li>
 </ul>
 
-<h2>4. 정산과 루틴 콤보</h2>
+<h2>4. 정산과 루틴 콤보<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 표의 세 결과, 빈 경우의 판정, 무효 처리, 계획표 수입 따로 집계, 콤보 1당 +10%·최대 5(칼각 루틴 2단계면 7), 새 주에 콤보 0. 탈락한 통근은 계획 보상이 없다. 콤보는 계획표 화면과 통근 중 계획표 머리에 숫자로 보인다. / <b>보류</b>: 콤보가 높을 때 독백과 걸음이 가벼워지는 연출, 5에서 플래너의 금색 스티커.</p>
 <div class="tw"><table>
 <tr><th>결과</th><th>효과</th></tr>
 <tr><td>적은 계획 모두 달성 (2개 이상 적었을 때)</td><td>"오늘도 계획대로" 보너스 +20P, 루틴 콤보 +1</td></tr>
@@ -91,12 +111,13 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>콤보가 높을수록 주인공의 독백과 걸음이 가벼워진다. 5에서는 플래너에 금색 스티커.</li>
 </ul>
 
-<h2>5. 계획 붕괴와 멘붕</h2>
+<h2>5. 계획 붕괴와 멘붕<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 붕괴 3종, 멘붕 20초(시야각 -40%, 찜 불가, 엉킨 독백), 앉기 또는 3초 심호흡으로 해제, 통근당 1회, 모두 실패한 다음 통근은 스택 1에서 시작. 종점 도착 때 확정되는 실패는 스택에 넣지 않는다. / <b>다르게 구현</b>: 멘붕 한도는 멘탈 능력치로 정한다(멘탈 2 이하 2, 3은 3, 4 이상 4). 집 카드 "드라마 정주행"은 그날 한도 +1, 계획 계열 7단계는 통근마다 첫 계획 실패 1회를 스택에서 뺀다. 쓸려 내리면 스택 말고도 체력 -8, 찜 해제, 열차 한 대를 쓴다.</p>
 <div class="tw"><table>
-<tr><th>붕괴 발생</th><th>스택</th></tr>
-<tr><td>찜한 자리를 남에게 뺏김 (현재 체력 -5)</td><td>+1</td></tr>
-<tr><td>계획표 항목 실패 확정</td><td>+1</td></tr>
-<tr><td>환승역에서 쓸려 내림</td><td>+1</td></tr>
+<tr><th>붕괴 발생</th><th>스택</th><th>상태</th></tr>
+<tr><td>찜한 자리를 남에게 뺏김 (현재 체력 -5)</td><td>+1</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>계획표 항목 실패 확정</td><td>+1</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>환승역에서 쓸려 내림</td><td>+1</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
 <li>스택 3이 되면 <b>멘붕</b>: 20초간 시야각 -40%, 찜 불가, 독백이 엉킨다.</li>
@@ -106,20 +127,21 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>멘붕이 풀리면 스택은 0이 된다. 멘탈 능력치가 높으면 스택 한도가 4로 늘어난다 (<a href="02_character_v1.html">02</a>).</li>
 </ul>
 
-<h2>6. 일정별 전용 계획</h2>
+<h2>6. 일정별 전용 계획<span class="st wait">보류</span></h2>
+<p class="status">코드에 전용 계획이 없다. 주말 약속과 월급날에도 평소와 같은 18종에서 후보를 뽑는다. 결혼식·야구 관람·월급날 일정 자체는 04 일정으로 들어와 있다. 데이트는 13의 동행 규칙이 필요해 V1에서 뺀다(2026-11-25 결정).</p>
 <div class="tw"><table>
-<tr><th>일정</th><th>전용 계획 예</th></tr>
-<tr><td>데이트</td><td>동행자 먼저 앉히기, 나란히 앉기, 한 번도 떨어지지 않기 (<a href="13_misc_ideas_v1.html">13</a>)</td></tr>
-<tr><td>결혼식</td><td>구두 신고 충돌 0회, 시한 2분 전 도착</td></tr>
-<tr><td>야구 관람</td><td>종합운동장 귀가 인파 속 쓸려 내림 없이 탑승</td></tr>
-<tr><td>월급날</td><td>최대 혼잡 퇴근길에서 "계획대로" 2회</td></tr>
+<tr><th>일정</th><th>전용 계획 예</th><th>상태</th></tr>
+<tr><td>데이트</td><td>동행자 먼저 앉히기, 나란히 앉기, 한 번도 떨어지지 않기 (<a href="13_misc_ideas_v1.html">13</a>)</td><td><span class="st cut">V1 제외</span></td></tr>
+<tr><td>결혼식</td><td>구두 신고 충돌 0회, 시한 2분 전 도착</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>야구 관람</td><td>종합운동장 귀가 인파 속 쓸려 내림 없이 탑승</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>월급날</td><td>최대 혼잡 퇴근길에서 "계획대로" 2회</td><td><span class="st wait">보류</span></td></tr>
 </table></div>
 
 <h2>7. 연동</h2>
 <ul>
-<li>집 카드 "내일 계획 세우기"로 후보 +2 (<a href="08_work_home_event_v1.html">08</a>).</li>
-<li>스킬 "칼각 루틴", 아이템 "다이어리"로 후보·슬롯 증가 (<a href="09_passive_skill_v1.html">09</a>, <a href="10_item_v1.html">10</a>).</li>
-<li>주간 플래너에 미리 적어 둔 계획을 달성하면 보상 +20% (<a href="04_schedule_v1.html">04</a>).</li>
+<li>집 카드 "내일 계획 세우기"로 후보 +2 (<a href="08_work_home_event_v1.html">08</a>).<span class="st ok">구현됨</span></li>
+<li>스킬 "칼각 루틴", 아이템 "다이어리"로 후보·슬롯 증가 (<a href="09_passive_skill_v1.html">09</a>, <a href="10_item_v1.html">10</a>).<span class="st ok">구현됨</span></li>
+<li>주간 플래너에 미리 적어 둔 계획을 달성하면 보상 +20% (<a href="04_schedule_v1.html">04</a>).<span class="st wait">보류</span></li>
 </ul>
 
 <h2>8. 미결 사항</h2>

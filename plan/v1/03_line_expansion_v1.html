@@ -29,47 +29,67 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">03</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
 <h1>지하철 노선 확장</h1><p>신림~강남에서 2호선 순환선 전체로, 구간별 특성</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>)를 확인해 장마다 표시했다. <span class="st ok">구현됨</span> <span class="st part">일부 구현</span> <span class="st wait">보류</span> <span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>2</td><td>확장 단계</td><td><span class="st part">일부 구현</span></td><td>순환선 43역까지 넣었다. 내선·외선 고르기와 다른 노선 갈아타기는 없다</td></tr>
+<tr><td>3</td><td>구간별 특성</td><td><span class="st part">일부 구현</span></td><td>8개 구간과 유형별 하차 가중치, 한강 구간. 구간 전용 승객 유형과 창밖 연출은 없다</td></tr>
+<tr><td>4</td><td>순환선 규칙 (돌아가기)</td><td><span class="st wait">보류</span></td><td>늘 짧은 방향으로 탄다</td></tr>
+<tr><td>5</td><td>역 데이터 구조</td><td><span class="st ok">구현됨</span></td><td>결정대로. 하차 가중치는 역이 아니라 승객 유형 쪽에 둔다</td></tr>
+<tr><td>6</td><td>노선도 UI</td><td><span class="st part">일부 구현</span></td><td>상단 직선 노선도, 캐릭터 선택의 원형 노선도. 일정 화면의 원형 노선도와 약속 핀은 없다</td></tr>
+<tr><td>7</td><td>앉은 채 도착 건너뛰기 (미결에서 결정)</td><td><span class="st ok">구현됨</span></td><td>X, 6배</td></tr>
+<tr><td>8</td><td>1차 구현 내용</td><td><span class="st ok">구현됨</span></td><td>역 정보 검수 완료(2026-11-24)</td></tr>
+</table></div>
+
 <h2>1. 목적</h2>
 <ul>
 <li>캐릭터별 출퇴근 구간(<a href="02_character_v1.html">02</a>)과 주말 약속 목적지(<a href="04_schedule_v1.html">04</a>)를 담을 수 있게 노선을 넓힌다.</li>
 <li>역이 늘어나는 것 자체보다, <b>구간마다 타고 내리는 사람이 다르다</b>는 차이를 만드는 것이 핵심이다.</li>
 </ul>
 
-<h2>2. 확장 단계</h2>
+<h2>2. 확장 단계 <span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 1~3단계의 역 데이터를 한 번에 넣었다(순환선 43역, 지선 제외). 통근과 약속은 늘 짧은 방향으로 탄다. / <b>보류</b>: 내선·외선 방향 고르기, 4단계 다른 노선으로 갈아타기.</p>
 <div class="tw"><table>
-<tr><th>단계</th><th>범위</th><th>역 수</th><th>필요한 이유</th></tr>
-<tr><td>1 (현재)</td><td>신림 ~ 강남</td><td>9</td><td>한계획 출퇴근</td></tr>
-<tr><td>2</td><td>신도림 ~ 잠실 (2호선 남쪽 절반)</td><td>약 21</td><td>오신입 출퇴근, 강남권 주말 약속</td></tr>
-<tr><td>3</td><td>2호선 순환선 전체, 내선·외선 방향</td><td>43</td><td>유감각·정부장 출퇴근, 홍대·성수 약속</td></tr>
-<tr><td>4 (후순위)</td><td>다른 노선으로 갈아타기</td><td>-</td><td>환승 자체를 플레이로 만들 때</td></tr>
+<tr><th>단계</th><th>범위</th><th>역 수</th><th>필요한 이유</th><th>상태</th></tr>
+<tr><td>1 (현재)</td><td>신림 ~ 강남</td><td>9</td><td>한계획 출퇴근</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>2</td><td>신도림 ~ 잠실 (2호선 남쪽 절반)</td><td>약 21</td><td>오신입 출퇴근, 강남권 주말 약속</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>3</td><td>2호선 순환선 전체, 내선·외선 방향</td><td>43</td><td>유감각·정부장 출퇴근, 홍대·성수 약속</td><td><span class="st part">일부 구현</span> 방향 고르기 없음</td></tr>
+<tr><td>4 (후순위)</td><td>다른 노선으로 갈아타기</td><td>-</td><td>환승 자체를 플레이로 만들 때</td><td><span class="st wait">보류</span></td></tr>
 </table></div>
 
-<h2>3. 구간별 특성</h2>
+<h2>3. 구간별 특성 <span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 43역이 8개 구간 중 하나를 갖는다. 기존 승객 유형(대학생, 직장인, 등산객, 서류 봉투, 학생, 쇼핑백)이 구간별·예외 역별 하차 가중치를 갖는다. 환승 검색 승객은 환승 등급으로 내린다. 한강 구간은 주행 시간 1.6배에 덜컹거림이 없다. / <b>보류</b>: 구간 전용 승객 유형(IT 직장인, 야구 유니폼, 가족 나들이, 캐리어, 관광객, 악기 가방), 역별 승차 급증(신도림 대량 승차, 경기 있는 날 종합운동장), 도심의 짧은 정거장 간격, 주말 저녁 혼잡, 한강 창밖 연출. / <b>다르게 구현</b>: 종합운동장 인파는 주말 약속 "야구 관람"의 귀가길 혼잡 ×1.4로만 있다(04).</p>
 <div class="tw"><table>
-<tr><th>구간</th><th>주요 역</th><th>자주 보이는 승객</th><th>특징</th></tr>
-<tr><td>서남</td><td>신도림, 대림, 구로디지털단지</td><td>환승객, IT 직장인</td><td>신도림(1호선)에서 대량 승차. 출근 시간 최고 혼잡</td></tr>
-<tr><td>관악·사당</td><td>신림, 서울대입구, 사당</td><td>과잠 대학생, 등산객</td><td>현재 구현 구간. 사당(4호선) 물갈이</td></tr>
-<tr><td>강남</td><td>교대, 강남, 역삼, 선릉, 삼성</td><td>정장 직장인, 서류 봉투</td><td>출근 때 내리는 사람이 가장 많음. 퇴근 때는 반대로 계속 탐</td></tr>
-<tr><td>잠실</td><td>종합운동장, 잠실, 강변</td><td>야구 유니폼, 가족 나들이, 캐리어</td><td>경기 있는 날 종합운동장 혼잡. 강변은 터미널 캐리어</td></tr>
-<tr><td>성수·왕십리</td><td>건대입구, 성수, 왕십리</td><td>대학생, 주말 나들이객</td><td>주말 약속 목적지. 왕십리는 여러 노선 환승</td></tr>
-<tr><td>도심</td><td>동대문역사문화공원, 을지로3가, 시청</td><td>관광객, 도심 직장인</td><td>정거장 간격이 짧아 낌새를 볼 시간이 적음</td></tr>
-<tr><td>신촌·홍대</td><td>신촌, 홍대입구, 합정</td><td>대학생, 악기 가방, 약속 인파</td><td>주말 저녁 최고 혼잡. 홍대입구(공항철도) 캐리어</td></tr>
-<tr><td>서부</td><td>당산, 영등포구청, 문래</td><td>환승객</td><td>당산철교로 한강을 건넘</td></tr>
+<tr><th>구간</th><th>주요 역</th><th>자주 보이는 승객</th><th>특징</th><th>상태</th></tr>
+<tr><td>서남</td><td>신도림, 대림, 구로디지털단지</td><td>환승객, IT 직장인</td><td>신도림(1호선)에서 대량 승차. 출근 시간 최고 혼잡</td><td><span class="st part">일부 구현</span> 가중치만. 대량 승차는 오신입 출근 ×1.3으로 대신</td></tr>
+<tr><td>관악·사당</td><td>신림, 서울대입구, 사당</td><td>과잠 대학생, 등산객</td><td>현재 구현 구간. 사당(4호선) 물갈이</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>강남</td><td>교대, 강남, 역삼, 선릉, 삼성</td><td>정장 직장인, 서류 봉투</td><td>출근 때 내리는 사람이 가장 많음. 퇴근 때는 반대로 계속 탐</td><td><span class="st part">일부 구현</span> 하차 가중치만. 퇴근 승차는 확인 필요</td></tr>
+<tr><td>잠실</td><td>종합운동장, 잠실, 강변</td><td>야구 유니폼, 가족 나들이, 캐리어</td><td>경기 있는 날 종합운동장 혼잡. 강변은 터미널 캐리어</td><td><span class="st part">일부 구현</span> 가중치와 잠실철교만</td></tr>
+<tr><td>성수·왕십리</td><td>건대입구, 성수, 왕십리</td><td>대학생, 주말 나들이객</td><td>주말 약속 목적지. 왕십리는 여러 노선 환승</td><td><span class="st part">일부 구현</span> 나들이객 유형 없음</td></tr>
+<tr><td>도심</td><td>동대문역사문화공원, 을지로3가, 시청</td><td>관광객, 도심 직장인</td><td>정거장 간격이 짧아 낌새를 볼 시간이 적음</td><td><span class="st part">일부 구현</span> 가중치만. 간격은 다른 구간과 같음</td></tr>
+<tr><td>신촌·홍대</td><td>신촌, 홍대입구, 합정</td><td>대학생, 악기 가방, 약속 인파</td><td>주말 저녁 최고 혼잡. 홍대입구(공항철도) 캐리어</td><td><span class="st part">일부 구현</span> 가중치만</td></tr>
+<tr><td>서부</td><td>당산, 영등포구청, 문래</td><td>환승객</td><td>당산철교로 한강을 건넘</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <p class="note">한강을 건너는 구간(당산철교, 잠실철교)은 창밖이 밝아지는 연출 구간으로 쓴다. 역 사이가 길어 체력 소모는 크지만 덜컹거림이 없는 "숨 고르기" 구간으로 설정한다.</p>
 
-<h2>4. 순환선 규칙 (3단계)</h2>
+<h2>4. 순환선 규칙 (3단계) <span class="st wait">보류</span></h2>
+<p class="status">지금은 늘 짧은 방향으로 탄다(같은 거리면 내선). 방향 고르기, 돌아가기, 두 경로 비교는 없다.</p>
 <ul>
 <li>승강장에서 <b>내선 / 외선</b>을 고른다. 기본은 짧은 방향이다.</li>
 <li><b>돌아가기</b>: 먼 방향을 타면 정거장이 훨씬 많지만 한산한 구간을 지난다. 대신 도착 시각이 늦어져 지각 위험이 생긴다 (<a href="04_schedule_v1.html">04 일정</a>의 도착 시한).</li>
 <li>J 성격 표현: 플래너에 두 경로의 예상 소요 시간과 혼잡도를 미리 보여 주고 고르게 한다.</li>
 </ul>
 
-<h2>5. 역 데이터 구조</h2>
+<h2>5. 역 데이터 구조 <span class="st ok">구현됨</span></h2>
+<p class="status"><b>다르게 구현</b>: 역(<code>LINE2</code>)은 이름, 구간(<code>zone</code>), 환승 노선(<code>tr</code>), 등급(<code>grade</code>), 구간 길이(<code>gap</code>)를 갖는다. <code>id</code>는 없고 역 이름이 키다. 하차 가중치(<code>alight</code>)는 역이 아니라 승객 유형 쪽(<code>ARCH</code>, <code>ARCH_Z</code>)에 출근·퇴근별로 둔다. 주말은 퇴근 값을 쓴다. 기존 신림~강남 9역은 원래 값을 그대로 쓴다.</p>
 <pre>{
   id: "sadang", name: "사당",
   transfer: ["4"],          // 환승 노선. 물갈이 등급 계산에 사용 (05 문서)
@@ -83,7 +103,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>특정 역에만 해당하는 유형(과잠 → 서울대입구)은 예외 항목으로 덧붙인다.</li>
 </ul>
 
-<h2>6. 노선도 UI</h2>
+<h2>6. 노선도 UI <span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 통근 중 상단 노선도는 내 구간만 직선으로(10정거장이 넘으면 가까운 역만 이름 표시). 캐릭터 선택 카드에 원형 노선도와 집·회사 핀. / <b>보류</b>: 일정 화면의 원형 노선도, 약속 장소 핀.</p>
 <ul>
 <li>통근 중 상단 노선도는 현재처럼 <b>내 구간만</b> 직선으로 보여 준다.</li>
 <li>캐릭터 선택과 일정 화면에서는 순환선 전체를 원형으로 보여 주고 집·회사·약속 장소를 핀으로 찍는다.</li>
@@ -93,11 +114,11 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <p class="note">아래 항목은 구현 전에 Claude Code에서 항목별로 <b>검토 → 선택지와 추천안 제안 → 결정</b>을 거쳐 확정한다. 결정 내용은 <code>plan/v1/DECISIONS.md</code>에 기록하고 이 문서 본문에 반영한다.</p>
 <ul>
 <li><s>지선 포함 여부</s> → 결정(2026-11-24): 넣지 않는다.</li>
-<li><s>15정거장 구간이 길다</s> → 결정: 앉은 상태에서 <b>X로 "앉은 채 도착" 건너뛰기</b>. 6배로 감고, 일어서거나 양보 상황이 생기면 멈춘다.</li>
-<li>역 이름·환승 정보는 실제 2호선 기준으로 채웠다. <b>최종 검수 필요</b> (아래 8장의 표).</li>
+<li><s>15정거장 구간이 길다</s> → 결정: 앉은 상태에서 <b>X로 "앉은 채 도착" 건너뛰기</b>. 6배로 감고, 일어서거나 양보 상황이 생기면 멈춘다. <span class="st ok">구현됨</span></li>
+<li><s>역 이름·환승 정보 검수</s> → 실제 2호선 기준으로 채웠다. 검수 완료(2026-11-24): 43역 순서, 환승 노선, 한강 구간, 영어 역명을 확인했고 고칠 것이 없었다 (아래 8장의 표).</li>
 </ul>
 
-<h2>8. 1차 구현 내용 (2026-11-24)</h2>
+<h2>8. 1차 구현 내용 (2026-11-24) <span class="st ok">구현됨</span></h2>
 <ul>
 <li>순환선 43역을 내선 순서로 넣었다. 통근은 늘 짧은 방향으로 탄다. 내선·외선 "돌아가기"는 04 도착 시한과 함께 뒤에.</li>
 <li>승객 하차 가중치: 기존 신림~강남 9역은 원래 값을 그대로 쓴다. 그 밖의 역은 유형별 <b>예외 역 → 구간 가중치</b> 순서로 정한다. "환승 경로를 검색하는 사람"은 환승 등급(S 5 / A 3 / B 1.5)으로 정한다.</li>

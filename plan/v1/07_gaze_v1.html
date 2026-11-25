@@ -29,17 +29,34 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">07</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
 <h1>시선 눈치</h1><p>쳐다보는 것의 비용, 들키지 않고 보는 방법</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>, <code>game3d.js</code>)를 확인해 적었다. 배지: <span class="st ok">구현됨</span><span class="st part">일부 구현</span><span class="st wait">보류</span><span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>1</td><td>목적</td><td>-</td><td>설명</td></tr>
+<tr><td>2</td><td>시선 게이지</td><td><span class="st ok">구현됨</span></td><td>단계별 수치, 감소 속도, 화면 표시가 문서와 같다. 곁눈질의 "흐릿한 낌새"는 넣지 않았다(결정 기록)</td></tr>
+<tr><td>3</td><td>승객 성향</td><td><span class="st ok">구현됨</span></td><td>무던한 승객은 따로 표시하지 않는다(결정 기록). 비율은 잠든 승객을 뺀 나머지에서 33·50·17%로 뽑는다</td></tr>
+<tr><td>4</td><td>들키지 않고 보는 방법</td><td><span class="st part">일부 구현</span></td><td>곁눈질, 휴대폰 보는 척만 있다. 창문 반사, 노선도 보는 척은 보류</td></tr>
+<tr><td>5</td><td>어깨너머 화면</td><td><span class="st ok">구현됨</span></td><td>가까이(거리 120 안)에서만 볼 수 있다</td></tr>
+<tr><td>6</td><td>수치 균형</td><td><span class="st ok">구현됨</span></td><td>1주차 월요일(출근·퇴근)은 무던함 50%, 보통 40%, 예민함 10%</td></tr>
+<tr><td>7</td><td>연동</td><td>-</td><td>포커페이스(09), 선글라스·책(10), 눈치 능력치(02)는 코드에 있다. 동행자 만족도(13)는 V1 제외</td></tr>
+<tr><td>8</td><td>미결 사항</td><td>-</td><td>창문 반사는 보류</td></tr>
+</table></div>
 <h2>1. 목적</h2>
 <ul>
 <li>현재 관찰은 공짜다. 오래 볼수록 유리하기만 하다. <b>쳐다보는 것에도 비용</b>을 붙여 "짧게 훑고 판단하는" 긴장을 만든다.</li>
 <li>초기 컨셉의 "오해받을 수 있는 상황"을 직접 묘사하지 않고, 시선과 민폐 게이지로 표현한다.</li>
 </ul>
 
-<h2>2. 시선 게이지</h2>
+<h2>2. 시선 게이지<span class="st ok">구현됨</span></h2>
+<p class="status"><b>다르게 구현</b>: 곁눈질의 "몸짓만 보인다"는 차림새 카드가 뜨지 않는 것으로만 넣었다. 중심부 폭은 기본 시야각의 1/3로 고정이라 눈치 능력치나 휴대폰 보는 척으로 시야각이 바뀌어도 그대로다. 민폐 증가량은 스킬 "철면피"로 줄어든다(09).</p>
 <p>승객마다 따로 쌓인다. 시야의 중심부(가운데 1/3, 정면 기준 좌우 약 13도)에 승객이 들어와 있는 동안 오른다.</p>
 <ul>
 <li><b>앉은 승객만</b> 대상이다. 서 있는 승객은 붐비는 객차에서 늘 정면에 들어오므로 뺀다.</li>
@@ -47,64 +64,68 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li>앉아 있을 때도 같은 규칙이다.</li>
 </ul>
 <div class="tw"><table>
-<tr><th>누적 시간</th><th>승객 반응</th><th>효과</th></tr>
-<tr><td>0 ~ 1.5초</td><td>없음</td><td>자유롭게 관찰</td></tr>
-<tr><td>1.5 ~ 3초</td><td>머리 위 눈 아이콘이 차오름</td><td>경고 단계</td></tr>
-<tr><td>3초</td><td>눈이 마주침, 승객이 자세를 고쳐 앉음</td><td>민폐 +4. 그 승객의 낌새가 5초간 가려짐</td></tr>
-<tr><td>4.5초</td><td>"…뭘 보세요?"</td><td>민폐 +12. 그 승객은 이번 통근 동안 예민 상태 (게이지 속도 ×1.6이 더 붙음)</td></tr>
+<tr><th>누적 시간</th><th>승객 반응</th><th>효과</th><th>상태</th></tr>
+<tr><td>0 ~ 1.5초</td><td>없음</td><td>자유롭게 관찰</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>1.5 ~ 3초</td><td>머리 위 눈 아이콘이 차오름</td><td>경고 단계</td><td><span class="st ok">구현됨</span><br>게이지는 처음부터 흰색으로 차오르고 1.5초부터 노랑이 된다</td></tr>
+<tr><td>3초</td><td>눈이 마주침, 승객이 자세를 고쳐 앉음</td><td>민폐 +4. 그 승객의 낌새가 5초간 가려짐</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>4.5초</td><td>"…뭘 보세요?"</td><td>민폐 +12. 그 승객은 이번 통근 동안 예민 상태 (게이지 속도 ×1.6이 더 붙음)</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 <ul>
-<li>시선을 떼면 초당 0.5초씩 줄어든다.</li>
-<li>시야 가장자리에 걸친 승객은 게이지가 오르지 않는다. 대신 차림새 카드가 뜨지 않고 몸짓만 보인다. → <b>곁눈질</b>이 기본 기술이 된다.</li>
-<li><b>화면 표시</b>: 3D에서는 화면 가운데의 옅은 점선 원이 정면 범위(대략)다. 정면으로 본 승객 머리 위에 눈 게이지가 차오르고(1.5초부터 노랑, 3초에 빨강), 원 밖에 둔 승객에는 "곁눈질"이라고 표시된다. 탑뷰에서는 시야 콘 가운데가 더 밝다.</li>
+<li>시선을 떼면 초당 0.5초씩 줄어든다.<span class="st ok">구현됨</span></li>
+<li>시야 가장자리에 걸친 승객은 게이지가 오르지 않는다. 대신 차림새 카드가 뜨지 않고 몸짓만 보인다. → <b>곁눈질</b>이 기본 기술이 된다.<span class="st ok">구현됨</span></li>
+<li><b>화면 표시</b>: 3D에서는 화면 가운데의 옅은 점선 원이 정면 범위(대략)다. 정면으로 본 승객 머리 위에 눈 게이지가 차오르고(1.5초부터 노랑, 3초에 빨강), 원 밖에 둔 승객에는 "곁눈질"이라고 표시된다. 탑뷰에서는 시야 콘 가운데가 더 밝다.<span class="st ok">구현됨</span></li>
 </ul>
 
-<h2>3. 승객 성향</h2>
+<h2>3. 승객 성향<span class="st ok">구현됨</span></h2>
+<p class="status"><b>다르게 구현</b>: 잠듦은 "깊이 잠든 승객" 유형에만 붙고(승객 유형 11칸 가운데 1칸), 나머지 승객을 무던함 33%, 보통 50%, 예민함 17%로 뽑는다. 전체로 보면 표의 비율과 거의 같다. 무던한 승객을 알아보는 표시는 따로 없다(결정 기록).</p>
 <div class="tw"><table>
-<tr><th>성향</th><th>비율</th><th>게이지 속도</th><th>알아보는 법</th></tr>
-<tr><td>무던함</td><td>30%</td><td>×0.6</td><td>휴대폰·책에 몰두</td></tr>
-<tr><td>보통</td><td>45%</td><td>×1.0</td><td>-</td></tr>
-<tr><td>예민함</td><td>15%</td><td>×1.6</td><td>주변을 자주 둘러봄 (약 5초마다 빠르게 좌우를 살피는 몸짓. 출발 직후의 "안내방송에 고개 듦"보다 빠르고 크다)</td></tr>
-<tr><td>잠듦</td><td>10%</td><td>0</td><td>눈 감음. 마음껏 볼 수 있지만 낌새가 가장 늦음. 기존 "깊이 잠든 승객" 유형이 이 성향이다</td></tr>
+<tr><th>성향</th><th>비율</th><th>게이지 속도</th><th>알아보는 법</th><th>상태</th></tr>
+<tr><td>무던함</td><td>30%</td><td>×0.6</td><td>휴대폰·책에 몰두</td><td><span class="st part">일부 구현</span><br>속도만 있다. 알아보는 표시는 없다</td></tr>
+<tr><td>보통</td><td>45%</td><td>×1.0</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>예민함</td><td>15%</td><td>×1.6</td><td>주변을 자주 둘러봄 (약 5초마다 빠르게 좌우를 살피는 몸짓. 출발 직후의 "안내방송에 고개 듦"보다 빠르고 크다)</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>잠듦</td><td>10%</td><td>0</td><td>눈 감음. 마음껏 볼 수 있지만 낌새가 가장 늦음. 기존 "깊이 잠든 승객" 유형이 이 성향이다</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 
-<h2>4. 들키지 않고 보는 방법</h2>
+<h2>4. 들키지 않고 보는 방법<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 곁눈질, 휴대폰 보는 척(R) / <b>보류</b>: 창문 반사, 노선도 보는 척 / <b>다르게 구현</b>: 곁눈질의 "낌새가 흐릿함"은 넣지 않았다. 차림새 카드만 뜨지 않는다.</p>
 <p class="note">1차 구현에는 <b>곁눈질</b>과 <b>휴대폰 보는 척</b>만 넣었다. 창문 반사와 노선도 보는 척은 나중에 넣는다.</p>
 <div class="tw"><table>
-<tr><th>방법</th><th>조작</th><th>장점</th><th>단점</th></tr>
-<tr><td>곁눈질</td><td>시야 콘 가장자리에 두기</td><td>게이지 없음</td><td>낌새가 흐릿함, 차림새 카드는 안 뜸</td></tr>
-<tr><td>휴대폰 보는 척</td><td>R 누르고 있기</td><td>게이지 속도 ×0.3</td><td>시야각 -50%, 이동 속도 -30%</td></tr>
-<tr><td>창문 반사</td><td>지하 구간에서 맞은편 창을 보기</td><td>등 뒤 좌석 승객을 게이지 없이 관찰</td><td>지상 구간·역 정차 중에는 안 보임. 낌새 종류는 알 수 있지만 누구인지 한 칸 오차</td></tr>
-<tr><td>노선도 보는 척</td><td>문 위 노선도 쪽으로 시선</td><td>문 근처 좌석 승객을 자연스럽게 관찰</td><td>문 앞에 서야 함 (환승역 쓸려 내림 위험)</td></tr>
+<tr><th>방법</th><th>조작</th><th>장점</th><th>단점</th><th>상태</th></tr>
+<tr><td>곁눈질</td><td>시야 콘 가장자리에 두기</td><td>게이지 없음</td><td>낌새가 흐릿함, 차림새 카드는 안 뜸</td><td><span class="st ok">구현됨</span><br>흐릿한 낌새는 없다</td></tr>
+<tr><td>휴대폰 보는 척</td><td>R 누르고 있기</td><td>게이지 속도 ×0.3</td><td>시야각 -50%, 이동 속도 -30%</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>창문 반사</td><td>지하 구간에서 맞은편 창을 보기</td><td>등 뒤 좌석 승객을 게이지 없이 관찰</td><td>지상 구간·역 정차 중에는 안 보임. 낌새 종류는 알 수 있지만 누구인지 한 칸 오차</td><td><span class="st wait">보류</span><br>3D에서 반사를 그리는 비용이 크다</td></tr>
+<tr><td>노선도 보는 척</td><td>문 위 노선도 쪽으로 시선</td><td>문 근처 좌석 승객을 자연스럽게 관찰</td><td>문 앞에 서야 함 (환승역 쓸려 내림 위험)</td><td><span class="st wait">보류</span><br>쓸려 내림과 함께 조정이 필요하다</td></tr>
 </table></div>
 
-<h2>5. 어깨너머 화면</h2>
+<h2>5. 어깨너머 화면<span class="st ok">구현됨</span></h2>
+<p class="status"><b>다르게 구현</b>: 화면은 거리 120 안에서 정면으로 볼 때만 읽힌다. 멀면 "더 가까이 가면 화면이 보일 것 같다"고만 나온다. 화면을 볼 수 있는 승객은 잠든 승객과 어르신을 뺀 승객의 30%다.</p>
 <ul>
 <li>현재: 마우스를 1초 올려 두면 일부 승객의 휴대폰 화면에서 목적지를 확인 (확실한 힌트).</li>
-<li>변경: 화면 확인에 <b>2초 연속 주시</b>가 필요하고, 그동안 게이지가 2배로 오른다. 들키면 민폐 +20. (구현됨)</li>
-<li>보통 성향 승객은 2배 속도면 1.5초에 눈이 마주치므로, 그냥 보면 반드시 들킨다. 무던한 승객을 고르거나 휴대폰 보는 척을 함께 써야 화면을 볼 수 있다. 한 번 본 화면은 그 통근 동안 카드에 남는다.</li>
+<li>변경: 화면 확인에 <b>2초 연속 주시</b>가 필요하고, 그동안 게이지가 2배로 오른다. 들키면 민폐 +20. (구현됨)<span class="st ok">구현됨</span></li>
+<li>보통 성향 승객은 2배 속도면 1.5초에 눈이 마주치므로, 그냥 보면 반드시 들킨다. 무던한 승객을 고르거나 휴대폰 보는 척을 함께 써야 화면을 볼 수 있다. 한 번 본 화면은 그 통근 동안 카드에 남는다.<span class="st ok">구현됨</span></li>
 <li>가장 확실한 정보에 가장 큰 위험을 붙인다.</li>
 </ul>
 
-<h2>6. 수치 균형</h2>
+<h2>6. 수치 균형<span class="st ok">구현됨</span></h2>
 <ul>
-<li>민폐 게이지는 100에서 탈락이고 충돌 1회가 7~10이다. "뭘 보세요?" 한 번(+12)은 충돌 한 번보다 조금 아픈 정도로 맞췄다.</li>
-<li>월요일 출근에는 승객 성향을 무던함 쪽으로 기울여 학습 시간을 준다.</li>
+<li>민폐 게이지는 100에서 탈락이고 충돌 1회가 7~10이다. "뭘 보세요?" 한 번(+12)은 충돌 한 번보다 조금 아픈 정도로 맞췄다.<span class="st ok">구현됨</span></li>
+<li>월요일 출근에는 승객 성향을 무던함 쪽으로 기울여 학습 시간을 준다.<span class="st ok">구현됨</span> 1주차 월요일의 출근과 퇴근에 무던함 50%, 보통 40%, 예민함 10%로 뽑는다.</li>
 </ul>
 
 <h2>7. 연동</h2>
 <ul>
-<li>관찰력 스킬: 낌새가 일찍 보이므로 필요한 주시 시간이 줄어든다. 신규 스킬 "포커페이스"는 게이지 속도를 직접 낮춘다 (<a href="09_passive_skill_v1.html">09</a>).</li>
-<li>아이템: 선글라스(게이지 속도 감소, 지하에서 시야 어두움), 책(보는 척 중 이동 속도 감소 없음) (<a href="10_item_v1.html">10</a>).</li>
-<li>동행자가 있는 날은 다른 승객을 오래 보면 동행자 만족도도 내려간다 (<a href="13_misc_ideas_v1.html">13</a>).</li>
-<li>눈치 능력치는 시야각을 넓혀 곁눈질 범위를 키운다 (<a href="02_character_v1.html">02</a>).</li>
+<li>관찰력 스킬: 낌새가 일찍 보이므로 필요한 주시 시간이 줄어든다. 신규 스킬 "포커페이스"는 게이지 속도를 직접 낮춘다 (<a href="09_passive_skill_v1.html">09</a>).<span class="st ok">구현됨</span> 포커페이스는 단계마다 -20%.</li>
+<li>아이템: 선글라스(게이지 속도 감소, 지하에서 시야 어두움), 책(보는 척 중 이동 속도 감소 없음) (<a href="10_item_v1.html">10</a>).<span class="st ok">구현됨</span> 선글라스 -30%(낌새가 0.3초 늦게 보임), 후드티 -25%도 있다.</li>
+<li>동행자가 있는 날은 다른 승객을 오래 보면 동행자 만족도도 내려간다 (<a href="13_misc_ideas_v1.html">13</a>).<span class="st cut">V1 제외</span> 13 전체를 V1에서 뺐다 (2026-11-25).</li>
+<li>눈치 능력치는 시야각을 넓혀 곁눈질 범위를 키운다 (<a href="02_character_v1.html">02</a>).<span class="st ok">구현됨</span> 능력치 1당 시야 반각 약 4도.</li>
 </ul>
 
 <h2>8. 미결 사항</h2>
 <p class="note">2026-11-24에 결정했다. 기록은 <code>plan/v1/DECISIONS.md</code>에 있고 위 본문에 반영했다.</p>
 <ul>
 <li>중심부와 가장자리의 구분 → <b>결정</b>: 화면 가운데의 옅은 원과 승객 머리 위의 눈 게이지로 보여 준다.</li>
-<li>창문 반사 → <b>결정</b>: 1차에서는 뺀다. 3D에서 반사를 그리는 비용이 크다.</li>
+<li>창문 반사 → <b>결정</b>: 1차에서는 뺀다. 3D에서 반사를 그리는 비용이 크다.<span class="st wait">보류</span></li>
+<li>노선도 보는 척 → <b>결정</b>: 1차에서는 뺀다. 문 앞에 서야 해서 쓸려 내림과 함께 조정이 필요하다 (2026-11-24).<span class="st wait">보류</span></li>
 </ul>
 
 <nav class="foot"><a href="06_special_passenger_v1.html">← 06 특수 승객</a><a href="index.html">목록</a><a href="08_work_home_event_v1.html">08 회사·집 이벤트 →</a></nav>

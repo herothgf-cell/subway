@@ -29,17 +29,37 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 .list a:hover{border-color:var(--g)}
 .list b{display:block}.list span.d{color:var(--sub);font-size:14px}
 .list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">10</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">초안 2026-11-24</span></div>
 <h1>아이템</h1><p>가방·옷·신발·소지품 장착과 입수</p></header>
+<h2>구현 현황 (2026-11-25 기준)</h2>
+<p class="status">게임 코드(<code>index.html</code>의 <code>ITEMS</code>, <code>eq()</code>, <code>showEquip</code>, <code>showItemShop</code>, <code>rollStock</code>)를 확인해 적었다. <span class="st ok">구현됨</span><span class="st part">일부 구현</span><span class="st wait">보류</span><span class="st cut">V1 제외</span></p>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>1. 목적</td><td>출발 전 준비물 고르기, 장단점이 있는 선택</td><td>-</td><td>설명용 장</td></tr>
+<tr><td>2. 장착 슬롯</td><td>가방 1, 옷 1, 신발 1, 소지품 1~3</td><td><span class="st ok">구현됨</span></td><td>장착 화면은 플래너가 아니라 출근 전 집 화면</td></tr>
+<tr><td>3. 가방</td><td>맨몸, 크로스백, 백팩, 서류 가방, 에코백</td><td><span class="st ok">구현됨</span></td><td>에코백·서류 가방은 결정대로 다른 효과. 매너 점수 연동은 V1 제외</td></tr>
+<tr><td>4. 옷</td><td>셔츠와 사원증, 정장, 후드티, 롱패딩, 등산복</td><td><span class="st part">일부 구현</span></td><td>5종 모두 있다. 정장의 매너 포인트와 롱패딩의 한파 효과는 V1 제외</td></tr>
+<tr><td>5. 신발</td><td>운동화, 구두, 러닝화, 장화</td><td><span class="st ok">구현됨</span></td><td>비 오는 날 급정거 밀림 +20%를 새로 넣었다</td></tr>
+<tr><td>6. 소지품</td><td>이어폰 등 9종</td><td><span class="st part">일부 구현</span></td><td>6종 구현. 접이식 우산·휴대용 손잡이 보류, 손수건 V1 제외</td></tr>
+<tr><td>7. 입수</td><td>주말 상점, 약속 보상, 택배, 도감·업적</td><td><span class="st part">일부 구현</span></td><td>상점만 있다. 여는 시점은 15 성장 구조에서 바뀔 예정</td></tr>
+<tr><td>8. 외형</td><td>주인공 모델에 표시, 색상 변형</td><td><span class="st part">일부 구현</span></td><td>가방만 보인다</td></tr>
+<tr><td>9. 미결 사항</td><td>영구 보유, 에코백, 조합 효과</td><td>-</td><td>모두 정해졌다</td></tr>
+<tr><td>10. 1차 구현 내용</td><td>실제로 들어간 아이템과 규칙</td><td><span class="st ok">구현됨</span></td><td>코드에는 기본 4종을 포함해 20종</td></tr>
+</table></div>
+
 <h2>1. 목적</h2>
 <ul>
 <li>출발 전 "오늘 뭘 메고 뭘 신고 갈까"를 고르게 한다. 준비물을 챙기는 것 자체가 J의 플레이다.</li>
 <li>패시브 스킬이 순수한 강화라면, 아이템은 <b>장점과 단점이 함께 있는 선택</b>이다.</li>
 </ul>
 
-<h2>2. 장착 슬롯</h2>
+<h2>2. 장착 슬롯<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 네 슬롯, 소지품 칸은 가방에 따라 1~3칸. 출근 전(주말 약속은 가는 길 전) 집 화면에서만 바꾸고 그날 예보가 함께 보인다. 퇴근은 아침 차림 그대로다. 결혼식 날은 정장과 구두로 고정된다. / <b>다르게 구현</b>: 플래너 화면이 아니라 계획표 앞에 뜨는 별도 화면이다. 기본 아이템만 가지고 있으면 이 화면을 건너뛴다.</p>
 <div class="tw"><table>
 <tr><th>슬롯</th><th>개수</th><th>성격</th></tr>
 <tr><td>가방</td><td>1</td><td>소지품 칸 수와 내 몸의 부피를 정함</td></tr>
@@ -49,66 +69,73 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </table></div>
 <p class="note">장착은 집에서 나가기 전(플래너 화면)에만 바꿀 수 있다. 전날 예보를 보고 챙기는 구조다 (<a href="04_schedule_v1.html">04 일정</a>).</p>
 
-<h2>3. 가방</h2>
+<h2>3. 가방<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 5종 모두. 가격은 백팩 150P, 서류 가방 130P, 에코백 100P. / <b>다르게 구현</b>(2026-11-24 결정): 에코백은 던져서 선점 → 가벼운 가방(충돌 범위 -5%, 단점 없음). 서류 가방의 "옆 승객 간섭 차단"은 넓게 앉은 승객 옆 좁은 자리에서도 회복이 줄지 않는 것으로 처리한다. / <b>V1 제외</b>: 백팩 앞으로 메기의 매너 점수, 뒤로 멘 채 다닐 때의 특수 승객 취급(13).</p>
 <div class="tw"><table>
-<tr><th>아이템</th><th>소지품 칸</th><th>효과</th><th>단점</th></tr>
-<tr><td>맨몸</td><td>1</td><td>충돌 범위 -10%</td><td>-</td></tr>
-<tr><td>크로스백 (기본)</td><td>2</td><td>-</td><td>-</td></tr>
-<tr><td>백팩</td><td>3</td><td>-</td><td>충돌 범위 +15%. <b>앞으로 메기</b>(T 키)로 없앨 수 있으나 그동안 이동 속도 -5%</td></tr>
-<tr><td>서류 가방</td><td>2</td><td>앉았을 때 무릎 위에 올려 옆 승객 간섭 차단</td><td>손잡이를 잡는 동안 찜 조작 불가</td></tr>
-<tr><td>에코백</td><td>2</td><td>빈자리에 먼저 던져 0.5초 선점 (통근당 1회)</td><td>쓰면 민폐 +10</td></tr>
+<tr><th>아이템</th><th>소지품 칸</th><th>효과</th><th>단점</th><th>상태</th></tr>
+<tr><td>맨몸</td><td>1</td><td>충돌 범위 -10%</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>크로스백 (기본)</td><td>2</td><td>-</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>백팩</td><td>3</td><td>-</td><td>충돌 범위 +15%. <b>앞으로 메기</b>(T 키)로 없앨 수 있으나 그동안 이동 속도 -5%</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>서류 가방</td><td>2</td><td>앉았을 때 무릎 위에 올려 옆 승객 간섭 차단</td><td>손잡이를 잡는 동안 찜 조작 불가</td><td><span class="st ok">구현됨</span> 좁은 자리에서도 회복 유지</td></tr>
+<tr><td>에코백</td><td>2</td><td>빈자리에 먼저 던져 0.5초 선점 (통근당 1회)</td><td>쓰면 민폐 +10</td><td><span class="st ok">구현됨</span> 결정대로 충돌 범위 -5%로 바뀜. 던지기는 없음</td></tr>
 </table></div>
 <ul>
-<li>백팩을 앞으로 메면 매너 점수(<a href="13_misc_ideas_v1.html">13</a>)가 오른다. 혼잡할 때 뒤로 멘 채 다니면 특수 승객 "백팩"과 같은 취급을 받는다.</li>
+<li>백팩을 앞으로 메면 매너 점수(<a href="13_misc_ideas_v1.html">13</a>)가 오른다. 혼잡할 때 뒤로 멘 채 다니면 특수 승객 "백팩"과 같은 취급을 받는다.<span class="st cut">V1 제외</span></li>
 </ul>
 
-<h2>4. 옷</h2>
+<h2>4. 옷<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 5종 모두. 가격은 정장 120P, 후드티 100P, 롱패딩 150P, 등산복 90P. / <b>V1 제외</b>: 정장의 매너 포인트 +20%(매너 점수가 13), 롱패딩의 한파 영향 없음(계절이 13). 계절에 안 맞는 옷의 벌칙도 넣지 않는다. / <b>다르게 구현</b>(2026-11-24 결정): 후드티는 장착하면 늘 쓴 것으로 친다. 등산복의 균형 +1은 균형 감각 스킬 1단계만큼으로 처리하고, 단점은 내가 고른 문으로 경쟁 승객이 1명 더 타는 것이다.</p>
 <div class="tw"><table>
-<tr><th>아이템</th><th>효과</th><th>단점</th></tr>
-<tr><td>셔츠와 사원증 (기본)</td><td>-</td><td>-</td></tr>
-<tr><td>정장</td><td>양보·매너 포인트 +20%</td><td>서 있을 때 체력 소모 +5%</td></tr>
-<tr><td>후드티</td><td>후드를 쓰면 시선 게이지 속도 -25%</td><td>시야각 -10°</td></tr>
-<tr><td>롱패딩</td><td>앉았을 때 체력 회복 +15%, 한파 영향 없음</td><td>충돌 범위 +10%, 좁은 자리에 앉을 수 없음</td></tr>
-<tr><td>등산복</td><td>균형 +1</td><td>주변 승객이 나를 "사당에서 내릴 사람"으로 봐서 내 앞에 경쟁자가 선다</td></tr>
+<tr><th>아이템</th><th>효과</th><th>단점</th><th>상태</th></tr>
+<tr><td>셔츠와 사원증 (기본)</td><td>-</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>정장</td><td>양보·매너 포인트 +20%</td><td>서 있을 때 체력 소모 +5%</td><td><span class="st part">일부 구현</span> 양보 포인트만. 매너 포인트는 V1 제외</td></tr>
+<tr><td>후드티</td><td>후드를 쓰면 시선 게이지 속도 -25%</td><td>시야각 -10°</td><td><span class="st ok">구현됨</span> 늘 쓴 것으로 침</td></tr>
+<tr><td>롱패딩</td><td>앉았을 때 체력 회복 +15%, 한파 영향 없음</td><td>충돌 범위 +10%, 좁은 자리에 앉을 수 없음</td><td><span class="st part">일부 구현</span> 한파 효과는 V1 제외</td></tr>
+<tr><td>등산복</td><td>균형 +1</td><td>주변 승객이 나를 "사당에서 내릴 사람"으로 봐서 내 앞에 경쟁자가 선다</td><td><span class="st ok">구현됨</span> 같은 문으로 경쟁 승객 1명 추가</td></tr>
 </table></div>
 
-<h2>5. 신발</h2>
+<h2>5. 신발<span class="st ok">구현됨</span></h2>
+<p class="status"><b>구현</b>: 4종 모두. 가격은 구두 100P, 러닝화 120P, 장화 80P. 비 오는 날 급정거 밀림 +20%를 새로 넣었고 장화는 0%, 구두는 +40%다. 구두의 균형 -1은 균형 감각 스킬 1단계만큼 깎는다(0단계 아래로는 내려가지 않는다). 구두의 포인트 보너스는 양보 포인트에만 붙는다(정장과 함께면 +30%).</p>
 <div class="tw"><table>
-<tr><th>아이템</th><th>효과</th><th>단점</th></tr>
-<tr><td>운동화 (기본)</td><td>-</td><td>-</td></tr>
-<tr><td>구두</td><td>정장과 함께면 포인트 보너스 +10%p 추가</td><td>균형 -1, 비 오는 날 밀림 추가</td></tr>
-<tr><td>러닝화</td><td>이동 속도 +8%</td><td>급정지가 어려움 (관성 증가)</td></tr>
-<tr><td>장화</td><td>비 오는 날 미끄러움 없음</td><td>맑은 날 이동 속도 -5%</td></tr>
+<tr><th>아이템</th><th>효과</th><th>단점</th><th>상태</th></tr>
+<tr><td>운동화 (기본)</td><td>-</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>구두</td><td>정장과 함께면 포인트 보너스 +10%p 추가</td><td>균형 -1, 비 오는 날 밀림 추가</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>러닝화</td><td>이동 속도 +8%</td><td>급정지가 어려움 (관성 증가)</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>장화</td><td>비 오는 날 미끄러움 없음</td><td>맑은 날 이동 속도 -5%</td><td><span class="st ok">구현됨</span></td></tr>
 </table></div>
 
-<h2>6. 소지품</h2>
+<h2>6. 소지품<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 이어폰, 텀블러 커피(C 키), 다이어리, 목베개, 책, 선글라스. 가격은 이어폰 60P, 텀블러 커피 40P, 다이어리 70P, 목베개 60P, 책 30P, 선글라스 80P. / <b>보류</b>: 접이식 우산(젖은 우산 민폐 규칙이 없다), 휴대용 손잡이, 이어폰의 소음 영향 없음(큰 소리 통화 승객이 없다), 목베개의 "점심 낮잠" 카드 해금(08에 카드가 없다). / <b>V1 제외</b>: 손수건(폭염이 13 계절). / <b>다르게 구현</b>: 선글라스의 단점은 구간을 가리지 않고 늘 적용한다. 휴대용 손잡이는 1차 때 "Shift가 어디서나 손잡이"라 뺐는데, 2026-11-25에 손잡이를 잡을 수 있는 위치가 생겨 이제 넣을 수 있다.</p>
 <div class="tw"><table>
-<tr><th>아이템</th><th>효과</th><th>단점·조건</th></tr>
-<tr><td>이어폰</td><td>큰 소리 통화 등 소음 영향 없음, 서 있을 때 체력 소모 -5%</td><td>혼잣말·통화 힌트를 들을 수 없음</td></tr>
-<tr><td>접이식 우산</td><td>비 오는 날 내 젖은 우산으로 인한 민폐 없음</td><td>맑은 날에는 칸만 차지</td></tr>
-<tr><td>텀블러 커피</td><td>통근당 1회 체력 +10</td><td>마신 뒤 30초 안에 충돌하면 쏟아서 민폐 +20</td></tr>
-<tr><td>다이어리</td><td>오늘의 계획표 슬롯 +1</td><td>-</td></tr>
-<tr><td>손수건</td><td>폭염 날 체력 소모 증가 없음</td><td>-</td></tr>
-<tr><td>목베개</td><td>앉았을 때 회복 +20%, 회사 "점심 낮잠" 선택지 해금</td><td>앉으면 깊이 잠들어 양보 상황 반응이 1초 늦음</td></tr>
-<tr><td>책</td><td>"보는 척" 중 이동 속도 감소 없음</td><td>한 손 사용: 손잡이를 잡으면 효과 중단</td></tr>
-<tr><td>선글라스</td><td>시선 게이지 속도 -30%</td><td>지하 구간에서 낌새가 0.3초 늦게 보임</td></tr>
-<tr><td>휴대용 손잡이</td><td>손잡이가 없는 위치에서도 Shift 효과 50%</td><td>-</td></tr>
+<tr><th>아이템</th><th>효과</th><th>단점·조건</th><th>상태</th></tr>
+<tr><td>이어폰</td><td>큰 소리 통화 등 소음 영향 없음, 서 있을 때 체력 소모 -5%</td><td>혼잣말·통화 힌트를 들을 수 없음</td><td><span class="st part">일부 구현</span> 소음 효과는 보류</td></tr>
+<tr><td>접이식 우산</td><td>비 오는 날 내 젖은 우산으로 인한 민폐 없음</td><td>맑은 날에는 칸만 차지</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>텀블러 커피</td><td>통근당 1회 체력 +10</td><td>마신 뒤 30초 안에 충돌하면 쏟아서 민폐 +20</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>다이어리</td><td>오늘의 계획표 슬롯 +1</td><td>-</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>손수건</td><td>폭염 날 체력 소모 증가 없음</td><td>-</td><td><span class="st cut">V1 제외</span></td></tr>
+<tr><td>목베개</td><td>앉았을 때 회복 +20%, 회사 "점심 낮잠" 선택지 해금</td><td>앉으면 깊이 잠들어 양보 상황 반응이 1초 늦음</td><td><span class="st part">일부 구현</span> 점심 낮잠 해금은 보류</td></tr>
+<tr><td>책</td><td>"보는 척" 중 이동 속도 감소 없음</td><td>한 손 사용: 손잡이를 잡으면 효과 중단</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>선글라스</td><td>시선 게이지 속도 -30%</td><td>지하 구간에서 낌새가 0.3초 늦게 보임</td><td><span class="st ok">구현됨</span></td></tr>
+<tr><td>휴대용 손잡이</td><td>손잡이가 없는 위치에서도 Shift 효과 50%</td><td>-</td><td><span class="st wait">보류</span></td></tr>
 </table></div>
 
-<h2>7. 입수</h2>
+<h2>7. 입수<span class="st part">일부 구현</span></h2>
+<p class="note">스킬과 상점을 여는 시점은 <a href="15_growth_loop_v1.html">15 성장 구조</a>의 결정(2026-11-25)에 따라 바뀔 예정이다.</p>
+<p class="status"><b>구현</b>: 상점(포인트로 구매, 진열 4개, 월급날을 완주하면 6개), 영구 보유, 가격대. 상점은 지금 주말 화면의 "상점" 버튼과 런이 끝난 뒤 스킬 화면의 "상점 · 아이템" 탭에서 열린다. / <b>보류</b>: 약속 보상 아이템(약속은 포인트만 준다), 택배 이벤트, 도감·업적 보상. / <b>다르게 구현</b>: 진열은 매주가 아니라 런이 끝날 때(탈락·퇴사)와 월급날에만 바뀐다. 상점 화면의 안내문은 "한 주가 끝날 때마다 바뀝니다"라고 적혀 있어 코드와 다르다.</p>
 <div class="tw"><table>
-<tr><th>경로</th><th>내용</th></tr>
-<tr><td>주말 상점</td><td>포인트로 구매. 매주 4개 진열, 월급날 뒤 6개</td></tr>
-<tr><td>약속 보상</td><td>약속 종류에 따른 고정 보상 (야구 관람 → 응원 타월 등)</td></tr>
-<tr><td>택배 이벤트</td><td>무작위 소지품 1개 (<a href="08_work_home_event_v1.html">08</a>)</td></tr>
-<tr><td>도감·업적</td><td>특수 승객 유형별 대응 10회 등</td></tr>
+<tr><th>경로</th><th>내용</th><th>상태</th></tr>
+<tr><td>주말 상점</td><td>포인트로 구매. 매주 4개 진열, 월급날 뒤 6개</td><td><span class="st ok">구현됨</span> 진열 교체는 런이 끝날 때</td></tr>
+<tr><td>약속 보상</td><td>약속 종류에 따른 고정 보상 (야구 관람 → 응원 타월 등)</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>택배 이벤트</td><td>무작위 소지품 1개 (<a href="08_work_home_event_v1.html">08</a>)</td><td><span class="st wait">보류</span></td></tr>
+<tr><td>도감·업적</td><td>특수 승객 유형별 대응 10회 등</td><td><span class="st wait">보류</span></td></tr>
 </table></div>
 <ul>
 <li>가격대: 소지품 30~80P, 신발·옷 80~150P, 가방 100~180P. 스킬 1~2단계와 비슷하게 두어 "스킬이냐 아이템이냐"를 고민하게 한다.</li>
 <li>아이템은 영구 보유. 런이 끝나도 남는다. 대신 한 번에 장착할 수 있는 수가 제한이다.</li>
 </ul>
 
-<h2>8. 외형</h2>
+<h2>8. 외형<span class="st part">일부 구현</span></h2>
+<p class="status"><b>구현</b>: 가방 4종(크로스백, 백팩, 에코백, 서류 가방)이 3D 주인공에게 보인다(<code>game3d.js</code>). / <b>보류</b>: 옷·신발 외형, 색상 변형.</p>
 <ul>
 <li>장착한 가방·옷·신발은 주인공 모델에 그대로 보인다. <code>characters.js</code>의 소품(prop) 방식을 주인공에도 적용한다.</li>
 <li>효과 없이 외형만 바꾸는 색상 변형을 두어 수집 요소로 쓴다.</li>
@@ -122,7 +149,8 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <li><s>조합 효과</s> → 결정: 정장 + 구두(양보 포인트 보너스 +10%p 추가)만 둔다.</li>
 </ul>
 
-<h2>10. 1차 구현 내용 (2026-11-24)</h2>
+<h2>10. 1차 구현 내용 (2026-11-24)<span class="st ok">구현됨</span></h2>
+<p class="status">아래 표의 18종은 효과, 단점, 가격 모두 코드(<code>ITEMS</code>)와 같다. 기본 아이템인 셔츠와 사원증, 운동화는 표에 없지만 코드에 있다.</p>
 <p>결정 내용은 <code>DECISIONS.md</code>의 10 항목에 있다. 기본 아이템(맨몸, 크로스백, 셔츠와 사원증, 운동화)은 처음부터 가지고 있다.</p>
 <div class="tw"><table>
 <tr><th>슬롯</th><th>아이템</th><th>효과</th><th>단점</th><th>가격</th></tr>
@@ -147,11 +175,12 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </table></div>
 <ul>
 <li>비 오는 날 급정거 밀림 +20%를 새로 넣었다 (장화 0%, 구두 +40%).</li>
-<li>상점: 스킬 화면의 "상점 · 아이템" 탭. 진열 4개, 런이 끝날 때마다 바뀐다.</li>
+<li>상점: 스킬 화면의 "상점 · 아이템" 탭과 주말 화면의 "상점" 버튼(04 일정과 함께 추가). 진열 4개, 런이 끝날 때마다 바뀐다. 월급날(4주차 금요일)을 완주하면 6개로 다시 뽑는다.</li>
 <li>장착: 출근 전 집 화면(계획표 앞). 오늘 예보가 함께 보인다. 기본 아이템만 있으면 이 화면은 건너뛴다.</li>
 <li>"백팩은 앞으로"(12): 백팩을 메고 나간 날에만 후보. 서 있는 동안 뒤로 멘 시간이 3초를 넘으면 실패.</li>
 <li>외형: 가방만 3D 주인공에게 보인다.</li>
-<li>뒤로 미룬 것: 손수건, 접이식 우산, 휴대용 손잡이, 롱패딩의 한파 효과, 이어폰의 소음 효과, 목베개의 "점심 낮잠" 카드, 매너 점수 연동(13), 월급날·약속·택배·도감 입수(04·08·13), 옷·신발 외형과 색상 변형.</li>
+<li>뒤로 미룬 것: 접이식 우산, 휴대용 손잡이, 이어폰의 소음 효과, 목베개의 "점심 낮잠" 카드, 약속·택배·도감 입수(04·08), 옷·신발 외형과 색상 변형. 월급날 진열 6개는 04 일정과 함께 들어왔다.</li>
+<li>V1 제외(2026-11-25 결정, 13에 걸린 것): 손수건(폭염), 롱패딩의 한파 효과, 매너 점수 연동.</li>
 </ul>
 
 <nav class="foot"><a href="09_passive_skill_v1.html">← 09 패시브 스킬 상세</a><a href="index.html">목록</a><a href="11_seat_grade_v1.html">11 좌석 등급 →</a></nav>
