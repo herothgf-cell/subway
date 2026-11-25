@@ -43,9 +43,9 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>1</td><td>목적</td><td>-</td><td>설명</td></tr>
 <tr><td>2</td><td>등급</td><td><span class="st ok">구현됨</span></td><td>S·A·B·배려석 규칙이 내부에서 돈다. "급정거 영향 없음"은 뺐다. 배려석 회복은 코드에서 ×0.6이다. 롱패딩 사이의 좁은 자리는 없다</td></tr>
 <tr><td>3</td><td>입석 명당</td><td><span class="st part">일부 구현</span></td><td>문 옆 기대기와 좌석 앞 손잡이 줄은 있다. 통로 가운데는 손잡이 위치 규칙으로만 반영됐다. 연결 통로 앞은 보류</td></tr>
-<tr><td>4</td><td>상황 보정</td><td><span class="st wait">보류</span></td><td>옆 승객 보정은 06의 나머지 유형과 함께 보류. 약냉방칸·햇빛은 13에 걸려 V1 제외</td></tr>
+<tr><td>4</td><td>상황 보정</td><td><span class="st wait">보류</span></td><td>옆 승객 보정은 06의 나머지 유형과 함께 보류. 약냉방칸·햇빛은 99에 걸려 V1 제외</td></tr>
 <tr><td>5</td><td>표시</td><td><span class="st part">일부 구현</span></td><td>등급 표시는 2026-11-25 결정으로 뺐다(가이드에서만 안내). "완벽한 계획대로!"는 있다</td></tr>
-<tr><td>6</td><td>연동</td><td>-</td><td>계획표 "끝자리"(12)는 코드에 있다. 동행자와 나란히 앉기(13)는 V1 제외</td></tr>
+<tr><td>6</td><td>연동</td><td>-</td><td>계획표 "끝자리"(12)는 코드에 있다. 동행자와 나란히 앉기(99)는 V1 제외</td></tr>
 <tr><td>7</td><td>미결 사항</td><td>-</td><td>표시 방식은 2026-11-25에 다시 정했다</td></tr>
 <tr><td>8</td><td>1차 구현 내용</td><td><span class="st ok">구현됨</span></td><td>적힌 내용이 코드와 같다. 가이드는 만들어졌다</td></tr>
 </table></div>
@@ -81,8 +81,8 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <h2>4. 상황 보정<span class="st wait">보류</span></h2>
 <ul>
 <li><b>옆 승객</b>: 기대어 잠든 승객, 큰 소리 통화 옆은 회복 감소 (<a href="06_special_passenger_v1.html">06</a>).<span class="st wait">보류</span> 06에 두 유형이 들어올 때 넣는다. 지금 옆 승객이 주는 보정은 넓게 앉은 승객의 좁은 자리뿐이다.</li>
-<li><b>약냉방칸</b>: 폭염 날 약냉방칸에서는 서 있을 때 소모 +10%. 승강장에서 칸을 고를 때 표시.<span class="st cut">V1 제외</span> 계절(13)에 걸려 있다 (2026-11-25).</li>
-<li><b>햇빛</b>: 지상 구간에서 해가 드는 쪽 좌석은 회복 -10%. 가벼운 연출 요소로만 쓴다.<span class="st cut">V1 제외</span> 13과 함께 뺐다 (2026-11-25).</li>
+<li><b>약냉방칸</b>: 폭염 날 약냉방칸에서는 서 있을 때 소모 +10%. 승강장에서 칸을 고를 때 표시.<span class="st cut">V1 제외</span> 계절(99)에 걸려 있다 (2026-11-25).</li>
+<li><b>햇빛</b>: 지상 구간에서 해가 드는 쪽 좌석은 회복 -10%. 가벼운 연출 요소로만 쓴다.<span class="st cut">V1 제외</span> 99와 함께 뺐다 (2026-11-25).</li>
 </ul>
 
 <h2>5. 표시<span class="st part">일부 구현</span></h2>
@@ -95,7 +95,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <h2>6. 연동</h2>
 <ul>
 <li>오늘의 계획표 항목 "끝자리에 앉기" (<a href="12_daily_plan_v1.html">12</a>).<span class="st ok">구현됨</span> ★★★ 40P. "완벽한 계획대로!"와 겹쳐 받는다.</li>
-<li>동행자와 나란히 앉으려면 연속된 두 자리가 필요하다 (<a href="13_misc_ideas_v1.html">13</a>).<span class="st cut">V1 제외</span> 13 전체를 V1에서 뺐다 (2026-11-25).</li>
+<li>동행자와 나란히 앉으려면 연속된 두 자리가 필요하다 (<a href="99_misc_ideas_v1.html">99</a>).<span class="st cut">V1 제외</span> 99 전체를 V1에서 뺐다 (2026-11-25).</li>
 </ul>
 
 <h2>7. 미결 사항</h2>
@@ -111,8 +111,8 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>문 옆에 기대기</b>: 문 쪽 출입 공간 양 끝(칸막이 옆)에 서면 서 있을 때 체력 소모 ×0.6. 기댈 때의 안내는 2026-11-25에 뺐고 가이드에서만 알려 준다. 하차 인파 범위 안이라 환승역에서 쓸려 내리기 쉽다.</li>
 <li><b>표시</b>: 게임 화면에는 등급을 표시하지 않는다. 내부 규칙으로만 돌고, 안내는 가이드 버튼(일시정지 메뉴와 계획표 화면)의 "자리마다 다르다", "서 있을 때" 항목에서만 한다. (처음 구현한 카드 한 줄·S 배지는 2026-11-25에 뺐다)</li>
 <li><b>완벽한 계획대로!</b>: 끝자리에 계획대로 앉으면 +10P, 화면 흔들림과 효과음 한 번 더. 안내 문구는 "완벽한 계획대로! (+10P)"로 줄였다 (2026-11-25).</li>
-<li>미룬 것: 연결 통로 앞·통로 가운데 입석(개선점 "손잡이 위치"와 함께), 옆 승객 보정(06), 약냉방칸·햇빛(13).</li>
-<li>그 뒤(2026-11-25): 손잡이 위치 규칙이 들어가 통로 가운데와 객차 양 끝에서는 손잡이를 잡을 수 없다. 연결 통로 앞의 "덜컹거림 2배"는 아직 없다<span class="st wait">보류</span>. 옆 승객 보정은 06과 함께<span class="st wait">보류</span>. 약냉방칸·햇빛은 13과 함께<span class="st cut">V1 제외</span>.</li>
+<li>미룬 것: 연결 통로 앞·통로 가운데 입석(개선점 "손잡이 위치"와 함께), 옆 승객 보정(06), 약냉방칸·햇빛(99).</li>
+<li>그 뒤(2026-11-25): 손잡이 위치 규칙이 들어가 통로 가운데와 객차 양 끝에서는 손잡이를 잡을 수 없다. 연결 통로 앞의 "덜컹거림 2배"는 아직 없다<span class="st wait">보류</span>. 옆 승객 보정은 06과 함께<span class="st wait">보류</span>. 약냉방칸·햇빛은 99와 함께<span class="st cut">V1 제외</span>.</li>
 </ul>
 
 <nav class="foot"><a href="10_item_v1.html">← 10 아이템</a><a href="index.html">목록</a><a href="12_daily_plan_v1.html">12 오늘의 계획표 →</a></nav>

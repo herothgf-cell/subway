@@ -37,7 +37,7 @@
 
 기획 내용은 [PLAN.md](PLAN.md)에 있습니다.
 
-추가 기획서(v1, 13건)는 [plan/v1/index.html](plan/v1/index.html)에 있습니다.
+추가 기획서(v1, 17건)는 [plan/v1/index.html](plan/v1/index.html)에 있습니다.
 
 ## 음원 출처
 - `audio/arrive_gwangju_D02.mp3`: 광주교통공사 전동차 내 안내방송 음원(D02, 국악신호음악 '벨소리2'), [공공데이터포털](https://www.data.go.kr/data/15053587/fileData.do), 이용허락범위 제한 없음. 목적지 도착 때 앞부분 음악을, 역마다 첫 마디만 짧게 재생합니다.

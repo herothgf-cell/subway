@@ -36,7 +36,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <body><div class="wrap">
 <header class="doc"><div class="line"><span class="num">14</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">2026-11-24</span></div>
 <h1>출근 일기</h1><p>통근이 끝나면 그날 있었던 일이 주인공의 일기로 남는다. 정산 화면 표시와 이미지 저장</p></header>
-<p class="note">13 기타 아이디어의 5장에 있던 내용을 정식 구현하면서 독립 문서로 옮겼다. 5장의 문장 틀 목록은 게임 코드(<code>index.html</code>의 <code>DIARY</code>)에서 그대로 뽑은 것이다.</p>
+<p class="note">99 기타 아이디어의 5장에 있던 내용을 정식 구현하면서 독립 문서로 옮겼다. 5장의 문장 틀 목록은 게임 코드(<code>index.html</code>의 <code>DIARY</code>)에서 그대로 뽑은 것이다.</p>
 <h2>구현 현황 (2026-11-25 기준)</h2>
 <p class="status">게임 코드(<code>index.html</code>의 <code>DIARY</code>, <code>DIARY_HEAD</code>, <code>DIARY_TAIL</code>, <code>makeDiary</code>, <code>diaryHTML</code>, <code>diaryPNG</code>, <code>clock()</code>)를 확인해 적었다. <span class="st ok">구현됨</span><span class="st part">일부 구현</span><span class="st wait">보류</span><span class="st cut">V1 제외</span></p>
 <div class="tw"><table>
@@ -52,7 +52,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>6. 화면</td><td>정산 화면의 일기, 손글씨, 저장 버튼</td><td><span class="st ok">구현됨</span></td><td>-</td></tr>
 <tr><td>7. 이미지로 저장</td><td>PNG 한 장</td><td><span class="st ok">구현됨</span></td><td>월·일 표기와 플래너에서 저장은 보류</td></tr>
 <tr><td>8. 구현 범위</td><td>단계 ①~④와 주간 돌아보기</td><td><span class="st part">일부 구현</span></td><td>①④ 구현, ② 보류, ③ V1 제외</td></tr>
-<tr><td>9. 연동</td><td>12, 05, 06, 07, 04, 13</td><td>-</td><td>06·07 사건은 들어왔다. 13 계절은 V1 제외</td></tr>
+<tr><td>9. 연동</td><td>12, 05, 06, 07, 04, 99</td><td>-</td><td>06·07 사건은 들어왔다. 99 계절은 V1 제외</td></tr>
 <tr><td>10. 결정 사항과 남은 것</td><td>결정 4건, 남은 일</td><td>-</td><td>-</td></tr>
 </table></div>
 
@@ -383,7 +383,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </ul>
 
 <h2>8. 구현 범위<span class="st part">일부 구현</span></h2>
-<p class="status"><b>구현</b>: ① 정산 화면의 일기, ④ 이미지 저장. / <b>보류</b>: ② 플래너 보관(지난 일기를 저장해 두지 않는다. 마지막 통근의 일기만 화면에 있다), 주간 돌아보기, 특수 승객 관찰 메모. / <b>V1 제외</b>(2026-11-25 결정): ③ 내일의 다짐과 계획표 연결("설욕" 보너스), 단골 승객 메모(13).</p>
+<p class="status"><b>구현</b>: ① 정산 화면의 일기, ④ 이미지 저장. / <b>보류</b>: ② 플래너 보관(지난 일기를 저장해 두지 않는다. 마지막 통근의 일기만 화면에 있다), 주간 돌아보기, 특수 승객 관찰 메모. / <b>V1 제외</b>(2026-11-25 결정): ③ 내일의 다짐과 계획표 연결("설욕" 보너스), 단골 승객 메모(99).</p>
 <div class="tw"><table>
 <tr><th>단계</th><th>내용</th><th>상태</th></tr>
 <tr><td>① 정산 화면에 일기 문장</td><td>사건 기록, 가상 시각, 문장 조합</td><td><span class="st ok">구현됨</span></td></tr>
@@ -394,11 +394,11 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 </table></div>
 
 <h2>9. 연동</h2>
-<p class="status"><b>구현</b>: 12·05의 판정을 그대로 쓴다. 06 특수 승객 사건 5종과 07 시선 사건 2종은 이미 3장과 5장에 들어 있다. / <b>보류</b>: 04의 월·일 날짜 표기와 지각 사건(지각은 정산에만 나오고 일기 사건은 없다). / <b>V1 제외</b>: 13 계절에 따른 머리말.</p>
+<p class="status"><b>구현</b>: 12·05의 판정을 그대로 쓴다. 06 특수 승객 사건 5종과 07 시선 사건 2종은 이미 3장과 5장에 들어 있다. / <b>보류</b>: 04의 월·일 날짜 표기와 지각 사건(지각은 정산에만 나오고 일기 사건은 없다). / <b>V1 제외</b>: 99 계절에 따른 머리말.</p>
 <ul>
 <li>사건은 <a href="12_daily_plan_v1.html">12 오늘의 계획표</a>와 <a href="05_transfer_v1.html">05 환승역 물갈이</a>의 판정을 그대로 쓴다.</li>
 <li>06 특수 승객, 07 시선 눈치가 들어오면 "처음 만난 특수 승객", "눈 마주침" 사건과 문장을 이 문서에 추가한다.</li>
-<li>04 일정: 날짜 표기, 도착 시한에 맞춘 시각 체계, 지각 사건. 13 계절: 머리말에 계절과 날씨.</li>
+<li>04 일정: 날짜 표기, 도착 시한에 맞춘 시각 체계, 지각 사건. 99 계절: 머리말에 계절과 날씨.</li>
 </ul>
 
 <h2>10. 결정 사항과 남은 것</h2>
@@ -411,5 +411,5 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>남은 것</b>: 문장 검수(읽어 보고 고칠 문장 표시), 월·일 날짜 표기, 플래너 보관. 다짐 연결("설욕")은 2026-11-25 결정으로 V1에서 뺐다.</li>
 </ul>
 
-<nav class="foot"><a href="13_misc_ideas_v1.html">← 13 기타 아이디어</a><a href="index.html">목록</a><a href="15_growth_loop_v1.html">15 성장 구조 →</a></nav>
+<nav class="foot"><a href="12_daily_plan_v1.html">← 12 오늘의 계획표</a><a href="index.html">목록</a><a href="15_growth_loop_v1.html">15 성장 구조 →</a></nav>
 </div></body></html>
