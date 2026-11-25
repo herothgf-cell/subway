@@ -273,7 +273,7 @@ const sk=k=>profile.skills[k]||0;
 
 /* ========== 데이터 ========== */
 const STATIONS=["신림","봉천","서울대입구","낙성대","사당","방배","서초","교대","강남"];   // 한계획 구간 (승객 가중치의 기준 구간)
-/* ========== 2호선 순환선 (추가 기획서 03). 내선 순서. 지선(성수·신정)은 넣지 않는다. 역 이름·환승 정보는 최종 검수 필요 ========== */
+/* ========== 2호선 순환선 (추가 기획서 03). 내선 순서. 지선(성수·신정)은 넣지 않는다. 역 이름·환승 정보는 2026-11-24 검수 완료 ========== */
 // tr: 환승 노선, grade: 환승 등급(05), zone: 구간(승객 유형 가중치), gap: 다음 역(내선 방향)까지 구간 길이 배수
 const ZONES={seonam:"서남",gwanak:"관악·사당",gangnam:"강남",jamsil:"잠실",seongsu:"성수·왕십리",dosim:"도심",sinchon:"신촌·홍대",seobu:"서부"};
 const LINE2=[
@@ -311,6 +311,7 @@ function makeWeek(){   // 주 초에 이번 주 일정을 정한다: 비(예보 
     return o;});
   if(run.week===1)Object.assign(run.sched[0],{rain:false,fc:false,quiet:false,packed:false});   // 첫 출근은 평소와 같은 날
   run.weekShown=false;
+  if(run.week>1)rollStock();   // 상점 진열은 한 주가 시작될 때마다 바뀐다 (10·15). 월급날 뒤의 6개는 그 주말까지
 }
 const APP=k=>APPTS.find(a=>a.k===k);
 const planName=()=>(run.leg==="am"?"출근길":run.leg==="pm"||!run.appt?"퇴근길":run.appt.dir==="go"?"가는 길":"귀갓길")+" 계획표";   // 통근마다 적는 계획표 이름
@@ -367,7 +368,7 @@ const isRain=()=>!!(G&&G.mod&&G.mod.radius);
 const balLv=()=>clamp(sk("bal")+(eq("hiking")?1:0)-(eq("dress")?1:0),0,3);   // 등산복 +1, 구두 -1
 const bodyK=()=>(run&&run.leg==="we"&&run.appt&&run.appt.carrier?1.25:1)*(eq("bare")?.9:eq("eco")?.95:eq("pack")&&!(G&&G.pl.packFront)?1.15:1)*(eq("padding")?1.1:1);   // 내 충돌 범위
 const walkK=()=>(eq("runner")?1.08:1)*(eq("boots")&&!isRain()?.95:1)*(eq("pack")&&G&&G.pl.packFront?.95:1);
-function rollStock(n){const c=ITEMS.filter(i=>i.p>0&&!profile.items.includes(i.k));for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}profile.stock=c.slice(0,n||4).map(i=>i.k);saveProfile();}   // 상점 진열 4개, 런이 끝날 때마다 바뀐다
+function rollStock(n){const c=ITEMS.filter(i=>i.p>0&&!profile.items.includes(i.k));for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]];}profile.stock=c.slice(0,n||4).map(i=>i.k);saveProfile();}   // 상점 진열 4개. 새 주가 시작될 때와 런이 끝날 때 바뀐다
 if(!Array.isArray(profile.stock))rollStock();
 const LINES={eye:{n:"눈치",d:"읽기",c:"#00a84d",b4:"시야각 +10°",b7:"통근 시작 때 3정거장 안에 내릴 앉은 승객 1명의 낌새가 처음부터 보임"},
  body:{n:"몸",d:"움직이기",c:"#e8843c",b4:"충돌 체력 피해 3 → 2",b7:"통근마다 1회, 체력이 0이 될 때 15로 버팀"},
@@ -414,14 +415,15 @@ const DPLANS=[
  {k:"eye",n:"정확한 눈",d:"찜한 승객이 바로 다음 역에서 하차 1회",star:2,p:25},
  {k:"stand",n:"서서 가기",d:"",star:2,p:25},
  {k:"unseen",n:"들키지 않기",d:"앉을 때까지 눈 마주침 0회 (못 앉으면 종점까지)",star:2,p:25},
- {k:"xfer",n:"환승역 노리기",d:"환승역(사당·교대)에 정차한 동안 빈자리에 착석",star:2,p:25},
+ {k:"xfer",n:"환승역 노리기",d:"",star:2,p:25,need:"xferSt"},
  {k:"end",n:"끝자리",d:"끝자리에 착석 (배려석 제외)",star:3,p:40},
  {k:"nobump",n:"무접촉 통근",d:"충돌 0회",star:3,p:40},
  {k:"nofake",n:"속지 않기",d:"페이크 동작 중인 승객을 찜하지 않기",star:3,p:40},
  {k:"planA",n:"플랜 A만",d:"찜은 한 번만, 바꾸거나 취소하지 않기",star:3,p:40},
  {k:"packfront",n:"백팩은 앞으로",d:"서 있는 동안 가방을 앞으로 메기 (뒤로 멘 시간 3초까지 봐줌)",star:1,p:15,need:"pack"},
 ];
-const planOK=d=>!d.need||eq(d.need);   // 장착한 아이템이 있어야 나오는 계획
+const legXfer=()=>{const r=legRoute();return r.filter((n,i)=>i>0&&i<r.length-1&&XFER[n]);};   // 이번 구간 중간의 환승역 (출발역·종점 제외)
+const planOK=d=>!d.need||(d.need==="xferSt"?legXfer().length>0:eq(d.need));   // 장착한 아이템이 있어야 나오는 계획. 환승역 노리기는 구간에 환승역이 있어야
 const DP=k=>DPLANS.find(d=>d.k===k);
 const COMBO_MAX=5;
 const comboMax=()=>COMBO_MAX+(sk("routine")>=2?2:0);   // 칼각 루틴 2단계
@@ -440,8 +442,8 @@ function xferPrep(tx){   // 환승역 2정거장 전: 비율에 모자란 만큼
   fill(g.ps.filter(p=>p.state==="standing"&&p.delay==null),x.stand,false);
   fill(g.ps.filter(p=>p.state==="seated"&&!p.seat.pink),x.seat,true);
 }
-const standHalf=()=>Math.ceil((STATIONS.length-1)/2);
-const dpDesc=d=>d.k==="stand"?"출발 후 "+standHalf()+"정거장 동안 앉지 않기":d.d;
+const standHalf=()=>Math.ceil((G?G.N:legRoute().length-1)/2);   // 구간의 절반 (8정거장이면 4)
+const dpDesc=d=>d.k==="stand"?"출발 후 "+standHalf()+"정거장 동안 앉지 않기":d.k==="xfer"?(x=>(x.length<=3?"환승역("+x.join("·")+")":"구간의 환승역 "+x.length+"곳 중 하나")+"에 정차한 동안 빈자리에 착석")(legXfer()):d.d;
 const dpReward=d=>Math.round(d.p*(1+.1*Math.min(comboMax(),run.combo||0)));
 function genCandidates(extra){   // 후보 5개: ★ 2, ★★ 2, ★★★ 1. 모순되는 조합(일찍 앉기 + 서서 가기)은 함께 내지 않는다
   const sh=a=>{for(let i=a.length-1;i>0;i--){const j=irand(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -467,9 +469,7 @@ function dpFinal(){   // 종점 도착: 남은 계획을 판정한다
   const y=dpGet("yield");if(y){if(g.yieldSeen)dpSet("yield",false);else y.status="void";}
 }
 const isEndSeat=s=>!s.pink&&(s.k===0||s.k===BENCH-1);
-/* 좌석 등급 (추가 기획서 11): S 끝자리(회복 ×1.3, 경쟁이 가장 셈), A 보통, B 좁은 자리(06 넓게 앉은 승객 옆, 회복 ×0.5), 배려석 */
-const seatGrade=s=>s.pink?"pink":s.narrow?"B":isEndSeat(s)?"S":"A";
-const GRADE_TXT={S:"끝자리 S · 회복 ×1.3, 경쟁이 셈",A:"보통 자리 A",B:"좁은 자리 B · 회복 ×0.5",pink:"임산부 배려석 · 앉으면 민폐"};
+/* 좌석 등급 (추가 기획서 11): S 끝자리(회복 ×1.3, 경쟁이 가장 셈), A 보통, B 좁은 자리(06 넓게 앉은 승객 옆, 회복 ×0.5), 배려석. 화면에는 표시하지 않고 가이드에서만 알린다 */
 const END_REC=1.3,LEAN_K=.6;   // 끝자리 회복 배수, 문 옆에 기댔을 때 서 있는 체력 소모 배수
 /* ========== 계획 붕괴 스택과 멘붕 (12), 버티기와 쓸려 내림 (02, 05) ========== */
 const MELT_AT=3;                        // 멘붕이 오는 붕괴 스택 기준값 (실제 값은 멘탈 능력치로 정한다: meltAt)
@@ -615,18 +615,19 @@ function makeDiary(fail){
   const chosen=uniq.slice(0,uniq.length>2&&DIARY[uniq[2].k].pr<=3?3:2).sort((a,b)=>log.indexOf(a)-log.indexOf(b));   // 고른 뒤에는 일어난 순서대로 적는다
   const lines=chosen.map(e=>diaryFill(diaryPick(e.k,DIARY[e.k].t),Object.assign({from,to,arch:"승객"},e,e.arch?{arch:DIARY_ARCH[e.arch]||"승객"}:{})));
   const am=g.legKey==="am",mk=modKind(g.mod);
-  const head=DAYS[run.day]+" "+(am?"출근":"퇴근")+". "+(am?"07:14":"18:32")+" "+from+" 출발. "+diaryPick("head_"+mk,DIARY_HEAD[mk]);
+  const lb=am?"출근":g.legKey==="we"&&run.appt?(run.appt.dir==="go"?"약속 가는 길":"귀갓길"):"퇴근",t0=CLOCK0[g.legKey]||CLOCK0.pm;   // 주말 약속 통근은 약속 시각 기준
+  const head=DAYS[run.day]+" "+lb+". "+String(Math.floor(t0/60)).padStart(2,"0")+":"+String(t0%60).padStart(2,"0")+" "+from+" 출발. "+diaryPick("head_"+mk,DIARY_HEAD[mk]);
   const anyGood=DIARY_GOOD.some(k=>seen.has(k)),bad=DIARY_BAD.find(k=>seen.has(k)&&(k==="bump"?g.bumps>=3&&!anyGood:k==="stood"?!anyGood:true)),   // 잘 풀린 날은 충돌 몇 번으로 다짐하지 않는다
     badEv=bad&&uniq.find(e=>e.k===bad);
   const tk=bad&&DIARY_TAIL[bad]?bad:anyGood?"good":"plain";
   const tail=diaryFill(diaryPick("tail_"+tk,DIARY_TAIL[tk]),badEv||{});
   saveProfile();
-  return {week:run.week,day:DAYS[run.day],am,mod:mk,from,to,head,lines,tail,fail:!!fail,melt:g.meltdowns>0,combo:run.combo||0,
+  return {week:run.week,day:DAYS[run.day],am,lb,mod:mk,from,to,head,lines,tail,fail:!!fail,melt:g.meltdowns>0,combo:run.combo||0,
     stickers:g.dp.filter(d=>d.status==="done"||d.status==="fail").map(d=>({n:d.n,ok:d.status==="done"}))};
 }
 const MOD_ICON={normal:"",rain:"☂ 비",delay:"⏱ 지연",quiet:"☀ 한산",packed:"▣ 만원"};
 function diaryHTML(d){
-  return `<div class="diary${d.melt?" shaky":""}${d.fail?" cut":""}"><div class="dh">${d.week}주차 ${d.day} · ${d.am?"출근":"퇴근"} ${MOD_ICON[d.mod]}<span>${d.from} ━━▶ ${d.to}</span></div>
+  return `<div class="diary${d.melt?" shaky":""}${d.fail?" cut":""}"><div class="dh">${d.week}주차 ${d.day} · ${d.lb||(d.am?"출근":"퇴근")} ${MOD_ICON[d.mod]}<span>${d.from} ━━▶ ${d.to}</span></div>
    <p class="dl">${d.head}</p>${d.lines.map(l=>`<p class="dl">${l}</p>`).join("")}<p class="dl dt">${d.tail}</p>
    <button class="btn ghost" id="bdiary">이미지로 저장</button></div>`;
 }
@@ -643,7 +644,7 @@ async function diaryPNG(d){   // 다이어리 한 페이지 모양의 그림 파
   x.strokeStyle="#dfe7e2";x.lineWidth=1;for(let y=PAD+118;y<Hd-90;y+=46){x.beginPath();x.moveTo(PAD-12,y);x.lineTo(Wd-PAD+12,y);x.stroke();}
   x.fillStyle="#00A84D";x.fillRect(0,0,Wd,12);x.fillStyle="#F2B705";x.fillRect(PAD-28,12,3,Hd-12);
   x.fillStyle="#14181c";x.textBaseline="alphabetic";x.font='800 26px "Pretendard","Malgun Gothic",sans-serif';
-  x.fillText(d.week+"주차 "+d.day+" · "+(d.am?"출근":"퇴근")+(MOD_ICON[d.mod]?"   "+MOD_ICON[d.mod]:""),PAD,PAD+18);
+  x.fillText(d.week+"주차 "+d.day+" · "+(d.lb||(d.am?"출근":"퇴근"))+(MOD_ICON[d.mod]?"   "+MOD_ICON[d.mod]:""),PAD,PAD+18);
   // 구간
   const ry=PAD+62;x.font='700 22px "Pretendard","Malgun Gothic",sans-serif';const fw=x.measureText(d.from).width,tw=x.measureText(d.to).width;
   x.fillText(d.from,PAD,ry+8);x.fillText(d.to,Wd-PAD-tw,ry+8);
@@ -663,7 +664,7 @@ async function diaryPNG(d){   // 다이어리 한 페이지 모양의 그림 파
     y+=stRows*52;}
   if(d.combo){x.textAlign="left";x.fillStyle="#b25e00";x.font='800 22px "Pretendard","Malgun Gothic",sans-serif';x.fillText("루틴 콤보 "+d.combo,PAD,y+26);}
   x.textAlign="center";x.fillStyle="#00A84D";x.font='800 24px "Pretendard","Malgun Gothic",sans-serif';x.fillText("계획대로, 2호선",Wd/2,Hd-40);x.textAlign="left";
-  const a=document.createElement("a");a.download="출근일기_"+d.week+"주차_"+d.day+"_"+(d.am?"출근":"퇴근")+".png";a.href=c.toDataURL("image/png");a.click();
+  const a=document.createElement("a");a.download="출근일기_"+d.week+"주차_"+d.day+"_"+(d.lb||(d.am?"출근":"퇴근")).replace(/ /g,"")+".png";a.href=c.toDataURL("image/png");a.click();
   return {w:Wd,h:Hd};
 }
 let lastDiary=null;
