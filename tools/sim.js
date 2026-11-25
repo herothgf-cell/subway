@@ -1,6 +1,6 @@
 // 헤드리스 난이도 시뮬레이션.
 // index.html의 게임 스크립트를 화면 없이 그대로 실행하고, 봇이 여러 주를 통근한 결과를 집계한다.
-// 사용: node tools/sim.js [런 수=40] [최대 주차=2] [시드=1] [--plans] [--allskills] [--char=han|oh|yu|jung] [--json 파일]
+// 사용: node tools/sim.js [런 수=40] [최대 주차=2] [시드=1] [--plans] [--allskills] [--char=han|oh|yu|jung] [--bots=고수,숙련] [--json 파일]
 const fs=require("fs"),path=require("path"),vm=require("vm");
 const args=process.argv.slice(2),flags=args.filter(a=>a.startsWith("--")),nums=args.filter(a=>/^\d+$/.test(a)).map(Number);
 const RUNS=nums[0]||40,WEEKS=nums[1]||2,SEED=nums[2]||1;
@@ -33,13 +33,15 @@ const CARD=(flags.find(f=>f.startsWith("--cards="))||"--cards=base").split("=")[
 const BOTS={
   "숙련":{asksRoom:true,stare:.8,avoidDoor:true,patience:2.5,react:.25,scan:.3,brace:.9,braceDepart:.8,archRead:true,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},
   "보통":{asksRoom:true,stare:1.4,avoidDoor:true,patience:1.5,react:.5,scan:.4,brace:.6,braceDepart:.3,archRead:false,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","early","giveway","yield","quiet","firm","asplanned"]},
+  "고수":{asksRoom:true,stare:.5,avoidDoor:true,patience:3,react:.15,scan:.25,brace:1,braceDepart:1,archRead:true,lookAhead:2,readsBoard:true,yields:true,planPolicy:PLAN?"smart":null,planLikes:["scan","sitarrive","stamina","giveway","firm","asplanned","early","yield","quiet","eye","nofake","end"]},   // 사람처럼 잘 앉는 봇 (2026-11-26, 다음 구현 순서 2단계)
   "초보":{stare:2.4,patience:.7,react:.9,scan:.6,brace:.3,braceDepart:0,archRead:false,readsBoard:false,yields:false,planPolicy:PLAN?"random":null},
 };
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,f1=v=>v.toFixed(1),pct=v=>Math.round(v*100)+"%";
 const out={runs:RUNS,weeks:WEEKS,seed:SEED,plans:PLAN,bots:{}};
 const t0=Date.now();
-console.log(`런 ${RUNS}회 × 봇 3종, 최대 ${WEEKS}주, 시드 ${SEED}${PLAN?", 계획표 사용":""}, 카드 정책 ${CARD}`);
-for(const name in BOTS){
+const ONLY=(flags.find(f=>f.startsWith("--bots="))||"").split("=")[1];   // --bots=고수,숙련 처럼 일부만
+console.log(`런 ${RUNS}회 × 봇 ${ONLY||"전체"}, 최대 ${WEEKS}주, 시드 ${SEED}${PLAN?", 계획표 사용":""}, 카드 정책 ${CARD}`);
+for(const name in BOTS){if(ONLY&&!ONLY.split(",").includes(name))continue;
   const ctx=makeContext(SEED*1000+Object.keys(out.bots).length);BOTS[name].cardPolicy=CARD;{const ch=(flags.find(f=>f.startsWith("--char="))||"").split("=")[1];if(ch)vm.runInContext("profile.char="+JSON.stringify(ch)+";",ctx);}   // 캐릭터 (02)
   if(flags.includes("--allskills"))BOTS[name].skills=vm.runInContext("Object.fromEntries(SKILLS.map(s=>[s.k,s.cost.length]))",ctx);   // 모든 스킬 최대 단계
   if(flags.includes("--nogaze"))vm.runInContext("GAZE=false;",ctx);if(flags.includes("--nospecial"))vm.runInContext("SPECIALS=false;",ctx);
@@ -67,6 +69,13 @@ for(const name in BOTS){
     "좁은 자리 착석/편도":avg(legs.map(l=>l.narrowSat||0)).toFixed(2),
     "눈 마주침/편도":avg(legs.map(l=>l.eyeN||0)).toFixed(2),
     "쓸려 내림/편도":avg(legs.map(l=>l.sweeps||0)).toFixed(2),
+    // 2026-11-26 (다음 구현 순서 2단계): 주차별 곡선과 편도 한 번의 체력
+    "주차별 생존(그 주를 다 버틴 런)":Array.from({length:WEEKS},(_,i)=>pct(runs.filter(r=>r.some(l=>l.week===i+1&&l.day===4&&l.leg==="pm"&&!l.fail)).length/RUNS)).join(" / "),
+    "탈락 주차 평균":f1(avg(runs.map(r=>{const f=r.find(l=>l.fail);return f?f.week:WEEKS+1;}))),
+    "편도 체력 변화(완주, 시작→도착)":f1(avg(done.map(l=>l.start)))+" → "+f1(avg(done.map(l=>l.stamina))),
+    "도착 체력 분포(완주) 0-29/30-69/70-99/100":(()=>{const a=done.map(l=>l.stamina),n=a.length||1;return [a.filter(v=>v<30).length,a.filter(v=>v>=30&&v<70).length,a.filter(v=>v>=70&&v<99.5).length,a.filter(v=>v>=99.5).length].map(v=>pct(v/n)).join(" / ");})(),
+    "끝까지 못 앉은 편도":pct(legs.filter(l=>!l.seatStops).length/(legs.length||1)),
+    "월요일 출근 체력(2주차부터 평균)":f1(avg(legs.filter(l=>l.day===0&&l.leg==="am"&&l.week>1).map(l=>l.start))),
   };
   if(PLAN){
     const pl=legs.filter(l=>l.planN>0);

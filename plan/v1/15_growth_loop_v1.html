@@ -40,11 +40,11 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <h2>구현 현황 (2026-11-25 기준)</h2>
 <div class="tw"><table>
 <tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
-<tr><td>2</td><td>한 런의 흐름</td><td><span class="st wait">결정 · 미구현</span></td><td>지금 코드는 주말 화면에서도 스킬을 찍을 수 있다</td></tr>
-<tr><td>3</td><td>스킬을 여는 시점</td><td><span class="st wait">결정 · 미구현</span></td><td>주말 화면의 스킬 버튼을 없애야 한다</td></tr>
-<tr><td>4</td><td>상점을 여는 시점</td><td><span class="st wait">결정 · 미구현</span></td><td>평일 퇴근 뒤 집 화면에 상점이 없다</td></tr>
-<tr><td>5</td><td>포인트 지갑</td><td><span class="st wait">결정 · 미구현</span></td><td>지금은 금요일 정산 전까지 주중 포인트를 쓸 수 없다</td></tr>
-<tr><td>6</td><td>버틴 날 보너스</td><td><span class="st wait">결정 · 미구현</span></td><td>수치는 가정값</td></tr>
+<tr><td>2</td><td>한 런의 흐름</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>3</td><td>스킬을 여는 시점</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>4</td><td>상점을 여는 시점</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>5</td><td>포인트 지갑</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>6</td><td>버틴 날 보너스</td><td><span class="st ok">구현됨 · 수치 가정값</span></td><td>1일 +15P, 개근한 주마다 +10%를 가정값으로 넣었다. 16 측정 뒤 조정</td></tr>
 </table></div>
 
 <h2>1. 목적</h2>
@@ -54,7 +54,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li>일찍 그만둘수록 유리해지지 않게 한다. 오래 버틸수록 한 번에 더 많이 받는다.</li>
 </ul>
 
-<h2>2. 한 런의 흐름 <span class="st wait">결정 · 미구현</span></h2>
+<h2>2. 한 런의 흐름 <span class="st ok">구현됨</span></h2>
 <ol>
 <li><b>시작</b>: 캐릭터를 고르고 1주차 월요일 출근부터 시작한다.</li>
 <li><b>통근</b>: 출근 → 회사 카드 → 퇴근 → 집 화면(카드, 상점) → 다음 날. 주말에는 약속 또는 휴무.</li>
@@ -64,7 +64,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>다시 시작</b>: 스킬과 아이템은 남고, 1주차 월요일부터 다시 간다.</li>
 </ol>
 
-<h2>3. 스킬을 여는 시점 <span class="st wait">결정 · 미구현</span></h2>
+<h2>3. 스킬을 여는 시점 <span class="st ok">구현됨</span></h2>
 <div class="tw"><table>
 <tr><th>화면</th><th>지금 (코드)</th><th>바꿀 내용</th></tr>
 <tr><td>탈락·퇴사 화면</td><td>패시브 스킬 열림</td><td>그대로. 스킬은 여기서만 찍는다</td></tr>
@@ -73,7 +73,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>스킬 초기화 (90% 환급)</td><td>스킬 화면에서 가능</td><td>그대로. 런이 끝났을 때만 가능해진다</td></tr>
 </table></div>
 
-<h2>4. 상점을 여는 시점 <span class="st wait">결정 · 미구현</span></h2>
+<h2>4. 상점을 여는 시점 <span class="st ok">구현됨</span></h2>
 <div class="tw"><table>
 <tr><th>화면</th><th>지금 (코드)</th><th>바꿀 내용</th></tr>
 <tr><td>평일 퇴근 뒤 집 화면</td><td>집 카드만 고른다. 상점 없음</td><td><b>상점 버튼을 둔다.</b> 카드를 고르는 것과 별개로 언제든 들를 수 있다 (카드를 소모하지 않는다)</td></tr>
@@ -86,7 +86,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li>진열은 지금처럼 주마다 바뀐다. 평일에 열어도 그 주의 진열을 본다.</li>
 </ul>
 
-<h2>5. 포인트 지갑 <span class="st wait">결정 · 미구현</span></h2>
+<h2>5. 포인트 지갑 <span class="st ok">구현됨</span></h2>
 <ul>
 <li><b>결정</b>: 퇴근 뒤 상점에서는 <b>이번 주에 번 포인트까지</b> 바로 쓸 수 있다.</li>
 <li>지금 코드는 주중에 번 포인트(<code>run.points</code>)가 금요일 정산이나 런 종료 때에야 보유 포인트(<code>profile.points</code>)로 들어간다. 그래서 첫 주에는 상점에서 살 수 있는 것이 없다.</li>
@@ -95,7 +95,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li>주간 포인트 기록(<code>weekLog</code>)은 통계용으로 그대로 남긴다.</li>
 </ul>
 
-<h2>6. 버틴 날 보너스 <span class="st wait">결정 · 미구현</span></h2>
+<h2>6. 버틴 날 보너스 <span class="st ok">구현됨</span></h2>
 <p><b>결정</b>: 탈락하거나 퇴사할 때, 버틴 날 수에 비례한 보너스를 준다. 탈락과 퇴사를 구분하지 않는다.</p>
 <div class="tw"><table>
 <tr><th>항목</th><th>값 (가정)</th></tr>

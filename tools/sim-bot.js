@@ -12,7 +12,7 @@ var __bot=(function(){
       dp:(g.dp||[]).map(d=>[d.k,d.status]),planPts:g.planPts||0,planDone:g.planDone||0,planFail:g.planFail||0,planN:g.planN||0,meltdowns:g.meltdowns||0,eyeN:g.eyeN||0,packHits:g.packHits||0,narrowSat:g.narrowSat||0,sweeps:g.sweeps||0,combo:run.combo||0};
     _endLeg(fail);
     last.dp=(g.dp||[]).map(d=>[d.k,d.status]);last.planPts=g.planPts||0;last.planDone=g.planDone||0;last.planN=g.planN||0;last.combo=run?run.combo:0;
-    last.gained=(run?run.points:0)+profile.points-b-pb;   // 금요일 정산으로 run.points가 프로필로 옮겨 가도 같게 센다
+    last.gained=profile.points-pb;   // 15 이후: 번 포인트는 편도가 끝날 때 곧바로 지갑(profile.points)으로 들어간다
   };
   // 계획표: smart는 봇이 지킬 만한 계획만, random은 아무거나 3개 적는다
   function botPickPlans(cfg){
@@ -32,6 +32,7 @@ var __bot=(function(){
     const ts=tellState(p);
     if(ts===1||(ts===2&&sk("obs")<2))return hint(p).stage>=2?4:3;
     if(cfg.archRead&&g.st+1<=g.N&&likelyStop(p)===g.route[g.st+1])return 1;
+    if(cfg.lookAhead&&cfg.archRead){const ls=likelyStop(p);for(let k=2;k<=cfg.lookAhead&&g.st+k<=g.N;k++)if(ls===g.route[g.st+k])return .6;}   // 고수: 2정거장 앞까지 차림새로 읽는다
     return 0;
   }
   function tick(cfg){

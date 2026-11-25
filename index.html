@@ -232,7 +232,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
         <div class="meter"><span>체력</span><div class="bar"><div id="sbar"></div></div><em id="sval">100</em></div>
         <div class="meter"><span>민폐</span><div class="bar"><div id="nbar"></div></div><em id="nval">0</em></div>
       </div>
-      <div class="plate" id="ptplate"><small>이번 주 포인트</small><b id="pts">0</b></div>
+      <div class="plate" id="ptplate"><small>보유 포인트</small><b id="pts">0</b></div>
     </div>
     <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div><div id="tutmemo"></div>
     <div id="bottom">
@@ -710,12 +710,14 @@ function showCard(){
   mode="card";if(!run.cardOpts)cardDraw();
   const work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,arr=run.arrSta,hang=work?0:run.hangover||0;
   const evTxt={boss:"지각해서 팀장에게 불려 갔습니다. 오늘 회사 카드의 체력 회복 -6.",deadline:"프로젝트 마감. 오늘은 야근을 피할 수 없습니다. 대신 내일(금요일)은 반차를 낼 수 있습니다.",sick:"몸살 기운이 있습니다. 일찍 자지 않으면 내일 최대 체력이 10 줄어듭니다."}[run.cardEv];
-  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[work?run.day:run.day-1]} · ${work?"회사에서":"집에서"}</span>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[work?run.day:run.day-1]} · ${work?"회사에서":"집에서"}</span>
    <h2>${work?"퇴근은 어떻게 할까요?":"오늘 밤은 어떻게 보낼까요?"}</h2>
    <p class="sub">도착 체력 <b>${Math.round(arr)}</b>${hang?" · 오늘 회식으로 내일 출근 체력 -"+hang:""}. 선택에 따라 회복량과 ${work?"퇴근길":"내일 출근길"}이 달라집니다.${evTxt?"<br><b>"+evTxt+"</b>":""}</p>
    <div class="plans">${run.cardOpts.map(k=>{const c=deck.find(x=>x.k===k),gn=cardGain(c,work),after=Math.round(clamp(arr+gn.sta-hang,1,maxSta()));
-     return `<button class="pl" data-k="${k}"><span class="pn"><b>${c.n}${c.base?" (기준)":""}</b>${c.d}${gn.rep?" · 3일 연속이라 효과 -20%":""}</span><span class="st" style="width:auto;color:var(--line-d);font-weight:800">체력 +${gn.sta} → ${after}</span><span class="pp">${gn.pts?"+"+gn.pts+"P":""}</span></button>`;}).join("")}</div>`);
+     return `<button class="pl" data-k="${k}"><span class="pn"><b>${c.n}${c.base?" (기준)":""}</b>${c.d}${gn.rep?" · 3일 연속이라 효과 -20%":""}</span><span class="st" style="width:auto;color:var(--line-d);font-weight:800">체력 +${gn.sta} → ${after}</span><span class="pp">${gn.pts?"+"+gn.pts+"P":""}</span></button>`;}).join("")}</div>
+   ${work?"":`<div class="btns"><button class="btn" id="bit">상점 들르기</button></div>`}`);
   document.querySelectorAll(".pl").forEach(b=>b.onclick=()=>chooseCard(b.dataset.k));
+  if(!work)$("bit").onclick=()=>showItemShop(showCard);   // 15: 평일 퇴근 뒤 집에서 상점. 카드는 그대로 남는다
 }
 function chooseCard(k){
   const work=run.leg==="pm",c=(work?WORK_CARDS:HOME_CARDS).find(x=>x.k===k),gn=cardGain(c,work),h=run.hist[work?"work":"home"];
@@ -724,7 +726,7 @@ function chooseCard(k){
   if(c.workout)run.workouts++;
   run.stamina=clamp(run.arrSta+gn.sta-(work?0:run.hangover||0),1,maxSta());
   if(!work){run.hangover=0;run.homeLess=0;}
-  if(gn.pts)run.points+=gn.pts;
+  if(gn.pts){run.points+=gn.pts;profile.points+=gn.pts;saveProfile();}
   if(c.homeLess)run.homeLess=c.homeLess;if(c.hangover)run.hangover=c.hangover;if(c.weekly)run.halfUsed=true;
   if(c.clear)run.collapseNext=0;
   if(work)run.fx=Object.assign({},run.dayFx,c.fx);   // 집 카드의 하루짜리 효과(멘붕 한도, 이동 속도)는 퇴근길까지 간다
@@ -836,7 +838,7 @@ const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구
 function level(){return (run.week-1)*4+Math.min(4,run.day)+(run.leg!=="am"?.5:0);}
 function startRun(){
   run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0,combo:0,cand:[],picks:[],collapseNext:0,planPts:0,weekPts:0,
-    arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null};
+    arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0};
   run.stamina=run.arrSta=maxSta();   // 체력 능력치에 따라 최대 체력이 다르다
   run.tut=!profile.seenHelp;   // 튜토리얼 (01): 1주차 월요일 출근
   profile.runs++;saveProfile();showPlatform();
@@ -1067,31 +1069,32 @@ function endLeg(fail){
   g.late=!fail&&run.trains>slackN();
   if(g.late){const cut=total-Math.round(total*.7);rows.push(["지각 (포인트 -30%)","-"+cut]);total-=cut;}
   if(run.sched){const day=run.sched[run.day];if(g.planFail>0||g.late)day.res="x";else if(day.res!=="x")day.res="ok";}   // 주간 일정의 체크 / 줄 긋기
-  run.points+=total;run.legs++;run.seats+=g.seatStops;run.plans+=g.planHits;run.yields+=g.yields;
+  run.points+=total;profile.points+=total;saveProfile();run.legs++;   // 15: 번 포인트는 곧바로 지갑(보유 포인트)으로. run.points는 이번 주 통계run.seats+=g.seatStops;run.plans+=g.planHits;run.yields+=g.yields;
   lastDiary=makeDiary(fail);   // 출근 일기
   if(fail){finishRun(fail,rows,total);return;}
   const am=run.leg==="am",we=run.leg==="we";
   run.arrSta=g.stamina;run.stamina=g.stamina;run.fx={};run.needCard=!we;   // 회복량은 회사·집 카드에서 정한다
   run.lateAm=am&&g.late;   // 지각: 회사 카드에 "팀장 호출"이 끼어든다
   const lastLeg=run.leg==="pm"&&run.day===4;
+  if(run.leg==="pm"||we)run.daysDone=(run.daysDone||0)+1;   // 15: 끝까지 마친 통근일 (휴무는 세지 않는다)
   let nextTxt;
   if(we){run.stamina=clamp(g.stamina+42+(run.appt.sta||0),1,maxSta());settleWeek();run.appt=null;nextTxt=run.day<6?"일요일로":"다음 주 월요일로";}   // 약속 뒤 밤사이 회복 (일찍 자기와 같음)
   else if(am){run.leg="pm";nextTxt="회사에서";}
   else if(!lastLeg){run.leg="am";run.day++;nextTxt="집으로";}
   if(lastLeg){
-    run.points+=80;rows.push([run.week+"주차 개근 보너스","+80"]);total+=80;
+    run.points+=80;profile.points+=80;run.fullWeeks=(run.fullWeeks||0)+1;rows.push([run.week+"주차 개근 보너스","+80"]);total+=80;
     profile.bestWeek=Math.max(profile.bestWeek,run.week);profile.best[CH().k]=Math.max(profile.best[CH().k]||0,run.week);
     weekLog();
     if(isPayday(4)){rows.push(["월급날 (상점 진열 6개)",""]);rollStock(6);}
-    settleWeek();run.needCard=false;run.day=5;nextTxt="주말로";   // 금요일 퇴근 뒤 정산. 주말에 스킬·상점
+    settleWeek();run.needCard=false;run.day=5;nextTxt="주말로";   // 금요일 퇴근 뒤 주 마감. 주말에는 상점 (스킬은 런이 끝났을 때만, 15)
   }
   rows.push(["이번 편도 합계","+"+total+" P"]);
   const title=g.seatStops>=g.N-1?"완벽한 통근":g.seatStops>0?"앉아서 왔다":"서서 버텼다";
   sheet(`<span class="tag">${we?run.sched&&APP(run.sched[run.day].offer.k).n:am?"출근":"퇴근"} 완료 · ${g.route[g.N]}역</span><h2>${title}</h2>
-   <p class="sub">${g.seatStops}개 역을 앉아서 지났습니다. 충돌 ${g.bumps}회. 도착 체력 ${Math.round(g.stamina)}.${lastLeg?" 이번 주 포인트를 정산했습니다. 주말에 스킬과 상점을 쓸 수 있습니다.":""}${g.late?" <b>지각했습니다.</b>":""}</p>
+   <p class="sub">${g.seatStops}개 역을 앉아서 지났습니다. 충돌 ${g.bumps}회. 도착 체력 ${Math.round(g.stamina)}.${lastLeg?" 이번 주를 마감했습니다. 주말에도 상점을 쓸 수 있습니다.":""}${g.late?" <b>지각했습니다.</b>":""}</p>
    <div class="rows">${rows.map(r=>`<div><span>${r[0]}</span><span>${r[1]}</span></div>`).join("")}</div>
    ${diaryHTML(lastDiary)}
-   <div class="btns"><button class="btn go" id="b1">${nextTxt}</button><button class="btn ghost" id="b2">여기서 퇴사 (포인트 정산)</button></div>`);
+   <div class="btns"><button class="btn go" id="b1">${nextTxt}</button><button class="btn ghost" id="b2">여기서 퇴사 (스킬 찍기)</button></div>`);
   $("b1").onclick=run.needCard?showCard:lastLeg?()=>showWeek(showWeekend,true):we?nextWeekendDay:showPlatform;$("b2").onclick=()=>finishRun("quit",null,0);$("bdiary").onclick=()=>diaryPNG(lastDiary);
 }
 function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의 근거)
@@ -1099,16 +1102,18 @@ function weekLog(){   // 주간 획득 포인트 기록 (스킬 비용 조정의
   if(w.pts>0){profile.weekLog=(profile.weekLog||[]).concat(w).slice(-20);saveProfile();}
   return w;
 }
+const DAY_BONUS={day:15,wk:.1};   // 버틴 날 보너스 (15, 가정값): 마친 통근일 1일 +15P, 개근한 주마다 배수 +10%
 function finishRun(why,rows,total){
   annStop();
   const wl=weekLog();
-  mode="over";profile.points+=run.points;rollStock();saveProfile();clearRun();
+  const dd=run.daysDone||0,mul=1+DAY_BONUS.wk*(run.fullWeeks||0),bonus=Math.round(dd*DAY_BONUS.day*mul);   // 15: 버틴 날 보너스
+  mode="over";profile.points+=bonus;rollStock();saveProfile();clearRun();
   const msg={exhaust:["체력 방전","다리가 풀려 다음 역 벤치에 주저앉았습니다. 이번 주 통근은 여기까지."],
     nuis:["민폐 승객 등극","주변의 따가운 시선을 견디지 못하고 다음 역에서 내렸습니다."],
     quit:["이번 주 정산","무리하지 않는 것도 계획입니다."]}[why];
   sheet(`<span class="tag">${run.week}주차 ${DAYS[run.day]||""} · ${run.legs}회 이동</span><h2>${msg[0]}</h2><p class="sub">${msg[1]}</p>
    <div class="rows"><div><span>앉아서 지난 역</span><span>${run.seats}</span></div><div><span>계획대로 착석</span><span>${run.plans}</span></div>
-   <div><span>자리 양보</span><span>${run.yields}</span></div><div><span>이번 주 계획표로 번 포인트</span><span>${wl.planPts} P</span></div><div><span>획득 포인트</span><span>+${run.points} P</span></div></div>
+   <div><span>자리 양보</span><span>${run.yields}</span></div><div><span>이번 주 계획표로 번 포인트</span><span>${wl.planPts} P</span></div><div><span>버틴 날 보너스 (${dd}일${run.fullWeeks?" · 개근 "+run.fullWeeks+"주 ×"+mul.toFixed(1):""})</span><span>+${bonus} P</span></div><div><span>보유 포인트</span><span>${profile.points} P</span></div></div>
    ${rows&&lastDiary?diaryHTML(lastDiary):""}
    <div class="btns"><button class="btn go" id="b1">패시브 스킬 찍기</button><button class="btn ghost" id="b2">처음으로</button></div>`);
   $("b1").onclick=()=>showShop(true);$("b2").onclick=showMenu;if(rows&&lastDiary)$("bdiary").onclick=()=>diaryPNG(lastDiary);run=null;
@@ -1972,7 +1977,7 @@ function hud(){
   const g=G;if(!g)return;
   $("sbar").style.width=Math.min(100,g.stamina/maxSta()*100)+"%";$("sbar").style.background=g.stamina<25?"#E5484D":g.stamina<50?"#d99a00":"#00A84D";
   $("nbar").style.width=g.nuis+"%";$("sval").textContent=Math.ceil(g.stamina);$("nval").textContent=Math.floor(g.nuis);
-  $("pts").textContent=run?run.points+g.pts:0;$("led").textContent=g.led;
+  $("pts").textContent=run?profile.points+g.pts:0;$("led").textContent=g.led;
   $("qhelp").style.display=sk("excuse")?"":"none";
   if(sk("excuse"))$("qhelp").style.opacity=g.excuseCd>0?.4:1;
   $("planslots").textContent=g.pl.seat?"착석 중":"찜 "+g.plans.length+" / "+(1+sk("plan"))+(g.meltUsed?"":"   ·   붕괴 "+"●".repeat(g.collapse)+"○".repeat(Math.max(0,meltAt()-g.collapse)));
@@ -2059,7 +2064,8 @@ function showSlots(kind){   // 출근하기(new): 새로 시작할 슬롯. 불�
    $("b2").onclick=showMenu;};
   draw();
 }
-function resumeRun(){const r=loadRun();if(!r)return;run=r;if(r.char&&CHARS.some(c=>c.k===r.char)){profile.char=r.char;saveProfile();}if(r.at==="weekend")showWeekend();else showPlatform();}
+function resumeRun(){const r=loadRun();if(!r)return;run=r;if(!run.wallet){profile.points+=run.points||0;run.wallet=1;saveProfile();saveRun(run.at);}   // 15 이전 저장: 주중 포인트를 지갑으로 옮긴다
+  if(r.char&&CHARS.some(c=>c.k===r.char)){profile.char=r.char;saveProfile();}if(r.at==="weekend")showWeekend();else showPlatform();}
 /* ========== 인트로 (추가 기획서 01). 처음 실행: 컷 ①~④ → 캐릭터 선택 → 1주차 월요일(튜토리얼). 두 번째부터: 컷 ③ → 타이틀 ========== */
 const INTRO={han:{dir:"강남 방면",door:"3-2",t:["06:30","07:12","07:14","07:16"],seat:"서울대입구 과잠 앞"},oh:{dir:"신림 방면",door:"6-1",t:["06:20","07:05","07:07","07:13"],seat:"신림에서 내리는 사람 앞"},
   yu:{dir:"시청 방면",door:"2-4",t:["07:40","08:21","08:23","08:24"],seat:"홍대입구 캐리어 옆"},jung:{dir:"성수 방면",door:"8-3",t:["05:50","06:40","06:42","06:51"],seat:"건대입구 정장 앞"}};
@@ -2152,7 +2158,7 @@ function showEquip(){   // 집에서 나가기 전: 가방·옷·신발·소지�
 const planMax=()=>eq("diary")?4:3;   // 다이어리: 계획 4개
 function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계획표에 적는다
   const am=run.leg==="am";
-  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${planName()}</span>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${planName()}</span>
    <h2>${planName().replace(" 계획표","")}에는 무엇을 지킬까요? (최대 ${planMax()}개)</h2>
    <p class="sub">적은 계획을 지키면 보상을 받습니다. 2개 이상 적어 모두 지키면 +20P와 루틴 콤보 +1, 적은 계획이 전부 틀어지면 콤보가 끊깁니다. 적지 않아도 됩니다.<br>루틴 콤보 <b>${run.combo}</b> (계획 보상 +${run.combo*10}%)${run.collapseNext?" · 지난 통근의 계획이 모두 틀어졌습니다":""}</p>
    <div class="plans">${run.cand.map(k=>{const d=DP(k),on=run.picks.includes(k);return `<button class="pl${on?" on":""}" data-k="${k}"><span class="ck">${on?"✔":""}</span><span class="pn"><b>${d.n}</b>${dpDesc(d)}</span><span class="st">${"★".repeat(d.star)}</span><span class="pp">${dpReward(d)}P</span></button>`;}).join("")}</div>
@@ -2173,6 +2179,7 @@ const GUIDE=[
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
  ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 대신 자리가 가장 많이 나는 역이기도 하다."],
  ["체력·민폐·멘붕","체력이 바닥나면 그 통근은 실패. 앉아 있으면 회복된다. 부딪히거나 빤히 보거나 배려석에 앉으면 민폐가 오르고, 가득 차도 실패. 계획이 틀어지면 붕괴 스택이 쌓이고, 다 차면 멘붕(시야가 좁아짐): 가만히 서서 심호흡하거나 앉으면 풀린다."],
+ ["포인트와 성장","번 포인트는 통근이 끝날 때마다 바로 지갑에 들어온다. 런 도중에는 평일 퇴근 뒤 집이나 주말에 상점에서 쓰고, 패시브 스킬은 탈락하거나 퇴사해 런이 끝났을 때만 찍는다. 오래 버틸수록 끝날 때 버틴 날 보너스를 더 받는다."],
  ["계획표","통근 전에 지킬 계획을 최대 3개(다이어리를 챙기면 4개) 적는다. 지키면 보상, 2개 이상 적어 모두 지키면 루틴 콤보가 오른다. 날마다 평소·비·지연·한산·만원 같은 변수가 있고, 주간 일정의 예보로 미리 볼 수 있다."],
 ];
 function showGuide(back){
@@ -2191,7 +2198,7 @@ function rerollPlan(k){   // 칼각 루틴 3단계: 후보 1개를 같은 별 �
 function showDoors(){
   const dv=run.dv,lab=v=>v<.85?["여유","c0"]:v<1.25?["보통","c1"]:["혼잡","c2"];
   const am=run.leg==="am",rt=legRoute(),from=rt[0],to=rt[rt.length-1];
-  sheet(`<div class="wallet">이번 주 ${run.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${from} → ${to}</span>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${from} → ${to}</span>
    <h2>목표: ${to}역(${goalName()})까지 ${rt.length-1}정거장</h2>
    <p class="sub">${to}역에 도착할 때까지 체력을 지키면 성공입니다. 서 있으면 체력이 줄고 앉으면 회복됩니다.<br>${run.mod.name}. 현재 체력 <b>${Math.round(run.stamina)}</b>. 어느 문 앞에 설까요?<br>${sk("regular")?"단골 칸이라 안내판의 혼잡도가 정확합니다."+(run.doorSeats?" ‘곧 빌 자리’는 그 문 앞 좌석 중 2정거장 안에 비는 자리 수입니다.":""):"승강장 안내판의 칸 혼잡도는 대체로 맞지만, 항상 정확하진 않습니다."}</p>
    ${tutLeg()?`<div class="tutp"><small>플래너 메모 · 1/6</small>탈 문 고르기. 안내판의 혼잡도를 보고 덜 붐비는 문 앞에 서자. 첫 출근이라 오늘은 객차가 한산하다.</div>`:""}
@@ -2218,20 +2225,20 @@ function showWeek(next,done){   // 주간 일정: 7칸에 날짜 유형, 예보,
    <div class="btns"><button class="btn go" id="b1">${done?"주말로":"월요일 출근 준비"}</button></div>`);
   $("b1").onclick=next;
 }
-function settleWeek(){   // 그 주(또는 주말 약속) 포인트를 정산해 스킬·상점에 쓸 수 있게 한다 (04)
-  profile.points+=run.points;run.points=0;run.weekPts=0;saveProfile();
+function settleWeek(){   // 한 주(또는 주말 약속)의 통계를 마감한다 (04·15)
+  run.points=0;run.weekPts=0;saveProfile();   // 15: 포인트는 이미 지갑에 있다. 이번 주 통계만 비운다
 }
-function showWeekend(){   // 토·일: 약속 1개 제안 / 휴무. 스킬과 상점도 여기서
+function showWeekend(){   // 토·일: 약속 1개 제안 / 휴무. 상점도 여기서 (스킬은 런이 끝났을 때만, 15)
   mode="weekend";G=null;run.leg="we";saveRun("weekend");
   const o=run.sched[run.day],a=o.offer&&APP(o.offer.k),n=a?routeBetween(CH().home,o.offer.dest).length-1:0;
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} · 주말</span><h2>${DAYS[run.day]}은 어떻게 보낼까요?</h2>
    <p class="sub">현재 체력 <b>${Math.round(run.stamina)}</b> / ${maxSta()}. 쉬면 체력이 모두 회복됩니다. 약속에 나가면 포인트를 받지만 체력은 밤사이 일부만 회복됩니다.</p>
    <div class="plans">${a?`<button class="pl" id="bgo"><span class="pn"><b>${a.n} · ${o.offer.dest}</b>${a.d}. ${a.dir==="go"?CH().home+" → "+o.offer.dest:o.offer.dest+" → "+CH().home+" (귀가길)"}, ${n}정거장</span><span class="pp">+${a.bonus}P</span></button>`:""}
    <button class="pl" id="brest"><span class="pn"><b>쉬기</b>집에서 쉰다. 체력 완전 회복, 포인트 없음</span></button></div>
-   <div class="btns"><button class="btn" id="bsk">패시브 스킬</button><button class="btn" id="bit">상점</button><button class="btn ghost" id="bwk">주간 일정</button><button class="btn ghost" id="bq">여기서 퇴사 (정산)</button></div>`);
+   <div class="btns"><button class="btn" id="bit">상점</button><button class="btn ghost" id="bwk">주간 일정</button><button class="btn ghost" id="bq">여기서 퇴사 (스킬 찍기)</button></div>`);
   if(a)$("bgo").onclick=()=>{run.appt=Object.assign({},a,{dest:o.offer.dest});run.needCard=false;sfx("tick");showPlatform();};
   $("brest").onclick=()=>{o.res="ok";run.stamina=maxSta();sfx("tick");nextWeekendDay();};
-  $("bsk").onclick=()=>showShop(showWeekend);$("bit").onclick=()=>showItemShop(showWeekend);$("bwk").onclick=()=>showWeek(showWeekend,true);
+  $("bit").onclick=()=>showItemShop(showWeekend);$("bwk").onclick=()=>showWeek(showWeekend,true);
   $("bq").onclick=()=>finishRun("quit",null,0);
 }
 function nextWeekendDay(){if(run.day<6){run.day++;showWeekend();}else{startWeek();showPlatform();}}
@@ -2253,7 +2260,7 @@ function showShop(after){   // 스킬 화면: 세 계열이 세 노선, 단계�
   const back=Math.floor((profile.spent||0)*.9);
   sheet(`<div class="wallet">보유 ${profile.points} P</div><div class="tabs"><button class="tab on">패시브 스킬</button><button class="tab" id="tabItem">상점 · 아이템</button></div><h2>패시브 스킬</h2><p class="sub">포인트는 한 주가 끝날 때 정산됩니다. 찍은 스킬은 다음 주부터 계속 적용됩니다. 한 계열에 4단계, 7단계를 찍으면 계열 보너스가 붙습니다.</p>
   ${["eye","body","plan"].map(lineHTML).join("")}
-  <div class="btns">${typeof after==="function"?'<button class="btn go" id="b1">주말로 돌아가기</button>':'<button class="btn go" id="b1">월요일 출근하기</button>'}<button class="btn ghost" id="b3" ${profile.spent?"":"disabled"}>전체 초기화 (${back} P 환급)</button>${typeof after==="function"?"":'<button class="btn ghost" id="b2">처음으로</button>'}</div>`);
+  <div class="btns">${typeof after==="function"?`<button class="btn go" id="b1">${after===showCard?"집으로 돌아가기":run?"주말로 돌아가기":"돌아가기"}</button>`:'<button class="btn go" id="b1">월요일 출근하기</button>'}<button class="btn ghost" id="b3" ${profile.spent?"":"disabled"}>전체 초기화 (${back} P 환급)</button>${typeof after==="function"?"":'<button class="btn ghost" id="b2">처음으로</button>'}</div>`);
   document.querySelectorAll(".skill .btn").forEach(b=>b.onclick=()=>{const s=SKILLS.find(x=>x.k===b.dataset.k),lv=sk(s.k),c=s.cost[lv];
     if(c==null||c>profile.points)return;profile.points-=c;profile.spent=(profile.spent||0)+c;profile.skills[s.k]=lv+1;saveProfile();sfx("good");showShop(after);});
   $("b3").onclick=()=>{if(!profile.spent)return;if($("b3").dataset.sure!=="1"){$("b3").dataset.sure="1";$("b3").textContent="한 번 더 누르면 초기화 ("+back+" P 환급)";return;}
@@ -2266,14 +2273,14 @@ function showItemShop(after){   // 상점: 진열 4개 (런이 끝날 때마다 
     return `<div class="skill"><div class="nm">${i.n}<span class="pips">${SLOTS[i.slot]}${i.cap?" · 소지품 "+i.cap+"칸":""}</span></div><div class="ds">${i.d}${i.bad?`<br><span class="bad">단점: ${i.bad}</span>`:""}</div>
     <button class="btn go" data-k="${i.k}" ${own||i.p>profile.points?"disabled":""}>${own?"보유":i.p+" P"}</button></div>`;};
   const mine=ITEMS.filter(i=>i.p>0&&profile.items.includes(i.k));
-  sheet(`<div class="wallet">보유 ${profile.points} P</div><div class="tabs"><button class="tab" id="tabSkill">패시브 스킬</button><button class="tab on">상점 · 아이템</button></div><h2>이번 진열</h2>
+  sheet(`<div class="wallet">보유 ${profile.points} P</div>${run?"":`<div class="tabs"><button class="tab" id="tabSkill">패시브 스킬</button><button class="tab on">상점 · 아이템</button></div>`}<h2>${run?"상점":"이번 진열"}</h2>
   <p class="sub">산 아이템은 계속 가지고 있습니다. 출근 전에 집에서 챙겨 나갑니다. 진열은 한 주가 끝날 때마다 바뀝니다 (월급날 뒤에는 6개).</p>
   ${(profile.stock||[]).map(k=>card(IT(k))).join("")||'<p class="sub">진열된 물건을 모두 샀습니다.</p>'}
   ${mine.length?`<h3>가지고 있는 아이템</h3><p class="sub">${mine.map(i=>i.n).join(", ")}</p>`:""}
-  <div class="btns">${typeof after==="function"?'<button class="btn go" id="b1">주말로 돌아가기</button>':'<button class="btn go" id="b1">월요일 출근하기</button><button class="btn ghost" id="b2">처음으로</button>'}</div>`);
+  <div class="btns">${typeof after==="function"?`<button class="btn go" id="b1">${after===showCard?"집으로 돌아가기":run?"주말로 돌아가기":"돌아가기"}</button>`:'<button class="btn go" id="b1">월요일 출근하기</button><button class="btn ghost" id="b2">처음으로</button>'}</div>`);
   document.querySelectorAll(".skill .btn").forEach(b=>b.onclick=()=>{const i=IT(b.dataset.k);if(profile.items.includes(i.k)||i.p>profile.points)return;
     profile.points-=i.p;profile.items.push(i.k);saveProfile();sfx("good");toast(i.n+"을(를) 샀습니다. 출근 전에 챙길 수 있습니다.","good");showItemShop(after);});
-  if(typeof after==="function")$("b1").onclick=after;else{$("b1").onclick=startRun;$("b2").onclick=showMenu;}$("tabSkill").onclick=()=>showShop(after);
+  if(typeof after==="function")$("b1").onclick=after;else{$("b1").onclick=startRun;$("b2").onclick=showMenu;}if(!run)$("tabSkill").onclick=()=>showShop(after);
 }
 function setPause(v){
   if(mode!=="play")return;paused=v;annPause(v);
