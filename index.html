@@ -71,6 +71,7 @@ h1 span{color:var(--line)}
 h2{font-size:25px;margin:4px 0 12px;letter-spacing:-.02em}
 .sub{color:#565b60;font-size:15px;margin:0 0 20px;line-height:1.55}
 .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.sheet>.btns:last-child{position:sticky;bottom:-30px;z-index:2;background:var(--paper);margin:12px -36px -30px;padding:12px 36px 18px;box-shadow:0 -6px 12px -8px rgba(0,0,0,.25)}   /* 긴 화면에서도 버튼이 늘 보이게 (개선점) */
 .guide{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:12px}.guide div{background:var(--card);border-radius:10px;padding:10px 14px}.guide b{font-size:14.5px}.guide p{margin:4px 0 0;font-size:13px;line-height:1.55;color:#3a4148}
 .btn{border:0;border-radius:10px;padding:13px 22px;font-size:16px;font-weight:800;background:var(--ink);color:#fff;border-bottom:4px solid #000}
 .btn.go{background:var(--line);border-bottom-color:var(--line-d)}
@@ -2011,7 +2012,8 @@ function personAt(x,y){
 function seatAt(x,y){const up=view==="q"?40:SEAT_D/2+6;for(const s of G.seats)if(Math.abs(x-s.x)<SEAT_W/2&&y>s.y-up&&y<s.y+SEAT_D/2+6)return s;return null;}
 
 /* ========== 화면 ========== */
-function sheet(html){$("intro").classList.remove("on");$("tutmemo").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
+function sheet(html){if(document.pointerLockElement)document.exitPointerLock();   // 팝업이 뜨면 바로 마우스로 누를 수 있게 (개선점)
+  $("intro").classList.remove("on");$("tutmemo").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
 function showMenu(){   // 타이틀 화면 (01): 스크린도어 너머로 열차가 지나가고, 역명판이 메뉴. 전광판에 최장 개근 기록
   mode="menu";G=null;IN=null;$("ov").classList.remove("on");banner(null);prompt(null);$("card").style.display="none";$("tutmemo").style.display="none";
   const infos=[1,2,3].map(slotInfo),bw=Math.max(0,...infos.map(i=>i.best)),sv=infos.some(i=>i.used);
