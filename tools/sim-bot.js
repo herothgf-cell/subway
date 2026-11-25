@@ -119,6 +119,8 @@ var __bot=(function(){
           const o=run.cardOpts,work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,pol=cfg.cardPolicy||"base";
           let k=o.find(x=>deck.find(c=>c.k===x).base)||o[0];
           if(pol==="random")k=pick(o);else if(pol==="rest")k=o.slice().sort((a,b)=>cardGain(deck.find(c=>c.k===b),work).sta-cardGain(deck.find(c=>c.k===a),work).sta)[0];
+          else if(pol==="smart"){const has=x=>o.includes(x);   // 17 이후: 피로가 쌓이면 피로를 푸는 카드, 체력이 낮으면 야식, 아니면 그냥 쉬기
+            if(run.cardEv==="sick"&&has("sleep"))k="sleep";else if((run.fatigue||0)>=9&&has("sleep"))k="sleep";else if((run.fatigue||0)>=9&&has("stairs")&&run.arrSta>40)k="stairs";else if(run.arrSta<50&&has("snack"))k="snack";}
           else if(pol==="quiet"){const q=o.find(x=>{const cc=deck.find(c=>c.k===x);return cc.fx&&cc.fx.crowd;});if(q)k=q;}
           info.card=k;chooseCard(k);}
         else if(run.day>=5){restWeekend();if(run.week<=maxWeeks)showPlatform();}   // 주말은 쉰다 (04)

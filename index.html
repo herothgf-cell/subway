@@ -42,7 +42,7 @@ button{font-family:inherit;cursor:pointer}
 .meter span{width:34px}.meter em{font-style:normal;width:30px;text-align:right;font-variant-numeric:tabular-nums}
 .bar{flex:1;height:11px;background:#e3dfd3;border-radius:6px;overflow:hidden}
 .bar div{height:100%;width:50%;border-radius:6px;transition:width .15s linear}
-#sbar{background:var(--line)}#nbar{background:var(--bad)}
+#sbar{background:var(--line)}#sfat{position:absolute;right:0;top:0;bottom:0;width:0;background:repeating-linear-gradient(135deg,#9aa0a6 0 4px,#b9bec3 4px 8px)}#nbar{background:var(--bad)}
 #ptplate{min-width:96px;text-align:right}
 #ptplate small{display:block;font-size:11px;color:var(--mute)}#ptplate b{font-size:22px;font-variant-numeric:tabular-nums}
 #bottom{position:absolute;left:24px;right:24px;bottom:12px;display:flex;gap:8px;align-items:center;color:#f3f5f6;font-size:12.5px;font-weight:600;flex-wrap:wrap;background:rgba(14,17,20,.78);border-radius:10px;padding:5px 12px}
@@ -229,7 +229,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
       <div class="plate" id="dayplate"><div id="roundel">2</div><div><b id="daytxt">월요일 출근</b><small id="weektxt">1주차</small></div></div>
       <div class="plate" id="routeplate"><div id="led"></div><div id="route"></div></div>
       <div class="plate" id="meters">
-        <div class="meter"><span>체력</span><div class="bar"><div id="sbar"></div></div><em id="sval">100</em></div>
+        <div class="meter"><span>체력</span><div class="bar" style="position:relative"><div id="sbar"></div><i id="sfat"></i></div><em id="sval">100</em></div>
         <div class="meter"><span>민폐</span><div class="bar"><div id="nbar"></div></div><em id="nval">0</em></div>
       </div>
       <div class="plate" id="ptplate"><small>보유 포인트</small><b id="pts">0</b></div>
@@ -311,6 +311,8 @@ function makeWeek(){   // 주 초에 이번 주 일정을 정한다: 비(예보 
     return o;});
   if(run.week===1)Object.assign(run.sched[0],{rain:false,fc:false,quiet:false,packed:false});   // 첫 출근은 평소와 같은 날
   run.weekShown=false;
+  if(run.week>=5&&run.extraPressWk!==run.week){run.extraPress=(run.extraPress||[]).concat(pick(Object.keys(PRESS)));run.extraPressWk=run.week;}   // 16: 5주차부터 압박 한 겹씩
+  {const ev=pressCount().event,c=run.sched.filter(o=>o.d<5&&!o.packed&&!(run.week===1&&o.d===0));for(let i=0;i<ev&&c.length;i++){const o=c.splice(irand(0,c.length-1),1)[0];o.packed=true;o.rain=false;o.quiet=false;}}   // 행사 주간: 만원인 날 +1
   if(run.week>1)rollStock();   // 상점 진열은 한 주가 시작될 때마다 바뀐다 (10·15). 월급날 뒤의 6개는 그 주말까지
 }
 const APP=k=>APPTS.find(a=>a.k===k);
@@ -672,39 +674,62 @@ let lastDiary=null;
 /* ========== 회사·집 이벤트 (추가 기획서 08) ========== */
 // 통근 사이에 카드 한 장을 고른다. 회사 카드는 퇴근길에, 집 카드는 다음 날 출근에 영향을 준다.
 // 기준 선택(칼퇴, 일찍 자기)은 예전의 고정 회복량(+18, +42)과 같아서 기존 난이도가 유지된다.
+/* 회사·집 선택지 (17, 2026-11-26 결정): 체력 회복은 기준값(회사 +12, 집 +35)으로 통일하고, 카드는 정보·계획·포인트·통근 조건을 주고받는다.
+   매번 카드 3장(되도록 서로 다른 축) + "그냥 쉬기". 방금 고른 카드는 다음에 나오지 않는다. 다시 뽑기 하루 1회 20P. 등급은 보류 */
+const CARD_BASE={work:12,home:35},REROLL_P=20;
+const AXIS={info:["정보","#3a7bd5"],plan:["계획","#00A84D"],pts:["포인트","#c9a227"],cond:["통근 조건","#8a5cc7"],rest:["","#9aa0a6"]};
 const WORK_CARDS=[
- {k:"leave",n:"칼퇴",base:true,sta:18,d:"퇴근길은 가장 붐비는 시간 (평소대로)"},
- {k:"overtime",n:"야근",sta:6,pts:20,fx:{crowd:.65},homeLess:1,d:"퇴근길 승객 -35%. 오늘 집 카드 선택지가 1개 줄어듦"},
- {k:"dinner",n:"회식",sta:10,pts:30,fx:{crowd:.8,tipsy:true},hangover:8,d:"퇴근길 승객 -20%, 걸음이 살짝 미끄러짐. 내일 출근 체력 -8"},
- {k:"halfday",n:"반차",sta:25,fx:{crowd:.7,ptsMul:.7},weekly:true,d:"낮 시간이라 한산 (승객 -30%). 이번 퇴근 포인트 -30%. 주 1회"},
+ {k:"leave",n:"그냥 쉬기 (칼퇴)",base:true,ax:"rest",d:"기준 회복만 받는다"},
+ {k:"tip",n:"동료의 귀띔",ax:"info",fx:{exactBoard:true},d:"퇴근길 승강장 안내판이 정확하다"},
+ {k:"pmplan",n:"퇴근 계획 세우기",ax:"plan",fx:{cand:2},d:"퇴근길 계획표 후보 +2"},
+ {k:"overtime",n:"야근",ax:"pts",pts:25,fx:{crowd:.65},homeLess:1,d:"+25P. 퇴근길 승객 -35%",bad:"오늘 집 카드가 2장만 나온다"},
+ {k:"dinner",n:"회식",ax:"pts",pts:35,fx:{crowd:.8,tipsy:true},hangover:8,d:"+35P. 퇴근길 승객 -20%",bad:"걸음이 살짝 미끄러짐. 내일 출근 시작 체력 -8"},
+ {k:"halfday",n:"반차",ax:"cond",fx:{crowd:.7,ptsMul:.7},weekly:true,d:"낮 시간이라 한산 (퇴근길 승객 -30%)",bad:"이번 퇴근 포인트 -30%. 주 1회"},
+ {k:"stairs",n:"계단으로 퇴근",ax:"cond",fat:-2,sta:-5,d:"누적 피로 -2",bad:"퇴근길 시작 체력 -5"},
 ];
 const HOME_CARDS=[
- {k:"sleep",n:"일찍 자기",base:true,sta:42,d:"내일도 평소대로"},
- {k:"plan",n:"내일 계획 세우기",sta:34,fx:{cand:2,exactBoard:true},d:"내일 출근 계획표 후보 +2, 승강장 혼잡 안내판이 정확함"},
- {k:"alarm",n:"일찍 출근 알람",sta:30,fx:{crowd:.75},d:"한 대 앞 열차를 탄다. 내일 출근 승객 -25%"},
- {k:"drama",n:"드라마 정주행",sta:24,fx:{melt:1},clear:true,d:"내일 하루 멘붕 한도 +1, 붕괴 스택 초기화"},
- {k:"workout",n:"홈트레이닝",sta:30,workout:true,d:"이번 주에 3회 하면 최대 체력 +5 (그 주 동안)"},
- {k:"snack",n:"야식",sta:48,fx:{speed:.95},d:"내일 하루 이동 속도 -5%"},
+ {k:"rest",n:"그냥 쉬기",base:true,ax:"rest",d:"기준 회복만 받는다"},
+ {k:"sleep",n:"일찍 자기",ax:"cond",fat:-3,d:"누적 피로 -3"},
+ {k:"weather",n:"날씨 앱",ax:"info",forecast:true,d:"내일 예보가 확실해진다 (평소 70%)"},
+ {k:"plan",n:"내일 계획 세우기",ax:"plan",fx:{cand:2,exactBoard:true},d:"내일 출근 계획표 후보 +2, 승강장 안내판이 정확하다"},
+ {k:"budget",n:"가계부 정리",ax:"pts",pts:15,sta:-10,d:"+15P",bad:"기준 회복 -10 (늦게 잔다)"},
+ {k:"alarm",n:"일찍 출근 알람",ax:"cond",sta:-10,fx:{crowd:.75},d:"한 대 앞 열차를 탄다. 내일 출근 승객 -25%",bad:"기준 회복 -10"},
+ {k:"drama",n:"드라마 정주행",ax:"cond",sta:-5,fx:{melt:1},clear:true,d:"내일 하루 멘붕 한도 +1, 붕괴 스택 초기화",bad:"기준 회복 -5"},
+ {k:"workout",n:"홈트레이닝",ax:"cond",sta:-10,workout:true,d:"이번 주에 3회 하면 최대 체력 +5 (그 주 동안)",bad:"기준 회복 -10"},
+ {k:"snack",n:"야식",ax:"cond",sta:15,fx:{speed:.95},d:"체력 +15 추가",bad:"내일 하루 이동 속도 -5%"},
 ];
-const maxSta=()=>100+10*(stat("sta")-3)+(run&&run.workouts>=3?5:0)-(run&&run.sick?10:0);   // 최대 체력: 홈트 3회 +5, 몸살 -10
+const FAT={per:3,floor:60,restDay:15};   // 누적 피로 (16, 2026-11-26 결정): 서서 지난 정거장 1개 +1, 피로 3마다 최대 체력 -1 (하한 60), 휴무 하루 -15
+const maxStaRaw=()=>100+10*(stat("sta")-3)+(run&&run.workouts>=3?5:0)-(run&&run.sick?10:0);   // 최대 체력: 홈트 3회 +5, 몸살 -10
+const fatLoss=()=>{if(!run||!run.fatigue)return 0;const raw=maxStaRaw();return Math.max(0,Math.min(Math.floor(run.fatigue/FAT.per),raw-Math.min(raw,FAT.floor)));};
+const maxSta=()=>maxStaRaw()-fatLoss();
+const fatTxt=()=>run&&run.fatigue?`누적 피로 ${run.fatigue} (최대 체력 -${fatLoss()})`:"누적 피로 없음";
 const meltAt=()=>clamp(stat("mental"),2,4)+(G&&G.cfx&&G.cfx.melt||0);   // 멘탈 2 이하 2, 3은 3, 4 이상 4
-function cardGain(c,work){   // 같은 선택을 3일 연속 고르면 체력과 포인트 -20% (기준 선택은 제외)
-  const h=run.hist[work?"work":"home"],rep=!c.base&&h.length>=2&&h[h.length-1]===c.k&&h[h.length-2]===c.k,m=rep?.8:1;
-  return {sta:Math.round(c.sta*m)-(work&&run.cardEv==="boss"?6:0),pts:Math.round((c.pts||0)*m),rep};
+function cardGain(c,work){   // 기준 회복 + 카드의 조정값. 지각한 날 회사 카드는 -6 (팀장 호출)
+  return {sta:CARD_BASE[work?"work":"home"]+(c.sta||0)-(work&&run.cardEv==="boss"?6:0),pts:c.pts||0};
 }
-function cardDraw(){   // 선택지: 기준 선택 + 나머지에서 무작위 2개. 20% 확률로 끼어드는 이벤트
-  const work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,base=deck.find(c=>c.base),roll=Math.random()<.2;
+function cardDraw(reroll){   // 카드 3장(서로 다른 축 우선, 방금 고른 카드 제외) + 그냥 쉬기. 20% 확률로 끼어드는 이벤트
+  const work=run.leg==="pm",deck=work?WORK_CARDS:HOME_CARDS,base=deck.find(c=>c.base),roll=Math.random()<.2,last=run.hist[work?"work":"home"].slice(-1)[0];
   let evn=null,opts;
-  if(work&&run.lateAm){evn="boss";opts=[base].concat(deck.filter(c=>!c.base&&!(c.weekly&&run.halfUsed)).sort(()=>Math.random()-.5).slice(0,2));}   // 지각: 팀장 호출
-  else if(work&&run.day===3&&roll){evn="deadline";opts=[deck.find(c=>c.k==="overtime")];run.halfFri=true;}   // 프로젝트 마감: 야근 강제, 대신 금요일 반차 가능
+  const friHalf=work&&run.day===4&&run.halfFri;
+  if(!reroll&&work&&run.day===3&&roll&&!run.lateAm){evn="deadline";opts=[deck.find(c=>c.k==="overtime")];run.halfFri=true;}   // 프로젝트 마감: 야근 강제, 대신 금요일 반차 가능
   else{
-    const friHalf=work&&run.day===4&&run.halfFri,rest=deck.filter(c=>!c.base&&!(c.weekly&&run.halfUsed&&!friHalf));
-    for(let i=rest.length-1;i>0;i--){const j=irand(0,i);[rest[i],rest[j]]=[rest[j],rest[i]];}
-    opts=[base].concat(rest.slice(0,Math.max(0,2-(work?0:run.homeLess||0))));
-    if(friHalf&&!opts.some(c=>c.k==="halfday"))opts[opts.length>1?opts.length-1:1]=deck.find(c=>c.k==="halfday");
-    if(!work&&run.arrSta<=20&&roll)evn="sick";   // 몸살 기운: 일찍 자지 않으면 내일 최대 체력 -10
+    if(work&&run.lateAm)evn="boss";   // 지각: 팀장 호출 (회복 -6)
+    const pool=deck.filter(c=>!c.base&&c.k!==last&&!(c.weekly&&run.halfUsed&&!friHalf));
+    for(let i=pool.length-1;i>0;i--){const j=irand(0,i);[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const n=Math.max(1,3-(work?0:run.homeLess||0)),pickd=[];
+    for(const c of pool)if(pickd.length<n&&!pickd.some(x=>x.ax===c.ax))pickd.push(c);   // 서로 다른 축 먼저
+    for(const c of pool)if(pickd.length<n&&!pickd.includes(c))pickd.push(c);
+    if(friHalf&&!pickd.some(c=>c.k==="halfday"))pickd[pickd.length-1]=deck.find(c=>c.k==="halfday");
+    opts=pickd.concat(base);
+    if(!reroll&&!work&&run.arrSta<=20&&roll)evn="sick";   // 몸살 기운: 일찍 자지 않으면 내일 최대 체력 -10
+    if(reroll)evn=run.cardEv;
+    if(evn==="sick"&&!opts.some(c=>c.k==="sleep"))opts[0]=deck.find(c=>c.k==="sleep");
   }
   run.cardOpts=opts.map(c=>c.k);run.cardEv=evn;
+}
+function cardReroll(){   // 다시 뽑기: 하루 1회, 20P (17)
+  const key=run.week+"-"+run.day+"-"+run.leg;if(run.rerollKey===key||profile.points<REROLL_P||run.cardEv==="deadline")return;
+  profile.points-=REROLL_P;run.rerollKey=key;saveProfile();cardDraw(true);sfx("tick");showCard();   // 끼어든 이벤트(팀장 호출, 몸살)는 그대로
 }
 function showCard(){
   mode="card";if(!run.cardOpts)cardDraw();
@@ -712,10 +737,12 @@ function showCard(){
   const evTxt={boss:"지각해서 팀장에게 불려 갔습니다. 오늘 회사 카드의 체력 회복 -6.",deadline:"프로젝트 마감. 오늘은 야근을 피할 수 없습니다. 대신 내일(금요일)은 반차를 낼 수 있습니다.",sick:"몸살 기운이 있습니다. 일찍 자지 않으면 내일 최대 체력이 10 줄어듭니다."}[run.cardEv];
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[work?run.day:run.day-1]} · ${work?"회사에서":"집에서"}</span>
    <h2>${work?"퇴근은 어떻게 할까요?":"오늘 밤은 어떻게 보낼까요?"}</h2>
-   <p class="sub">도착 체력 <b>${Math.round(arr)}</b>${hang?" · 오늘 회식으로 내일 출근 체력 -"+hang:""}. 선택에 따라 회복량과 ${work?"퇴근길":"내일 출근길"}이 달라집니다.${evTxt?"<br><b>"+evTxt+"</b>":""}</p>
-   <div class="plans">${run.cardOpts.map(k=>{const c=deck.find(x=>x.k===k),gn=cardGain(c,work),after=Math.round(clamp(arr+gn.sta-hang,1,maxSta()));
-     return `<button class="pl" data-k="${k}"><span class="pn"><b>${c.n}${c.base?" (기준)":""}</b>${c.d}${gn.rep?" · 3일 연속이라 효과 -20%":""}</span><span class="st" style="width:auto;color:var(--line-d);font-weight:800">체력 +${gn.sta} → ${after}</span><span class="pp">${gn.pts?"+"+gn.pts+"P":""}</span></button>`;}).join("")}</div>
-   ${work?"":`<div class="btns"><button class="btn" id="bit">상점 들르기</button></div>`}`);
+   <p class="sub">도착 체력 <b>${Math.round(arr)}</b>${hang?" · 오늘 회식으로 내일 출근 체력 -"+hang:""}. 카드 한 장을 고르거나 그냥 쉽니다. 카드에 따라 ${work?"퇴근길":"내일 출근길"}이 달라집니다.${evTxt?"<br><b>"+evTxt+"</b>":""}</p>
+   <div class="plans">${run.cardOpts.map(k=>{const c=deck.find(x=>x.k===k),gn=cardGain(c,work),after=Math.round(clamp(arr+gn.sta-hang,1,maxSta())),ax=AXIS[c.ax||"rest"];
+     return `<button class="pl${c.base?" base":""}" data-k="${k}" style="border-left:6px solid ${ax[1]}"><span class="pn"><b>${ax[0]?`<small style="color:${ax[1]}">${ax[0]}</small> `:""}${c.n}</b><span style="color:var(--line-d)">${c.d}</span>${c.bad?`<br><span style="color:var(--bad)">${c.bad}</span>`:""}</span><span class="st" style="width:auto;color:var(--line-d);font-weight:800">체력 +${gn.sta} → ${after}</span><span class="pp">${gn.pts?"+"+gn.pts+"P":""}</span></button>`;}).join("")}</div>
+   <p class="sub">기준 회복: ${work?"회사":"집"} +${CARD_BASE[work?"work":"home"]}${work?"":" · "+fatTxt()}</p>
+   <div class="btns">${run.cardEv!=="deadline"?`<button class="btn ghost" id="brr" ${run.rerollKey===run.week+"-"+run.day+"-"+run.leg||profile.points<REROLL_P?"disabled":""}>다시 뽑기 (${REROLL_P}P, 하루 1회)</button>`:""}${work?"":`<button class="btn" id="bit">상점 들르기</button>`}</div>`);
+  if($("brr"))$("brr").onclick=cardReroll;
   document.querySelectorAll(".pl").forEach(b=>b.onclick=()=>chooseCard(b.dataset.k));
   if(!work)$("bit").onclick=()=>showItemShop(showCard);   // 15: 평일 퇴근 뒤 집에서 상점. 카드는 그대로 남는다
 }
@@ -724,6 +751,8 @@ function chooseCard(k){
   h.push(k);if(h.length>3)h.shift();
   if(!work)run.sick=run.cardEv==="sick"&&k!=="sleep";
   if(c.workout)run.workouts++;
+  if(c.fat)run.fatigue=Math.max(0,(run.fatigue||0)+c.fat);   // 16 누적 피로를 푸는 카드
+  if(c.forecast&&run.sched&&run.sched[run.day]){const o=run.sched[run.day];o.fc=o.rain;toast("날씨 앱: 내일은 "+(o.rain?"비가 옵니다.":"비가 오지 않습니다."));}
   run.stamina=clamp(run.arrSta+gn.sta-(work?0:run.hangover||0),1,maxSta());
   if(!work){run.hangover=0;run.homeLess=0;}
   if(gn.pts){run.points+=gn.pts;profile.points+=gn.pts;saveProfile();}
@@ -745,8 +774,8 @@ const SP_INFO={
 const dex=k=>{const d=profile.dex||(profile.dex={});return d[k]||(d[k]={met:0,ok:0});};
 function spawnSpecials(){
   const g=G;if(!SPECIALS)return;
-  const n=1+(Math.random()<.3+.15*g.L?1:0);   // 매 통근 최소 1명. 둘 다 나올 확률: 월요일 출근 30%, 수요일 60%, 목요일 퇴근부터 거의 항상
-  const kinds=Math.random()<.5?["backpack","sprawl"]:["sprawl","backpack"];
+  const n=1+(Math.random()<.3+.15*g.L?1:0)+(run?pressCount().special:0);   // 16 개강 주간: +1명   // 매 통근 최소 1명. 둘 다 나올 확률: 월요일 출근 30%, 수요일 60%, 목요일 퇴근부터 거의 항상
+  const kinds=Math.random()<.5?["backpack","sprawl","backpack","sprawl"]:["sprawl","backpack","sprawl","backpack"];
   const P=g.pl,near=(c,r)=>{const m=c.filter(p=>hyp(p.x-P.x,p.y-P.y)<r);return m.length?m:c;};   // 마주칠 수 있게 내 주변에서 고른다
   for(let i=0;i<n;i++){
     if(kinds[i]==="backpack"){
@@ -838,7 +867,7 @@ const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구
 function level(){return (run.week-1)*4+Math.min(4,run.day)+(run.leg!=="am"?.5:0);}
 function startRun(){
   run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0,combo:0,cand:[],picks:[],collapseNext:0,planPts:0,weekPts:0,
-    arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0};
+    arrSta:100,fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0,fatigue:0,extraPress:[]};
   run.stamina=run.arrSta=maxSta();   // 체력 능력치에 따라 최대 체력이 다르다
   run.tut=!profile.seenHelp;   // 튜토리얼 (01): 1주차 월요일 출근
   profile.runs++;saveProfile();showPlatform();
@@ -900,7 +929,7 @@ function startLeg(doorIdx){
     stamina:run.stamina,nuis:0,plans:[],jolts:[],timers:[],bumps:0,bumpCd:0,pts:0,seatStops:0,planHits:0,yields:0,
     yieldEv:null,yieldDone:false,shake:0,scroll:0,excuseCd:0,ending:null,mod:run.mod,crowd:run.crowd,L,
     dp:(run.picks||[]).map(k=>Object.assign({status:"pending"},DP(k))),collapse:run.collapseNext||0,melt:0,meltUsed:false,meltdowns:0,breath:0,meltSay:0,sweeps:0,sweepT:0,sweepSafe:0,inFlow:false,dwell:T_DWELL,xferMoved:false,xferStand:false,xferBumps:0,cfx:run.fx||{},eyeN:0,packHits:0,narrowSat:0,log:[],bump1:null,claims:[],claimN:0,eyeHits:0,scanned:new Set(),yieldSeen:false,planPts:0,
-    seek:4,fakeRate:Math.min(.22,.025*L),rivalP:Math.min(.95,.55+.04*L),touch:0,led:"",fx:[]};
+    seek:4,fakeRate:Math.min(.22+.06*pressCount().special,.025*L+.04*pressCount().special),rivalP:Math.min(.95+.05*pressCount().rival,.55+.04*L+.08*pressCount().rival),touch:0,led:"",fx:[]};
   const g=G;run.collapseNext=0;
   // 좌석 승객
   let empties=L<1&&!tutLeg()?1:0;
@@ -931,7 +960,7 @@ function startLeg(doorIdx){
     while(soon.length<want&&rest.length){const p=rest.splice(irand(0,rest.length-1),1)[0];p.dest=irand(1,2);assignHints(p);soon.push(p);}
   }
   // 서 있는 승객
-  const standing=g.tut?12:Math.round(Math.min(g.mod.packed?112:96,(46+3.2*L+(am?0:6))*(g.mod.crowd||1)*(g.cfx.crowd||1)*(am&&CH().crowdAm||1)*(run.leg==="pm"&&isPayday(run.day)?1.25:1)*(run.leg==="we"&&run.appt.crowd||1)*(run.trainMul||1)));   // 월급날 퇴근, 약속 인파, 한 대 보낸 열차   // 오신입 출근: 신도림 쪽 인파가 이미 타 있다   // 회사·집 카드에 따라 승객 수가 달라진다
+  const standing=g.tut?12:Math.round(Math.min((g.mod.packed?112:96)*pressCrowd(),pressCrowd()*(46+3.2*L+(am?0:6))*(g.mod.crowd||1)*(g.cfx.crowd||1)*(am&&CH().crowdAm||1)*(run.leg==="pm"&&isPayday(run.day)?1.25:1)*(run.leg==="we"&&run.appt.crowd||1)*(run.trainMul||1)));   // 월급날 퇴근, 약속 인파, 한 대 보낸 열차   // 오신입 출근: 신도림 쪽 인파가 이미 타 있다   // 회사·집 카드에 따라 승객 수가 달라진다
   g.target=standing;
   const zw=g.crowd.map(c=>c.w),zt=zw.reduce((a,b)=>a+b,0);
   // 좌석 앞(손잡이 자리)부터 채운다. 혼잡한 칸일수록 빈틈이 없다
@@ -1076,7 +1105,8 @@ function endLeg(fail){
   run.arrSta=g.stamina;run.stamina=g.stamina;run.fx={};run.needCard=!we;   // 회복량은 회사·집 카드에서 정한다
   run.lateAm=am&&g.late;   // 지각: 회사 카드에 "팀장 호출"이 끼어든다
   const lastLeg=run.leg==="pm"&&run.day===4;
-  if(run.leg==="pm"||we)run.daysDone=(run.daysDone||0)+1;   // 15: 끝까지 마친 통근일 (휴무는 세지 않는다)
+  if(run.leg==="pm"||we)run.daysDone=(run.daysDone||0)+1;
+  run.fatigue=(run.fatigue||0)+Math.max(0,g.N-g.seatStops);run.stamina=Math.min(run.stamina,maxSta());run.arrSta=Math.min(run.arrSta,maxSta());   // 16: 서서 지난 정거장만큼 피로가 쌓인다   // 15: 끝까지 마친 통근일 (휴무는 세지 않는다)
   let nextTxt;
   if(we){run.stamina=clamp(g.stamina+42+(run.appt.sta||0),1,maxSta());settleWeek();run.appt=null;nextTxt=run.day<6?"일요일로":"다음 주 월요일로";}   // 약속 뒤 밤사이 회복 (일찍 자기와 같음)
   else if(am){run.leg="pm";nextTxt="회사에서";}
@@ -1459,7 +1489,7 @@ function update(rdt){
       const adx=Math.abs(pl.x-dr.cx),zone=DOOR_W*.75;
       if(adx<zone&&pl.y>AY1-20){
         let n=0;for(const q of g.ps)if(q.state==="leaving"&&q.step===0&&q.door===dr&&q.y<pl.y+12&&hyp(q.x-pl.x,q.y-pl.y)<110)n++;
-        if(n){g.inFlow=true;const push=Math.min(150,24*n)*(1-adx/zone)*gritK()*(pl.brace?.5:1);
+        if(n){g.inFlow=true;const push=Math.min(150,24*n)*Math.pow(1.3,pressCount().event)*(1-adx/zone)*gritK()*(pl.brace?.5:1);   // 16 행사 주간: ×1.3
           pl.y+=push*rdt;pl.x+=Math.sign(dr.cx-pl.x)*push*.3*rdt;constrain(pl);}
         if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)&&sk("xfer")<2){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
       }
@@ -1975,7 +2005,8 @@ function toast(t,c){
 }
 function hud(){
   const g=G;if(!g)return;
-  $("sbar").style.width=Math.min(100,g.stamina/maxSta()*100)+"%";$("sbar").style.background=g.stamina<25?"#E5484D":g.stamina<50?"#d99a00":"#00A84D";
+  {const raw=maxStaRaw();$("sbar").style.width=Math.min(100,g.stamina/raw*100)+"%";$("sfat").style.width=(fatLoss()/raw*100)+"%";}   // 16: 피로만큼 오른쪽 끝이 회색으로 잠긴다
+  $("sbar").style.background=g.stamina<25?"#E5484D":g.stamina<50?"#d99a00":"#00A84D";
   $("nbar").style.width=g.nuis+"%";$("sval").textContent=Math.ceil(g.stamina);$("nval").textContent=Math.floor(g.nuis);
   $("pts").textContent=run?profile.points+g.pts:0;$("led").textContent=g.led;
   $("qhelp").style.display=sk("excuse")?"":"none";
@@ -2155,6 +2186,16 @@ function showEquip(){   // 집에서 나가기 전: 가방·옷·신발·소지�
     saveProfile();sfx("tick");showEquip();});
   $("b1").onclick=()=>{run.cand=genCandidates((run.fx&&run.fx.cand||0)+(sk("routine")?1:0));run.picks=[];showPlanner();};   // 차림에 따라 계획 후보가 달라진다 (백팩은 앞으로)
 }
+/* 주차별 압박 (16, 2026-11-26): 한 번 얹힌 압박은 계속 남는다. 5주차부터 승객 +8%/주와 무작위 압박 한 겹씩 */
+const PRESS={special:{n:"개강 주간",line:"개강 주간. 낯선 얼굴이 많다.",d:"특수 승객 +1명, 페이크 동작 증가"},
+  event:{n:"행사 주간",line:"행사 주간. 환승역이 평소보다 거칠다.",d:"만원 열차인 날 +1일, 환승역 하차 인파가 미는 힘 ×1.3"},
+  rival:{n:"월급날 주간",line:"월급날이 있는 주. 금요일 퇴근길을 조심.",d:"좌석 경쟁자 반응이 한 단계 빨라짐"}};
+function pressCount(w){w=w||(run&&run.week)||1;const c={special:w>=2?1:0,event:w>=3?1:0,rival:w>=4?1:0};for(const k of(run&&run.extraPress)||[])c[k]++;return c;}
+const pressCrowd=w=>1+.08*Math.max(0,(w||(run&&run.week)||1)-4);   // 5주차부터 서 있는 승객 +8%씩 (상한도 함께)
+function pressLine(){const w=run.week,ex=run.extraPress||[];
+  if(w<=1)return "평소와 같은 한 주.";if(w<=4)return PRESS[["","","special","event","rival"][w]].line;
+  return `${w}주차. 승객이 평소보다 ${Math.round((pressCrowd()-1)*100)}% 많다. 이번 주에 더해진 것: ${PRESS[ex[ex.length-1]].n}.`;}
+function pressList(){const c=pressCount();return Object.keys(c).filter(k=>c[k]).map(k=>PRESS[k].n+(c[k]>1?" ×"+c[k]:"")+": "+PRESS[k].d).concat(run.week>=5?["승객 +"+Math.round((pressCrowd()-1)*100)+"%"]:[]);}
 const planMax=()=>eq("diary")?4:3;   // 다이어리: 계획 4개
 function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계획표에 적는다
   const am=run.leg==="am";
@@ -2178,6 +2219,7 @@ const GUIDE=[
  ["자리마다 다르다","끝자리(칸막이 옆 양 끝)는 앉아 있을 때 회복이 가장 좋지만, 비면 모두가 노려서 경쟁이 가장 세다. 넓게 앉은 승객 옆의 좁은 자리는 회복이 절반이다. 임산부 배려석에 앉으면 시선이 따갑고 민폐가 오른다. 나머지는 보통 자리."],
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
  ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 대신 자리가 가장 많이 나는 역이기도 하다."],
+ ["누적 피로와 주차","서서 지난 정거장만큼 피로가 쌓여 최대 체력이 줄어든다(체력 막대 오른쪽의 회색). 주말에 쉬는 날이나 일찍 자기·계단으로 퇴근 카드로 푼다. 주차가 오를수록 새 압박이 얹히고, 주간 일정에서 미리 알려 준다."],
  ["체력·민폐·멘붕","체력이 바닥나면 그 통근은 실패. 앉아 있으면 회복된다. 부딪히거나 빤히 보거나 배려석에 앉으면 민폐가 오르고, 가득 차도 실패. 계획이 틀어지면 붕괴 스택이 쌓이고, 다 차면 멘붕(시야가 좁아짐): 가만히 서서 심호흡하거나 앉으면 풀린다."],
  ["포인트와 성장","번 포인트는 통근이 끝날 때마다 바로 지갑에 들어온다. 런 도중에는 평일 퇴근 뒤 집이나 주말에 상점에서 쓰고, 패시브 스킬은 탈락하거나 퇴사해 런이 끝났을 때만 찍는다. 오래 버틸수록 끝날 때 버틴 날 보너스를 더 받는다."],
  ["계획표","통근 전에 지킬 계획을 최대 3개(다이어리를 챙기면 4개) 적는다. 지키면 보상, 2개 이상 적어 모두 지키면 루틴 콤보가 오른다. 날마다 평소·비·지연·한산·만원 같은 변수가 있고, 주간 일정의 예보로 미리 볼 수 있다."],
@@ -2220,7 +2262,7 @@ function showWeek(next,done){   // 주간 일정: 7칸에 날짜 유형, 예보,
     return `<div class="wd${r==="x"?" strike":""}${o.d===run.day?" now":""}"><b>${DAYS[o.d].slice(0,1)}</b><span>${we?(a?a.n+"<br><small>"+o.offer.dest+"</small>":"휴무"):isPayday(o.d)?"출근<br><small>월급날</small>":"출근"}</span>
      <i>${o.fc?"☂":"☀"}${o.quiet&&!we?" 한산":o.packed&&!we?" 만원":""}</i>${r?`<em>${r==="x"?"✕":"✔"}</em>`:""}</div>`;};
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 · 주간 일정</span><h2>${done?"이번 주 돌아보기":"이번 주는 이렇습니다"}</h2>
-   <p class="sub">예보는 70%쯤 맞습니다. 한산한 날은 승객이 적고, 만원인 날은 훨씬 붐빕니다. 4주차 금요일은 월급날이라 퇴근길이 가장 붐빕니다. 주말에는 약속에 나가거나 쉴 수 있습니다.</p>
+   <p class="sub"><b>${pressLine()}</b>${run.week>=2?"<br><small>"+pressList().join(" · ")+"</small>":""}<br>${fatTxt()}.</p><p class="sub">예보는 70%쯤 맞습니다. 한산한 날은 승객이 적고, 만원인 날은 훨씬 붐빕니다. 4주차 금요일은 월급날이라 퇴근길이 가장 붐빕니다. 주말에는 약속에 나가거나 쉴 수 있습니다.</p>
    <div class="week">${run.sched.map(cell).join("")}</div>
    <div class="btns"><button class="btn go" id="b1">${done?"주말로":"월요일 출근 준비"}</button></div>`);
   $("b1").onclick=next;
@@ -2232,17 +2274,17 @@ function showWeekend(){   // 토·일: 약속 1개 제안 / 휴무. 상점도 �
   mode="weekend";G=null;run.leg="we";saveRun("weekend");
   const o=run.sched[run.day],a=o.offer&&APP(o.offer.k),n=a?routeBetween(CH().home,o.offer.dest).length-1:0;
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} · 주말</span><h2>${DAYS[run.day]}은 어떻게 보낼까요?</h2>
-   <p class="sub">현재 체력 <b>${Math.round(run.stamina)}</b> / ${maxSta()}. 쉬면 체력이 모두 회복됩니다. 약속에 나가면 포인트를 받지만 체력은 밤사이 일부만 회복됩니다.</p>
+   <p class="sub">현재 체력 <b>${Math.round(run.stamina)}</b> / ${maxSta()} · ${fatTxt()}. 피로는 쉬는 날에만 크게 풀립니다. 쉬면 체력이 모두 회복됩니다. 약속에 나가면 포인트를 받지만 체력은 밤사이 일부만 회복됩니다.</p>
    <div class="plans">${a?`<button class="pl" id="bgo"><span class="pn"><b>${a.n} · ${o.offer.dest}</b>${a.d}. ${a.dir==="go"?CH().home+" → "+o.offer.dest:o.offer.dest+" → "+CH().home+" (귀가길)"}, ${n}정거장</span><span class="pp">+${a.bonus}P</span></button>`:""}
-   <button class="pl" id="brest"><span class="pn"><b>쉬기</b>집에서 쉰다. 체력 완전 회복, 포인트 없음</span></button></div>
+   <button class="pl" id="brest"><span class="pn"><b>쉬기</b>집에서 쉰다. 누적 피로 -${FAT.restDay}, 체력 완전 회복, 포인트 없음</span></button></div>
    <div class="btns"><button class="btn" id="bit">상점</button><button class="btn ghost" id="bwk">주간 일정</button><button class="btn ghost" id="bq">여기서 퇴사 (스킬 찍기)</button></div>`);
   if(a)$("bgo").onclick=()=>{run.appt=Object.assign({},a,{dest:o.offer.dest});run.needCard=false;sfx("tick");showPlatform();};
-  $("brest").onclick=()=>{o.res="ok";run.stamina=maxSta();sfx("tick");nextWeekendDay();};
+  $("brest").onclick=()=>{o.res="ok";run.fatigue=Math.max(0,(run.fatigue||0)-FAT.restDay);run.stamina=maxSta();sfx("tick");nextWeekendDay();};
   $("bit").onclick=()=>showItemShop(showWeekend);$("bwk").onclick=()=>showWeek(showWeekend,true);
   $("bq").onclick=()=>finishRun("quit",null,0);
 }
 function nextWeekendDay(){if(run.day<6){run.day++;showWeekend();}else{startWeek();showPlatform();}}
-function restWeekend(){run.stamina=maxSta();startWeek();}   // 시뮬레이션: 주말을 모두 쉰다
+function restWeekend(){run.fatigue=Math.max(0,(run.fatigue||0)-2*FAT.restDay);run.stamina=maxSta();startWeek();}   // 시뮬레이션: 주말을 모두 쉰다
 function startWeek(){   // 새 주 월요일
   run.week++;run.day=0;run.leg="am";run.combo=0;run.appt=null;run.sched=null;
   run.needCard=false;run.workouts=0;run.sick=false;run.hangover=0;run.homeLess=0;run.halfUsed=false;run.halfFri=false;run.dayFx={};run.hist={work:[],home:[]};
