@@ -69,9 +69,13 @@ function unitFor(p){
       if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();const r=o.geometry.boundingSphere.radius*Math.max(o.scale.x,o.scale.y,o.scale.z);if(r<.045)u.d1.push(o);else if(r<.085)u.d2.push(o);});}
   u.k=0;u.walk=0;u.lx=p.x;u.ly=p.y;u.spd=0;u.far=false;u.gh=0;u.lod=0;ghost(u,0);for(const o of u.outl)o.visible=true;for(const o of u.d1)o.visible=true;for(const o of u.d2)o.visible=true;R.scene.add(u.hold);R.units.set(p.id,u);return u;
 }
-function ghost(u,g){   // g: 0 또렷함 → 1 거의 투명
-  const on=g>.06;if(on!==u.ghOn){u.ghOn=on;for(const m of u.mats){m.transparent=on;m.depthWrite=!on;m.needsUpdate=true;}}
-  if(on)for(const m of u.mats)m.opacity=1-.86*g;else if(u.ghOp!==1)for(const m of u.mats)m.opacity=1;u.ghOp=on?0:1;
+const EDGE_MAT=new THREE.LineBasicMaterial({color:0x14181c,transparent:true,opacity:.85});   // 가려진 몸의 외곽선(모서리 선)
+function ghost(u,g){   // g: 0 또렷함 → 1 가림. 반투명 대신 몸은 그리지 않고 모서리 선만 남긴다 (개선점: 겹쳐서 투명해지는 표현)
+  const on=g>.4;if(on===!!u.ghOn)return;u.ghOn=on;
+  if(on&&!u.edges){u.edges=[];u.p3.root.traverse(o=>{if(!o.isMesh||o.material===C.OM||o.material===C.OM2||u.d1.includes(o))return;
+    const e=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,40),EDGE_MAT);e.renderOrder=3;o.add(e);u.edges.push(e);});}
+  for(const m of u.mats){m.colorWrite=!on;m.depthWrite=!on;}
+  for(const o of u.outl)o.visible=!on;if(u.edges)for(const e of u.edges)e.visible=on;
 }
 function release(id,u){R.scene.remove(u.hold);(R.pool[u.key]||(R.pool[u.key]=[])).push(u);R.units.delete(id);}
 function legs(p3,walk,amt){p3.legs[0].th.rotation.x=Math.sin(walk)*.5*amt;p3.legs[1].th.rotation.x=-Math.sin(walk)*.5*amt;
@@ -79,7 +83,7 @@ function legs(p3,walk,amt){p3.legs[0].th.rotation.x=Math.sin(walk)*.5*amt;p3.leg
 function syncPerson(p,dt,time,camX,camZ,fx,fz){
   const u=unitFor(p),p3=u.p3,T=u.T,h=p3.o.h||1;
   {const sx=X(p.seat?p.seat.x:p.x)-camX,sz=Z(p.seat?p.seat.y:p.y)-camZ;   // 카메라 뒤에 있으면 그리지도, 움직이지도 않는다
-    if(sx*fx+sz*fz<-.7){u.hold.visible=false;u.lx=p.x;u.ly=p.y;return;}}
+    if(sx*fx+sz*fz<-.7||(p.state!=="seated"&&typeof G!=="undefined"&&G&&G.pl.seat&&sx*sx+sz*sz<.3*.3)){u.hold.visible=false;u.lx=p.x;u.ly=p.y;return;}}   // 앉아 있을 때 카메라와 겹친 승객은 그리지 않는다 (개선점: 앞사람이 너무 가까움)
   p3.root.rotation.set(0,0,0);p3.root.position.set(0,0,0);p3.torso.position.y=0;
   if(p.state==="seated"){
     const s=p.seat;u.hold.position.set(X(s.x),0,Z(s.y));u.hold.rotation.y=s.side==="top"?0:Math.PI;u.hold.visible=true;
@@ -123,7 +127,7 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
   if(lod>=1)for(const o of u.d1)o.visible=false;else if(u.lod>=1)for(const o of u.d1)o.visible=true;
   if(lod>=2)for(const o of u.d2)o.visible=false;else if(u.lod>=2)for(const o of u.d2)o.visible=true;
   u.lod=lod;
-  const noLine=far||u.gh>.06;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
+  const noLine=far||!!u.ghOn;if(noLine!==u.far){u.far=noLine;for(const o of u.outl)o.visible=!noLine;}
 }
 function makeMe(){return makeMeLook((typeof CH==="function"?CH().look:null)||{shirt:"#a9c8e8",hair:"#1d1b1a",hairStyle:"side",h:1});}
 // 사원증 카드 사진 (02 캐릭터 선택): 주인공 모델을 작은 캔버스에 한 번 그려 이미지로 둔다. 잠긴 캐릭터는 실루엣
@@ -163,11 +167,13 @@ function syncMe(g,dt,time){
     else if(bk==="brief"){g3.add(C.box(.09,.28,.38,"#3a2a20"));g3.position.set(.3,-.62,0);p3.torso.add(g3);}
     if(g3.children.length){me.bag=g3;me.mats=null;}}
    if(me.bag&&me.bagK==="pack")me.bag.position.z=P.packFront?.25:-.25;}
-  // 좌석 앞에서 좌석을 바라볼 때는 내 몸이 승객을 가리므로 반투명하게 한다
-  if(!me.mats){me.mats=[];me.outl=[];me.fade=1;p3.root.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2)me.outl.push(o);else if(!me.mats.includes(o.material)){o.material.transparent=true;me.mats.push(o.material);}});}
+  // 좌석 앞에서 좌석을 바라볼 때는 내 몸이 승객을 가리므로 몸은 그리지 않고 모서리 선만 남긴다 (개선점: 겹쳐서 투명해지는 표현)
+  if(!me.mats){me.mats=[];me.outl=[];me.edges=[];me.front=null;p3.root.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2){me.outl.push(o);return;}
+    if(!me.mats.includes(o.material))me.mats.push(o.material);
+    if(!o.userData.edge){const e=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,40),EDGE_MAT);e.visible=false;e.renderOrder=3;o.add(e);o.userData.edge=e;}
+    me.edges.push(o.userData.edge);});}
   {const pz=Z(P.y),fz=Math.sin(P.gaze),front=Math.abs(pz)>HW-1.3&&fz*pz>0&&Math.abs(fz)>.45;
-    me.fade+=((front?.16:1)-me.fade)*Math.min(1,dt*8);const solid=me.fade>.93;
-    for(const m of me.mats){m.opacity=solid?1:me.fade;m.depthWrite=solid;}for(const o of me.outl)o.visible=solid;}
+    if(me.front!==front){me.front=front;for(const m of me.mats){m.colorWrite=!front;m.depthWrite=!front;}for(const o of me.outl)o.visible=!front;for(const e of me.edges)e.visible=front;}}
   const want=Math.PI/2-(P.turn?P.face:P.gaze);let d=want-me.hold.rotation.y;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;me.hold.rotation.y+=d*Math.min(1,dt*12);
   C.setSit(p3,false);p3.root.position.set(0,.86*(p3.o.h||1),0);
   C.reach(p3.arms[1],V(.245,-.04,.04));C.reach(p3.arms[-1],V(-.245,-.04,.04));p3.neck.rotation.set(.05,0,0);
@@ -202,6 +208,12 @@ function overlay(g,time){
   const can=!P.seat?nearestFreeSeat():null;
   if(can){const q=proj(X(can.x),.62,Z(can.y));if(q){ctx.fillStyle="#00A84D";ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q[0],q[1],19,0,TAU);ctx.fill();ctx.stroke();
       ctx.fillStyle="#fff";ctx.font="800 20px "+FONT;ctx.textAlign="center";ctx.fillText("E",q[0],q[1]+1);}}
+  // 앉아 있을 때 내 앞에 온 어르신 표시 (개선점: 앉았을 때 어르신이 잘 안 보임)
+  if(P.seat&&g.yieldEv&&g.yieldEv.p&&g.yieldEv.p.state!=="gone"){const e=g.yieldEv.p,q=proj(X(e.x),2.08,Z(e.y)),bob=Math.sin(time*5)*3;
+    const tag=(x,y,t)=>{ctx.font="800 15px "+FONT;ctx.textAlign="center";const w=ctx.measureText(t).width+22;ctx.fillStyle="#F2B705";ctx.strokeStyle="#1f2a44";ctx.lineWidth=3;
+      ctx.beginPath();ctx.roundRect(x-w/2,y-15,w,28,14);ctx.fill();ctx.stroke();ctx.fillStyle="#1f2a44";ctx.fillText(t,x,y);};
+    if(q&&q[0]>40&&q[0]<W-40&&q[1]>40){tag(q[0],q[1]-18+bob,"어르신 ▼");}
+    else tag(W/2,H-118+bob,"어르신이 앞에 서 계십니다 · E 양보");}
   // 말풍선과 점수
   for(const e of g.ps)if(e.bubble){const sx=e.seat?e.seat.x:e.x,sy=e.seat?e.seat.y:e.y,q=proj(X(sx),e.seat?1.5:1.85,Z(sy));if(q)bubble(q[0],q[1],e.bubble,false);}
   if(P.bubble){const q=proj(X(P.x),1.9,Z(P.y));if(q)bubble(q[0],q[1],P.bubble,true);}
@@ -220,7 +232,7 @@ window.draw3D=function(time){
   // 카메라: 서 있으면 오른쪽 어깨 너머, 앉으면 1인칭
   const yaw=P.gaze,fx=Math.cos(yaw),fz=Math.sin(yaw),rx=-fz,rz=fx,px=X(P.x),pz=Z(P.y),pt=typeof pitch3==="number"?pitch3:0;
   let cx,cy,cz,tx,ty,tz;
-  if(P.seat){cx=X(P.seat.x)+fx*.12;cy=1.2;cz=Z(P.seat.y)+fz*.12;tx=cx+fx*2;ty=1.2-pt*2;tz=cz+fz*2;}
+  if(P.seat){cx=X(P.seat.x)+fx*.02;cy=1.3;cz=Z(P.seat.y)+fz*.02;tx=cx+fx*2;ty=1.22-pt*2;tz=cz+fz*2;}   // 앉은 시점: 등받이 쪽으로 물러나고 조금 높게 (개선점: 앞사람이 너무 가까움)
   else{const front=Math.abs(pz)>HW-1.3&&fz*pz>0&&Math.abs(fz)>.45;R.fr+=((front?1:0)-R.fr)*.12;   // 좌석 앞에서 좌석을 볼 때는 조금 다가간다
     const cd=lerp(1.95,1.3,R.fr);cx=px-fx*cd+rx*.42;cy=lerp(2.02,1.84,R.fr);cz=pz-fz*cd+rz*.42;tx=px+fx*1.7+rx*.22;ty=1.05-pt*2.6;tz=pz+fz*1.7+rz*.22;
     // 뒤에 벽이 있어 카메라가 물러날 자리가 없으면 1인칭으로 바꾼다
