@@ -1972,7 +1972,7 @@ function hud(){
   if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
   if(p.sp&&!p.spOff)h+=`<div class="tell">${p.sp==="backpack"&&p.bpFront?"가방을 앞으로 멨다.":SP_INFO[p.sp].card}</div>`;
-  if(p.state==="seated"&&p.seat)h+=`<div class="grade g${seatGrade(p.seat)}">이 자리: ${GRADE_TXT[seatGrade(p.seat)]}</div>`;   // 좌석 등급 (11)
+  if(p.state==="seated"&&p.seat&&seatGrade(p.seat)!=="A")h+=`<div class="grade g${seatGrade(p.seat)}">이 자리: ${GRADE_TXT[seatGrade(p.seat)]}</div>`;   // 좌석 등급 (11): 보통 자리 A는 표시하지 않고 내부 등급으로만 둔다
   if(seeLikely()){const l=likelyStops(p);h+=`<div class="hint">이런 차림은 보통: ${l||"한참 더 감"}</div>`;}
   // 낌새와 하는 일은 카드에 쓰지 않는다. 승객의 몸짓을 직접 보고 판단
   if(p.peek&&p.state==="seated"){
