@@ -944,7 +944,7 @@ function startLeg(doorIdx){
   if(g.tut)tutTick();
   else if(L<1){toast("마우스로 시선을 돌려 앉은 승객의 몸짓을 보세요. 휴대폰을 넣거나 가방을 끌어안으면 곧 내립니다. 클릭으로 찜.");
     toast("앞자리 사람이 일어나면 A/D로 몸을 90도 돌려 길을 터 주세요. 돌린 쪽은 내 몸이 막고, 반대편 사람과 눈치 싸움입니다.");}
-  stopArriveMusic();
+  stopArriveMusic();preloadArriveMusic();
   {const ks=[CH().k==="oh"?"B: 뛰어타기 (출발 전 한 번)":"",eq("pack")?"T: 가방 앞으로 메기":"",eq("coffee")?"C: 커피 마시기 (한 번)":""].filter(Boolean);if(ks.length)toast("챙긴 물건 · "+ks.join(" · "));}
   sfx("chime");
 }
@@ -984,7 +984,7 @@ function depart(){
   xferPrep(g.st+2);
   g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다."+(xferAt(g.st+2)?"   ·   다음다음 역 "+g.route[g.st+2]+" 환승":"");
   sfx("close");
-  {const nx=g.route[g.st+1],last=g.st+1>=g.N;g.timers.push({t:1.6,fn:()=>{sfx("chime");g.timers.push({t:.9,fn:()=>announceNext(nx,last)});}});}
+  {const nx=g.route[g.st+1],last=g.st+1>=g.N;g.timers.push({t:.6,fn:()=>{sfx("chime");g.timers.push({t:.7,fn:()=>announceNext(nx,last)});}});}
 }
 function arrive(){
   const g=G;g.st++;g.phase="dwell";g.t=0;g.doorOpen=true;sfx("chime");
@@ -2262,38 +2262,48 @@ function annVoice(lang){
   const pref=lang==="ko"?/SunHi|Heami|Yuna|Google|Natural/i:/Jenny|Aria|Samantha|Google US|Natural|Zira/i;
   return vs.find(v=>pref.test(v.name))||vs[0]||null;
 }
-function annSay(text,lang){
-  const v=annVoice(lang);if(!v)return;
-  const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=lang==="ko"?.95:.92;u.pitch=1.05;u.volume=.9;
-  speechSynthesis.speak(u);
+function annSay(text,lang,onend){
+  const v=annVoice(lang);if(!v)return false;
+  const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=lang==="ko"?1.05:1;u.pitch=1.05;u.volume=.9;
+  if(onend)u.onend=onend;
+  speechSynthesis.speak(u);return true;
 }
 /* 목적지 도착 음악: 광주교통공사 전동차 내 안내방송 음원 D02(국악신호음악 '벨소리2') 앞부분, 음성 안내 전까지만.
    출처: 광주교통공사, 공공데이터포털(data.go.kr/data/15053587), 이용허락범위 제한 없음 */
-const ARRIVE_MUSIC={src:"audio/arrive_gwangju_D02.mp3",len:14,fade:2.5};
-let arriveAud=null,arriveFadeT=null;
+const ARRIVE_MUSIC={src:"audio/arrive_gwangju_D02.mp3",from:.4,len:7,fade:1.8};   // 0~13.5초가 종소리 음악(약 3.3초 마디 반복), 15초부터 녹동역 음성
+let arriveAud=null,arriveFadeT=null,arrivePre=null;
+function preloadArriveMusic(){try{if(!arrivePre){arrivePre=new Audio(ARRIVE_MUSIC.src);arrivePre.preload="auto";arrivePre.load();}}catch(e){}}
 function playArriveMusic(){
   if(profile.voice===false)return;stopArriveMusic();
-  const a=new Audio(ARRIVE_MUSIC.src);a.volume=.7;arriveAud=a;
-  a.play().catch(()=>{arriveAud=null;});
+  const a=arrivePre||new Audio(ARRIVE_MUSIC.src);arrivePre=null;a.volume=.8;arriveAud=a;
+  try{a.currentTime=ARRIVE_MUSIC.from;}catch(e){}
+  a.play().catch(()=>{if(arriveAud===a)arriveAud=null;});
   arriveFadeT=setInterval(()=>{if(arriveAud!==a){clearInterval(arriveFadeT);return;}
-    const left=ARRIVE_MUSIC.len-a.currentTime;if(left<=0){stopArriveMusic();return;}
-    if(left<ARRIVE_MUSIC.fade)a.volume=Math.max(0,.7*left/ARRIVE_MUSIC.fade);},100);
+    const left=ARRIVE_MUSIC.from+ARRIVE_MUSIC.len-a.currentTime;if(left<=0){stopArriveMusic();return;}
+    if(left<ARRIVE_MUSIC.fade)a.volume=Math.max(0,.8*left/ARRIVE_MUSIC.fade);},100);
 }
 function stopArriveMusic(){clearInterval(arriveFadeT);if(arriveAud){try{arriveAud.pause();}catch(e){}arriveAud=null;}}
+const ANN_FILES=new Set([]);   // audio/announce/<역명>.mp3 녹음을 넣은 역 이름을 여기에 적는다 (없는 파일은 찾지 않음)
+let annTok=0;
 function announceNext(name,last){
   if(profile.voice===false)return;
-  annStop();
-  annAudio=new Audio("audio/announce/"+encodeURIComponent(name)+".mp3");annAudio.volume=.9;
-  annAudio.play().catch(()=>{annAudio=null;annTTS(name,last);});
+  annStop();const tok=++annTok;
+  if(ANN_FILES.has(name)){
+    annAudio=new Audio("audio/announce/"+encodeURIComponent(name)+".mp3");annAudio.volume=.9;
+    annAudio.play().catch(()=>{if(tok!==annTok)return;annAudio=null;annTTS(name,tok);});
+  }else annTTS(name,tok);
 }
-function annTTS(name,last){
+function annTTS(name,tok){   // 한국어 안내는 짧게, 영어는 도착 전에 끝낼 시간이 남을 때만
   if(!window.speechSynthesis)return;
   const x=ANN_XFER[name];
-  annSay("이번 역은 "+name+", "+name+"역입니다. 내리실 문은 오른쪽입니다."+(x?" "+x+"으로 갈아타실 승객께서는 이번 역에서 내리시기 바랍니다.":"")+(last?" 잊으신 물건 없이 안녕히 가십시오.":""),"ko");
-  const en=ANN_EN[name];
-  if(en)annSay("This stop is "+en+". The doors are on your right."+(ANN_XFER_EN[name]?" You can transfer to "+ANN_XFER_EN[name]+".":""),"en");
+  const en=ANN_EN[name],enTxt=en&&"This stop is "+en+". The doors are on your right.";
+  const ok=annSay("이번 역은 "+name+", "+name+"역입니다."+(x?" "+x+"으로 갈아타실 수 있습니다.":"")+" 내리실 문은 오른쪽입니다.","ko",()=>{
+    if(tok!==annTok||!enTxt||!G||G.phase!=="run")return;
+    if(runT()-G.t>=1+enTxt.length*.07)annSay(enTxt,"en");
+  });
+  if(!ok&&enTxt)annSay(enTxt,"en");
 }
-function annStop(){try{if(annAudio){annAudio.pause();annAudio=null;}if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
+function annStop(){annTok++;try{if(annAudio){annAudio.pause();annAudio=null;}if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}}
 function annPause(v){try{if(annAudio)v?annAudio.pause():annAudio.play().catch(()=>{});if(window.speechSynthesis)v?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}}
 
 /* ========== 소리 (간단한 합성음) ========== */
