@@ -49,7 +49,6 @@ button{font-family:inherit;cursor:pointer}
 kbd{display:inline-block;background:#2a3036;border-radius:5px;padding:2px 7px;font:700 11.5px var(--font);color:#fff;border-bottom:2px solid #000;margin-right:3px}
 #bottom span{margin-right:12px}
 #planslots{margin-left:auto;color:#fff;font-weight:700}
-#card .grade{margin-top:5px;font-weight:700;font-size:12px;color:#4a5157}#card .grade.gS{color:#b8860b}#card .grade.gB{color:var(--mute)}#card .grade.gpink{color:#c2417a}
 #card{position:absolute;display:none;width:250px;background:var(--card);border-radius:10px;padding:11px 13px;font-size:12.5px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.4);border-left:5px solid var(--line)}
 #card b{font-size:14px;display:block;margin-bottom:2px}
 #card .hint{color:var(--line-d);font-weight:700}#card .tell{color:#b25e00;font-weight:700}#card .fake{color:var(--mute)}
@@ -1664,7 +1663,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   for(const pl of g.plans){
     const s=pl.seat;ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
     const py=s.side==="top"?s.y-SEAT_D/2-16:s.y+SEAT_D/2+16;
-    ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,9,0,TAU);ctx.fill();ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);if(isEndSeat(s)){ctx.fillStyle="#F2B705";ctx.beginPath();ctx.arc(s.x+10,py-8,6,0,TAU);ctx.fill();ctx.fillStyle="#14181c";ctx.font="900 9px "+FONT;ctx.fillText("S",s.x+10,py-7.5);}
+    ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,9,0,TAU);ctx.fill();ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);
   }
   // 플레이어
   const P=g.pl;
@@ -1889,7 +1888,7 @@ function drawQ(time){
   for(const pl of g.plans){const s=pl.seat,py=s.y-(s.side==="top"?70:66);
     ctx.strokeStyle="#00A84D";ctx.setLineDash([5,4]);ctx.lineWidth=2.5;rr(s.x-SEAT_W/2-1,s.y-SEAT_D/2-3,SEAT_W+2,SEAT_D+6,8);ctx.stroke();ctx.setLineDash([]);
     ctx.fillStyle="#00A84D";ctx.beginPath();ctx.arc(s.x,py,10,0,TAU);ctx.fill();ctx.beginPath();ctx.moveTo(s.x-4,py+8);ctx.lineTo(s.x,py+15);ctx.lineTo(s.x+4,py+8);ctx.fill();
-    ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);if(isEndSeat(s)){ctx.fillStyle="#F2B705";ctx.beginPath();ctx.arc(s.x+10,py-8,6,0,TAU);ctx.fill();ctx.fillStyle="#14181c";ctx.font="900 9px "+FONT;ctx.fillText("S",s.x+10,py-7.5);}
+    ctx.fillStyle="#fff";ctx.font="800 11px "+FONT;ctx.textAlign="center";ctx.fillText("찜",s.x,py+1);
   }
   // 스크린 표시: 막고 있는 쪽으로 팔을 벌린다
   if(P.screen&&!P.seat){const sd=P.screen.side;ctx.strokeStyle="rgba(0,168,77,.9)";ctx.lineWidth=4;ctx.lineCap="round";
@@ -1972,7 +1971,6 @@ function hud(){
   if(!p){c.style.display="none";return;}
   const a=ARCH[p.arch],hn=hint(p),o=sk("obs");let h=`<b>${a.label}</b>${a.desc}`;
   if(p.sp&&!p.spOff)h+=`<div class="tell">${p.sp==="backpack"&&p.bpFront?"가방을 앞으로 멨다.":SP_INFO[p.sp].card}</div>`;
-  if(p.state==="seated"&&p.seat&&seatGrade(p.seat)!=="A")h+=`<div class="grade g${seatGrade(p.seat)}">이 자리: ${GRADE_TXT[seatGrade(p.seat)]}</div>`;   // 좌석 등급 (11): 보통 자리 A는 표시하지 않고 내부 등급으로만 둔다
   if(seeLikely()){const l=likelyStops(p);h+=`<div class="hint">이런 차림은 보통: ${l||"한참 더 감"}</div>`;}
   // 낌새와 하는 일은 카드에 쓰지 않는다. 승객의 몸짓을 직접 보고 판단
   if(p.peek&&p.state==="seated"){
