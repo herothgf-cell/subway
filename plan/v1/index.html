@@ -35,7 +35,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 </style></head>
 <body><div class="wrap">
 <header class="doc"><div class="line"><span>계획대로, 2호선</span><span class="tag v">v1</span><span class="tag">초안 2026-11-24</span></div>
-<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 17건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
+<h1>추가 기획서 v1</h1><p>기존 기획서 위에 더하는 기획 18건과, 그 구현 현황·개선점·검토 중인 제안을 이 한 장에서 관리합니다. 문서마다 목적, 규칙, 수치, 다른 문서와의 연동, 미결 사항을 담았습니다. 수치는 모두 조정 전 가정값입니다.</p>
 <p style="margin-top:8px">함께 보는 문서: <a href="../../PLAN.md">PLAN.md</a> (현재 게임 기준 기획서, v4) · <a href="DECISIONS.md">DECISIONS.md</a> (결정 기록)</p></header>
 <div class="list"><a href="01_intro_v1.html"><span class="num">01</span><span><b>인트로</b><span class="d">첫 실행 연출, 타이틀 화면, 첫 통근 튜토리얼</span></span><span class="tag part">일부 구현</span></a>
 <a href="02_character_v1.html"><span class="num">02</span><span><b>캐릭터 설정 및 능력치</b><span class="d">캐릭터별 집·회사 구간, 능력치 6종, 고유 특성</span></span><span class="tag part">일부 구현</span></a>
@@ -53,6 +53,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <a href="15_growth_loop_v1.html"><span class="num">15</span><span><b>성장 구조</b><span class="d">시작 → 실패 → 스킬 찍기의 반복, 스킬·상점을 여는 시점, 버틴 날 보너스</span></span><span class="tag ok">구현됨</span></a>
 <a href="16_difficulty_fatigue_v1.html"><span class="num">16</span><span><b>난이도와 누적 피로</b><span class="d">주차마다 얹히는 압박, 서서 간 만큼 쌓이는 피로</span></span><span class="tag part">일부 구현</span></a>
 <a href="17_card_choice_v1.html"><span class="num">17</span><span><b>회사·집 선택지</b><span class="d">체력 말고 다른 것을 주고받는 로그라이크식 카드 31종 초안</span></span><span class="tag part">일부 구현</span></a>
+<a href="18_tutorial_v1.html"><span class="num">18</span><span><b>튜토리얼</b><span class="d">1일차 출근에 조작을 하나씩 해 보는 12단계, 조작할 때까지 멈춤</span></span><span class="tag ok">구현됨</span></a>
 <a href="99_misc_ideas_v1.html"><span class="num">99</span><span><b>기타 아이디어</b><span class="d">V1에 넣지 않는 아이디어 모음: 동행과 매너, 단골 승객, 막차, 계절, 앉아서 할 거리</span></span><span class="tag">V1 제외</span></a></div>
 <p class="note">각 기획서 머리에 <b>구현 현황 표</b>가 있고, 장과 표의 행마다 상태 배지가 붙어 있습니다 (코드와 대조).</p>
 <div class="tw"><table>
@@ -85,6 +86,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>8</td><td>15 성장 구조</td><td><span class="st ok">구현됨</span></td><td>주말 화면의 스킬 버튼 제거(스킬은 퇴사 뒤에만), 평일 퇴근 뒤 집 화면에서 상점, 포인트 지갑 하나로(옛 저장 데이터 이전), 버틴 날 보너스(하루 15P × (1 + 0.1 × 다 버틴 주)). 상점·스킬 밸런스는 기획 논의로 보류</td></tr>
 <tr><td>8</td><td>16 난이도와 누적 피로</td><td><span class="st part">일부 구현</span></td><td>누적 피로(서서 간 정거장 3마다 최대 체력 -1, 하한 60, 주말 휴무 -15, 체력 막대에 회색 줄무늬), 주차별 압박(2주차 특수 승객, 3주차 행사 주간, 4주차 경쟁자, 5주차부터 하나씩 더 + 혼잡 8%씩)과 주간 일정 예고. 남은 것: 곡선 조정(고수 봇 기준 지금 탈락 주차가 목표보다 짧음)</td></tr>
 <tr><td>8</td><td>17 회사·집 선택지 (1차)</td><td><span class="st part">일부 구현</span></td><td>기준 회복 통일(회사 12, 집 35), 축이 다른 3장 + 그냥 쉬기, 다시 뽑기(편도마다 1번, 20P), 1차 카드 16종(회사 7, 집 9). 남은 것: 이어지는 카드, 등급</td></tr>
+<tr><td>9</td><td>18 튜토리얼</td><td><span class="st ok">구현됨</span></td><td>1일차 출근 12단계: 둘러보기, 이동, 손잡이, 승객 살펴보기, 찜(F), 자리 앞, 길 터 주기(A/D), 앉기, 양보, 다시 앉기, 계획표(Tab). 조작할 때까지 멈춤. 슬롯마다 첫 출근</td></tr>
 <tr><td>-</td><td>99 기타 아이디어 (계절, 동행과 매너, 매너 점수, 단골 승객, 막차, 출발 시각 고르기)</td><td><span class="st cut">V1 제외</span></td><td>2026-11-25 결정: V1 다음 단계의 기획·구현 때 참고할 아이디어로 남긴다. 다른 문서가 99에 걸어 둔 연동(04 데이트 동행, 12 데이트 전용 계획·설욕 보너스, 07 동행자 만족도, 10 매너 점수·계절 옷 벌칙)도 V1에서는 넣지 않는다</td></tr>
 </table></div>
 
@@ -102,10 +104,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 
 <h2>검토 중인 제안 (결정 대기)</h2>
 <p class="note">기획자의 결정을 기다리는 항목입니다. 결정되면 <code>DECISIONS.md</code>에 기록하고 해당 문서에 반영한 뒤 이 표에서 뺍니다.</p>
-<div class="tw"><table>
-<tr><th>날짜</th><th>문서</th><th>제안</th><th>결정할 것</th></tr>
-<tr><td>2026-11-26</td><td><a href="01_intro_v1.html">01 인트로</a></td><td>단계별 튜토리얼 개편: 한 단계에 조작 하나, 조작할 때까지 게임이 기다린다. 둘러보기 → 이동 → 손잡이 → 승객 살펴보기 → 찜(F) → 자리 앞에 서기 → 길 터 주기(A/D) → 앉기(E) → 양보(E) → 마무리(Tab·Esc), 문 고르기 포함 11단계</td><td>멈춤 방식(완전 멈춤 추천), 단계 구성, 양보 뒤 남은 구간</td></tr>
-</table></div>
+<p>지금은 결정을 기다리는 제안이 없습니다.</p>
 
 <h2>기획 논의 사항</h2>
 <p>기획 방향을 정해야 하는 큰 주제입니다. 방향이 정해지면 해당 기획서에 반영하고, 필요하면 새 기획서로 만듭니다.</p>
@@ -209,6 +208,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-26</td><td>플레이 의견 처리: 클릭 찜·우클릭 손잡이 버그, 튜토리얼 다시 하기 팝업과 첫 통근 요령의 가이드 이동, 개발용 손잡이 영역 표시, 손잡이 잡은 손 표시. 개선점 목록에 4건 추가</td></tr>
 <tr><td>2026-11-26</td><td>상태 배지 규칙 정리(구현됨 초록 / 일부 구현 노랑 / 보류 / V1 제외, "1차 구현"은 일부 구현으로 통일). 규칙에 맞춰 문서 목록·구현 현황 표와 02·04·05·07·11의 장 배지를 갱신</td></tr>
 <tr><td>2026-11-26</td><td>좌클릭 찜 없앰(F만), 튜토리얼은 슬롯마다 첫 출근(선택 팝업 없앰). 01에 단계별 튜토리얼 개편안(11단계) 제안</td></tr>
+<tr><td>2026-11-26</td><td>18 튜토리얼 정식 기획서 추가와 구현(1일차 출근 12단계, 조작할 때까지 멈춤, 양보 뒤 다시 앉기 유도). 01 §5를 18로 옮김. Q·X 설명</td></tr>
 </table></div>
 <h2>제안 도입 순서 (초안)</h2>
 <p class="note">처음 제안한 순서입니다. 실제 진행 순서는 위 "구현 현황" 표를 따릅니다.</p>

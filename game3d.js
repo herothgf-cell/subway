@@ -52,13 +52,15 @@ function init(){
     add(C.box(SEAT_W*S-.04,.1,.56,s.pink?"#ffb3cf":"#9fcbec"),x,.4,z);add(C.box(SEAT_W*S-.04,.5,.09,s.pink?"#ffd0e2":"#c3e0f5"),x,.74,z+dir*.31);}
   for(let b=0;b<3;b++)for(const side of[-1,1]){const cx=X(DOORS[b].x+DOOR_W+BW/2),z=side*(HW-27*S);add(C.box(BW*S,.34,.52,"#7fb0d6"),cx,.17,z);
     for(const ex of[-1,1])add(C.box(.04,.72,.62,"#dfe6ea"),cx+ex*(BW*S/2+.02),.62,z);}
-  if(typeof DEBUG!=="undefined"&&DEBUG){const zm=basic("#00c060",{transparent:true,opacity:.3,depthWrite:false});   // 개발용 (?debug=1): 손잡이를 잡을 수 있는 바닥 영역
-    for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W-4,w=BW+8;for(const ay of[AY0,AY1]){const m=new THREE.Mesh(new THREE.BoxGeometry(w*S,.02,52*S),zm);m.position.set(X(x0+w/2),.03,Z(ay));scene.add(m);}}
-    for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y){const m=new THREE.Mesh(new THREE.BoxGeometry(44*S,.02,60*S),zm);m.position.set(X(px),.03,Z(py));scene.add(m);}}
+  const zoneG=new THREE.Group();zoneG.visible=false;scene.add(zoneG);   // 손잡이를 잡을 수 있는 바닥 영역: 개발용(?debug=1)과 튜토리얼 손잡이 단계에서 보인다
+  {const zm=basic("#00c060",{transparent:true,opacity:.3,depthWrite:false});
+    for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W-4,w=BW+8;for(const ay of[AY0,AY1]){const m=new THREE.Mesh(new THREE.BoxGeometry(w*S,.02,52*S),zm);m.position.set(X(x0+w/2),.03,Z(ay));zoneG.add(m);}}
+    for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y){const m=new THREE.Mesh(new THREE.BoxGeometry(44*S,.02,60*S),zm);m.position.set(X(px),.03,Z(py));zoneG.add(m);}}
+  const tutM=new THREE.Mesh(new THREE.TorusGeometry(.22,.035,8,28),basic("#00c060"));tutM.rotation.x=Math.PI/2;tutM.visible=false;scene.add(tutM);   // 튜토리얼 목표 지점
   // 나
   const meP=makeMe();
   const meHold=new THREE.Group();meHold.add(meP.root);scene.add(meHold);
-  R={renderer,scene,cam,doors,poles,units:new Map(),pool:{},me:{p3:meP,hold:meHold,walk:0,lx:0,ly:0},camPos:V(0,1.7,0),fp:0,fr:0,pd:0,g:null,v:new THREE.Vector3()};
+  R={renderer,scene,cam,doors,poles,zoneG,tutM,units:new Map(),pool:{},me:{p3:meP,hold:meHold,walk:0,lx:0,ly:0},camPos:V(0,1.7,0),fp:0,fr:0,pd:0,g:null,v:new THREE.Vector3()};
 }
 /* ---------- 승객 ---------- */
 function unitFor(p){
@@ -203,6 +205,9 @@ function overlay(g,time){
   const P=g.pl;
   if(typeof DEBUG!=="undefined"&&DEBUG&&!P.seat){const inH=nearHandle(P.x,P.y);ctx.font="800 14px "+FONT;ctx.textAlign="left";ctx.fillStyle=inH?"#00a84d":"#E5484D";
     ctx.fillText("[개발] 손잡이 영역 "+(inH?"안":"밖")+(P.brace?" · 손잡이 잡는 중":P.grip?" · 휴대용 손잡이 잡는 중":""),24,H-96);}
+  if(g.tut&&g.tut.hl&&g.tut.hl.seat){const s=g.tut.hl.seat,q=proj(X(s.x),1.85+Math.sin(time*5)*.03,Z(s.y));   // 튜토리얼: 찜할 승객
+    if(q){ctx.font="800 14px "+FONT;ctx.textAlign="center";const w=ctx.measureText("과잠 대학생 · F").width+18;ctx.fillStyle="#00a84d";ctx.beginPath();ctx.roundRect(q[0]-w/2,q[1]-34,w,24,12);ctx.fill();
+      ctx.beginPath();ctx.moveTo(q[0]-7,q[1]-11);ctx.lineTo(q[0]+7,q[1]-11);ctx.lineTo(q[0],q[1]-3);ctx.fill();ctx.fillStyle="#fff";ctx.fillText("과잠 대학생 · F",q[0],q[1]-21);}}
   // 찜 표시
   for(const pl of g.plans){const s=pl.seat,q=proj(X(s.x),1.72,Z(s.y));if(!q)continue;
     ctx.fillStyle="#ffe34d";ctx.strokeStyle="#1f2a44";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q[0],q[1],17,0,TAU);ctx.fill();ctx.stroke();
@@ -274,6 +279,8 @@ window.draw3D=function(time){
   for(const p of g.ps){if(p.state==="gone")continue;alive.add(p.id);syncPerson(p,dt,time,R.camPos.x,R.camPos.z,cfx,cfz);}
   for(const [id,u] of[...R.units])if(!alive.has(id))release(id,u);
   syncMe(g,dt,time);
+  R.zoneG.visible=(typeof DEBUG!=="undefined"&&DEBUG)||!!(g.tut&&g.tut.zones);
+  {const m=g.tut&&g.tut.mark;R.tutM.visible=!!m;if(m){R.tutM.position.set(X(m.x),.05,Z(m.y));const k=1+Math.sin(time*5)*.12;R.tutM.scale.set(k,k,k);}}
   R.renderer.render(R.scene,R.cam);
   overlay(g,time);
 };

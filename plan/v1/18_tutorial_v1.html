@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>18 튜토리얼 v1 | 계획대로, 2호선</title><style>
+:root{--g:#00A84D;--y:#F5C400;--p:#E86A9A;--bg:#f6f7f5;--card:#fff;--ink:#1d2320;--sub:#5d6862;--line:#dfe4e0;--th:#eef5f0;--code:#f0f2f0}
+@media (prefers-color-scheme:dark){:root{--bg:#141816;--card:#1c211e;--ink:#e6ebe7;--sub:#9aa69f;--line:#2e3632;--th:#1f2b24;--code:#232a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+header.doc{background:var(--card);border:1px solid var(--line);border-left:10px solid var(--g);border-radius:10px;padding:20px 24px;margin-bottom:28px}
+.line{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--sub);flex-wrap:wrap}
+.num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:3px solid var(--g);background:var(--card);font-weight:700;color:var(--ink)}
+.tag{border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+.tag.v{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+h1{font-size:28px;margin:10px 0 4px;line-height:1.3}
+header.doc p{margin:0;color:var(--sub)}
+h2{font-size:20px;margin:36px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--g)}
+h3{font-size:16px;margin:22px 0 6px}
+p,ul,ol{margin:8px 0}ul,ol{padding-left:22px}li{margin:3px 0}
+a{color:var(--g)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--th);white-space:nowrap}
+.note{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--y);border-radius:6px;padding:10px 14px;color:var(--sub)}
+code,pre{background:var(--code);border-radius:4px;font-family:Consolas,Menlo,monospace;font-size:13.5px}
+code{padding:1px 5px}pre{padding:12px 14px;overflow-x:auto;line-height:1.5}
+nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.list a{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:8px 0;text-decoration:none;color:var(--ink)}
+.list a:hover{border-color:var(--g)}
+.list b{display:block}.list span.d{color:var(--sub);font-size:14px}
+.list .tag{margin-left:auto;font-size:12px;color:var(--sub);white-space:nowrap}
+.st{display:inline-block;border-radius:999px;padding:0 9px;font-size:12.5px;font-weight:700;white-space:nowrap;border:1px solid var(--line);margin-left:8px;vertical-align:middle}
+.st.ok{background:var(--g);border-color:var(--g);color:#fff}.st.part{background:var(--y);border-color:var(--y);color:#1d2320}.st.wait{color:var(--sub)}.st.cut{color:var(--sub);background:var(--code)}
+p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
+</style></head>
+<body><div class="wrap">
+<header class="doc"><div class="line"><span class="num">18</span><span>계획대로, 2호선 · 추가 기획서</span><span class="tag v">v1</span><span class="tag">신규</span><span class="tag">2026-11-26</span></div>
+<h1>튜토리얼</h1><p>첫날(1일차) 출근을 튜토리얼로 삼아, 한 단계에 조작 하나씩 직접 해 보며 배운다. 앉기와 양보까지 해 본다</p></header>
+
+<h2>구현 현황 (2026-11-26 기준)</h2>
+<div class="tw"><table>
+<tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
+<tr><td>2</td><td>언제 하나</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>3</td><td>진행 방식</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>4</td><td>단계</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td>12단계</td></tr>
+<tr><td>5</td><td>화면</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+<tr><td>6</td><td>객차 조정</td><td><span class="st ok">구현됨 (2026-11-26)</span></td><td></td></tr>
+</table></div>
+
+<h2>1. 목적</h2>
+<ul>
+<li>예전 튜토리얼은 화면을 멈추지 않는 플래너 메모 6단계라 너무 빨리 지나갔다. 조작을 하나씩 직접 해 보고 넘어가게 한다 (2026-11-26 기획자 의견).</li>
+<li>첫날 안에 이 게임의 핵심 순환인 <b>보기 → 찜 → 자리 앞 지키기 → 길 터 주기 → 앉기 → 양보 → 다시 앉기</b>를 한 번씩 해 본다.</li>
+<li>01 인트로 §5의 튜토리얼을 이 문서로 옮겨 정식 기획서로 둔다.</li>
+</ul>
+
+<h2>2. 언제 하나 <span class="st ok">구현됨 (2026-11-26)</span></h2>
+<ul>
+<li>슬롯마다 첫날(1주차 월요일, 1일차) 출근이 튜토리얼이다. 고르는 팝업은 없다. 튜토리얼을 마치면 그 슬롯에 기록(<code>seenHelp</code>)이 남고, 새 슬롯에서는 다시 한다.</li>
+<li>1일차 퇴근부터는 평소 통근이다.</li>
+<li>일시정지(Esc)에 "튜토리얼 건너뛰기" 버튼이 있다. 건너뛰면 그 통근은 평소처럼 가되 탈락하지 않는다.</li>
+</ul>
+
+<h2>3. 진행 방식 <span class="st ok">구현됨 (2026-11-26)</span></h2>
+<ul>
+<li><b>한 단계에 조작 하나.</b> 단계가 시작되면 화면 가운데 아래에 <b>조작 카드</b>(키 그림 + 한 줄 설명)가 뜨고, 그 조작을 해야 다음 단계로 간다.</li>
+<li><b>완전 멈춤</b>: 조작을 기다리는 동안 열차와 승객이 멈춘다(게임 시간 정지). 내 이동과 시선은 그대로다. 카드 위에 "열차가 기다리는 중"이 붉게 뜬다.</li>
+<li>때를 기다려야 하는 단계(덜컹, 대학생이 일어남, 자리가 빔, 어르신이 섬)는 그때까지 게임이 진행되고, 카드는 점선 테두리로 "무엇을 기다리는지"를 보여 준다. 때가 오면 멈춘다.</li>
+<li>해내면 카드에 "계획대로! ✓"를 0.8초 보여 주고 다음 단계로 간다.</li>
+<li>실패는 없다: 체력은 20 아래로, 민폐는 90 위로 가지 않는다. 남은 구간도 회사까지 평소처럼 가되 탈락하지 않는다.</li>
+<li>튜토리얼에서 가르치지 않는 것: 휴대폰 보는 척(R), 잠시만요(Q, 스킬을 찍어야 생김), 특수 승객(튜토리얼 통근에는 없음, 처음 만날 때 독백으로 소개), 앉은 채 건너뛰기(X). 가이드와 첫 만남 안내로 익힌다.</li>
+</ul>
+
+<h2>4. 단계 <span class="st ok">구현됨 (2026-11-26)</span></h2>
+<div class="tw"><table>
+<tr><th>단계</th><th>때</th><th>배우는 것</th><th>조작</th><th>할 일</th><th>완료 조건</th><th>기다리는 동안</th><th>상태</th></tr>
+<tr><td>1</td><td>승강장</td><td>문 고르기</td><td>클릭</td><td>안내판의 혼잡도를 보고 탈 문을 고른다</td><td>문 선택</td><td>-</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>2</td><td>첫 역 정차</td><td>둘러보기</td><td>마우스</td><td>화면을 클릭해 마우스를 잠그고 좌우로 크게 둘러본다</td><td>시선을 합쳐 약 140도 돌림 (탑뷰면 잠시 뒤 자동)</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>3</td><td>첫 역 정차</td><td>이동</td><td>W A S D</td><td>바닥의 초록 원(찜할 자리 옆 손잡이 줄)까지 걷는다. 손잡이 영역(초록 바닥)이 보인다</td><td>초록 원 안 (26)</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>4</td><td>출발 뒤</td><td>손잡이</td><td>우클릭 또는 Shift</td><td>출발 뒤 덜컹 예고(경고 1.2초)에서 멈춘다. 우클릭을 누른 채로 있으면 다시 움직이고, 덜컹해도 밀리지 않는 것을 겪는다</td><td>손잡이를 잡은 채 덜컹을 지나감</td><td>잡을 때까지 멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>5</td><td>주행 중</td><td>승객 살펴보기</td><td>마우스</td><td>앉은 승객 3명을 0.4초 이상씩 바라본다. 차림새와 몸짓이 단서, 오래 보면 눈이 마주친다</td><td>3명</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>6</td><td>주행 중</td><td>찜</td><td>F</td><td>"과잠 대학생 · F" 표시가 붙은 승객을 바라보고 F</td><td>그 자리를 찜</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>7</td><td>주행 중</td><td>자리 앞에 서기</td><td>W A S D</td><td>찜한 자리 앞의 초록 원으로 간다</td><td>초록 원 안 (16)</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>8</td><td>3번째 역 정차</td><td>길 터 주기</td><td>A / D</td><td>대학생이 일어나면 멈춘다. A나 D로 몸을 90도 돌려 길을 터 준다</td><td>몸을 돌림</td><td>일어날 때까지는 진행, 일어나면 멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>9</td><td>3번째 역 정차</td><td>앉기</td><td>E</td><td>대학생이 빠져나가면 멈춘다. E로 앉는다</td><td>착석</td><td>빌 때까지는 진행, 비면 멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>10</td><td>다음 역</td><td>양보</td><td>E</td><td>앉아서 다음 역까지 간다(시간 3배). 어르신이 반드시 타서 내 앞에 서면 멈춘다. E로 양보</td><td>양보</td><td>어르신이 설 때까지는 진행</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>11</td><td>그다음 역</td><td>다시 앉기</td><td>E</td><td>양보 뒤 바로 다시 앉도록 유도한다. 가까운 같은 줄 좌석 하나를 다음 역에서 비게 정하고 초록 원으로 표시. 그 앞에서 기다렸다 E</td><td>착석</td><td>빌 때까지는 진행, 비면 멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>12</td><td>정차 중</td><td>마무리</td><td>Tab</td><td>Tab으로 계획표를 접어 본다. 조작과 요령은 Esc → 가이드에 있다고 알려 준다</td><td>Tab 한 번</td><td>멈춤</td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+</table></div>
+<ul>
+<li>"멈춤"은 그 단계의 조작을 할 때까지 열차·승객이 멈춘다는 뜻이다.</li>
+<li>11 다시 앉기: 기획자 결정(2026-11-26) "양보 뒤 남은 구간은 평소처럼 회사까지 가되, 탈락은 없도록 바로 앉는 걸 유도". 남은 역이 없으면 이 단계는 건너뛴다.</li>
+</ul>
+
+<h2>5. 화면 <span class="st ok">구현됨 (2026-11-26)</span></h2>
+<ul>
+<li><b>조작 카드</b>: 화면 가운데 아래, 키 안내 줄 위. 맨 위에 "튜토리얼 n/12", 가운데 키 그림, 아래 한 줄 설명.</li>
+<li><b>초록 원</b>: 가야 할 곳(3·7·11단계). 3D 바닥과 탑뷰에 함께 그린다.</li>
+<li><b>초록 바닥</b>: 손잡이를 잡을 수 있는 영역(3·4단계). 개발용 <code>?debug=1</code>에서는 늘 보인다.</li>
+<li><b>"과잠 대학생 · F" 꼬리표</b>: 6단계에서 찜할 승객 머리 위.</li>
+<li>1단계(문 고르기)는 승강장 화면의 안내 상자로 한다.</li>
+</ul>
+
+<h2>6. 객차 조정 <span class="st ok">구현됨 (2026-11-26)</span></h2>
+<ul>
+<li>서 있는 승객 12명의 한산한 객차, 특수 승객 없음, 챙기기·계획표 화면은 건너뛴다.</li>
+<li>객차 가운데 좌석에 과잠 대학생을 앉히고 3번째 역(한계획은 서울대입구)에서 내리게 고정한다. 다른 좌석 승객은 그 전에 내리지 않는다.</li>
+<li>첫 구간에는 경고가 있는 덜컹을 반드시 한 번 넣는다(출발 4초쯤).</li>
+<li>연습하는 자리(대학생 자리, 다시 앉을 자리)에는 다른 승객이 끼어들지 않는다.</li>
+<li>10단계에서는 어르신이 반드시 타고, 기다리는 동안 다른 칸으로 가지 않는다.</li>
+</ul>
+
+<h2>7. 결정 사항과 남은 것</h2>
+<p class="note">2026-11-26 결정. 기록은 <code>plan/v1/DECISIONS.md</code>.</p>
+<ul>
+<li>멈춤 방식 → <b>결정</b>: 조작할 때까지 완전 멈춤.</li>
+<li>단계 구성 → <b>결정</b>: 제안한 11단계에 "다시 앉기"를 더해 12단계.</li>
+<li>양보 뒤 남은 구간 → <b>결정</b>: 평소처럼 회사까지, 탈락 없음, 바로 다시 앉도록 유도.</li>
+<li>튜토리얼 시작 → <b>결정</b>: 슬롯마다 1일차 출근이 튜토리얼, 고르는 팝업 없음.</li>
+<li><b>남은 것</b>: 직접 플레이로 단계별 난이도·문구를 다듬는다.</li>
+</ul>
+
+<nav class="foot"><a href="17_card_choice_v1.html">← 17 회사·집 선택지</a><a href="index.html">목록</a><a href="99_misc_ideas_v1.html">99 기타 아이디어 →</a></nav>
+</div></body></html>

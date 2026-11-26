@@ -215,6 +215,11 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
 .rec{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}.rec td,.rec th{border-bottom:1px solid #d8dcd8;padding:7px 10px;text-align:left}
 /* 튜토리얼 (01): 플래너 메모 */
 #tutmemo{position:absolute;left:24px;bottom:58px;width:340px;display:none;background:#fffdf3;border-radius:6px;padding:10px 16px 12px;font:26px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;transform:rotate(-1.5deg);box-shadow:0 6px 18px rgba(0,0,0,.45);border-left:6px solid #f0a0a0;pointer-events:none}
+#tutcard{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);display:none;min-width:420px;max-width:700px;background:#fffdf3;border:3px solid #1f2a44;border-radius:14px;padding:10px 20px 12px;text-align:center;color:#1f2a44;box-shadow:0 8px 22px rgba(0,0,0,.4);pointer-events:none;z-index:6}
+#tutcard.wait{border-style:dashed;opacity:.94}
+#tutcard .tp{font:800 12px var(--font);color:#7b8187;margin-bottom:4px}#tutcard .hz{color:#E5484D}
+#tutcard .tk{display:flex;gap:6px;justify-content:center;align-items:center;margin:2px 0 6px}#tutcard .tk kbd{font:900 17px var(--font);min-width:34px;padding:4px 10px;border-radius:8px;background:#1f2a44;color:#fff;border-bottom:3px solid #000}#tutcard .or{font:700 12px var(--font);color:#7b8187;margin:0 4px}
+#tutcard .tx{font:700 16px/1.45 var(--font)}#tutcard .ok{font:900 22px var(--font);color:#00a84d}
 #tutmemo small{display:block;font:800 11.5px var(--font);color:#7b8187;margin-bottom:2px}
 .tutp{background:#fffdf3;border-left:6px solid #f0a0a0;border-radius:6px;padding:8px 14px;font:25px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;margin:8px 0}
 .tutp small{display:block;font:800 11.5px var(--font);color:#7b8187}
@@ -235,7 +240,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
       </div>
       <div class="plate" id="ptplate"><small>보유 포인트</small><b id="pts">0</b></div>
     </div>
-    <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div><div id="tutmemo"></div>
+    <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div><div id="tutmemo"></div><div id="tutcard"></div>
     <div id="bottom">
       <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>F</kbd>보고 있는 자리 찜</span>
       <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>우클릭</kbd>/<kbd>Shift</kbd>손잡이 잡기</span><span><kbd>R</kbd>휴대폰 보는 척</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>Tab</kbd>계획표 접기</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지 · 가이드</span>
@@ -1045,7 +1050,7 @@ function startLeg(doorIdx){
     if(ts.occ){g.ps.splice(g.ps.indexOf(ts.occ),1);ts.occ=null;}
     const stu=makePerson("student",0);stu.dest=2;assignHints(stu);seatPerson(stu,ts);ts.tut=true;
     for(const p of g.ps)if(p!==stu&&p.state==="seated"&&p.dest<=2){p.dest=irand(3,g.N);assignHints(p);}
-    g.tut={step:0,seen:new Set(),stu,seat:ts,x0:g.pl.x,y0:g.pl.y,stop:route[2],h:""};g.rivalP=.15;
+    g.tut={i:0,seen:new Set(),stu,seat:ts,stop:route[2],hold:false,okT:0,entered:false,mark:null,zones:false,hl:null,tab:0};g.rivalP=.15;
   }
   // 초반 3개 역에서 최소 2명씩은 내리도록 보정 (운만으로 막히지 않게)
   for(let st=g.tut?3:1;st<=3;st++){
@@ -1081,9 +1086,9 @@ function startLeg(doorIdx){
   if(!g.tut)spawnSpecials();   // 튜토리얼에는 특수 승객 없음
   if(lineB("eye",7)){const c=g.ps.filter(p=>p.state==="seated"&&!p.seat.pink&&p.dest>=1&&p.dest<=3&&!p.rush);if(c.length)pick(c).preTell=true;}   // 눈치 계열 7단계
   xferPrep(1);
-  mode="play";paused=false;$("ov").classList.remove("on");$("intro").classList.remove("on");$("toasts").innerHTML="";$("tutmemo").style.display="none";
+  mode="play";paused=false;$("ov").classList.remove("on");$("intro").classList.remove("on");$("toasts").innerHTML="";$("tutmemo").style.display=$("tutcard").style.display="none";
   buildRoute();toast("목표: "+route[route.length-1]+"역("+(am?"회사":"집")+")까지 "+(route.length-1)+"정거장. 도착 전에 체력이 바닥나면 탈락.");
-  if(g.tut)tutTick();   // 처음 통근의 요령 안내는 가이드("자리 잡는 법")로 옮겼다
+  if(g.tut)tutTick(0);   // 처음 통근의 요령 안내는 가이드("자리 잡는 법")로 옮겼다
   stopArriveMusic();preloadArriveMusic();
   {const ks=[CH().k==="oh"?"B: 뛰어타기 (출발 전 한 번)":"",eq("pack")?"T: 가방 앞으로 메기":"",eq("coffee")?"C: 커피 마시기 (한 번)":""].filter(Boolean);if(ks.length)toast("챙긴 물건 · "+ks.join(" · "));}
   bell();
@@ -1121,6 +1126,7 @@ function depart(){
   else if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
   if(!river&&g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
   g.jolts.push({at:g.tRun-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
+  if(g.tut&&g.st===0){const j={at:Math.min(4,g.tRun-3),dir:1,warn:1.2,msg:"덜컹! 손잡이를 잡으세요"};g.jolts=g.jolts.filter(o=>!o.warn||o.at>j.at+2);g.jolts.push(j);g.tut.jolt=j;}   // 18 튜토리얼 손잡이 단계
   xferPrep(g.st+2);
   g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다."+(xferAt(g.st+2)?"   ·   다음다음 역 "+g.route[g.st+2]+" 환승":"");
   sfx("close");
@@ -1145,7 +1151,7 @@ function arrive(){
   if(g.evSt===g.route[g.st]){n=Math.min(30,n*2);g.led=g.route[g.st]+"역입니다. 행사를 마친 승객이 많이 탑니다.";}   // 행사일: 타는 사람도 2배
   for(let i=0;i<n;i++)spawnBoarder(xg?xg.dwell-7.5+rand(0,3.4):1.7+rand(0,2.4),null);
   // 양보 이벤트
-  if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
+  if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.tut&&TUTS[g.tut.i]&&TUTS[g.tut.i].k==="yield")||(!g.tut&&g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
     g.yieldDone=true;g.yieldSeen=true;
     let d=DOORS[0];for(const q of DOORS)if(Math.abs(q.cx-g.pl.x)<Math.abs(d.cx-g.pl.x))d=q;
     const e=spawnBoarder(1.4,"elder",{door:d.i,elder:true});e.dest=99;assignHints(e);
@@ -1154,28 +1160,88 @@ function arrive(){
 }
 /* ========== 튜토리얼 (추가 기획서 01 §5). 별도 모드 없이 첫 통근을 한산하게. 안내는 화면을 멈추지 않는 플래너 메모 ========== */
 const tutLeg=()=>!!(run&&run.tut&&run.week===1&&run.day===0&&run.leg==="am");
-const TUT=[
-  t=>"WASD로 움직여 객차 안쪽으로 몇 걸음. 사람과 부딪히면 민폐 게이지가 찬다.",
-  t=>`마우스로 시선을 돌려 앉은 승객을 살펴보자. 차림새와 몸짓이 내릴 역의 단서다. (${Math.min(3,t.seen.size)}/3)`,
-  t=>`과잠 대학생(객차 가운데 자리)은 ${t.stop}에서 자주 내린다. 그 사람을 보고 F로 자리를 찜.`,
-  t=>t.missed?"…괜찮아. 플랜 B가 있어. 다른 승객의 몸짓을 보고, 자리가 비면 E로 앉자.":`찜한 자리 앞에 서서 기다리자. ${t.stop}에서 일어나면 A/D로 몸을 돌려 길을 터 주고, E로 앉기.`,
-  t=>"계획대로. 앉아 있으면 체력이 돌아온다. 서 있을 땐 ‘덜컹!’에 우클릭(Shift)으로 손잡이, 어르신이 오면 E로 양보. 이제 "+G.route[G.N]+"까지."];
-function tutTick(){
-  const g=G,t=g.tut,pl=g.pl;
+/* 18 튜토리얼 (2026-11-26 개편): 한 단계에 조작 하나. 그 조작을 할 때까지 열차와 승객이 기다린다(게임 시간 정지, 내 이동·시선은 그대로).
+   해내면 "계획대로!"를 0.8초 보여 주고 다음 단계. 1단계(문 고르기)는 승강장 화면에서 한다. */
+const TUT_TOTAL=12;
+const angD=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return Math.abs(d);};
+const tutRow=s=>s.side==="top"?AY0:AY1;
+const TUTS=[
+ {k:"look",key:["마우스"],txt:"화면을 클릭해 마우스를 잠그고, 좌우로 크게 둘러보세요.",
+  enter:t=>{t.gzA=0;t.gzL=G.pl.gaze;},
+  done:(t,g,dt)=>{t.gzA+=angD(g.pl.gaze,t.gzL);t.gzL=g.pl.gaze;if(view!=="q")t.gzA+=dt*1.2;return t.gzA>2.4;}},
+ {k:"move",key:["W","A","S","D"],txt:"바닥의 초록 원까지 걸어가세요. 초록 바닥은 손잡이를 잡을 수 있는 곳입니다. 사람과 부딪히면 민폐가 찹니다.",
+  enter:t=>{const s=t.seat,mid=CAR.x+CAR.w/2;t.mark={x:s.fx+(s.fx<mid?90:-90),y:tutRow(s)};t.zones=true;},
+  done:(t,g)=>hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)<26},
+ {k:"brace",key:["우클릭"],key2:"Shift",
+  enter:t=>{t.mark=null;t.zones=true;},
+  wait:(t,g)=>!t.jolt||g.phase!=="run"||g.t<t.jolt.at-t.jolt.warn,waitTxt:"열차가 곧 출발합니다. 달리다 보면 덜컹하니 그 자리에 있으세요.",
+  hold:(t,g)=>!g.pl.brace,
+  txt:(t,g)=>g.pl.brace?"좋아요. 그대로 누르고 있으면 덜컹해도 밀리지 않습니다.":"덜컹! 마우스 오른쪽 버튼을 누른 채로 손잡이를 잡으세요(Shift도 됩니다). 초록 바닥 안에서만 잡힙니다.",
+  done:t=>t.jolt.done},
+ {k:"look3",key:["마우스"],enter:t=>{t.zones=false;t.seen=new Set();},
+  txt:t=>`앉은 승객을 한 명씩 잠깐 바라보세요 (${Math.min(3,t.seen.size)}/3). 차림새와 몸짓이 내릴 역의 단서입니다. 너무 오래 쳐다보면 눈이 마주칩니다.`,
+  done:t=>{if(focus&&focusT>=.4&&focus.state==="seated")t.seen.add(focus.id);return t.seen.size>=3;}},
+ {k:"plan",key:["F"],enter:t=>{t.hl=t.stu;},
+  txt:t=>`과잠 대학생은 ${t.stop}에서 자주 내립니다. 그 사람을 바라보고 F를 눌러 자리를 찜하세요.`,
+  done:(t,g)=>g.plans.some(p=>p.seat===t.seat)},
+ {k:"front",key:["W","A","S","D"],enter:t=>{t.hl=null;t.mark={x:t.seat.fx,y:t.seat.fy};},
+  txt:"찜한 자리 앞(초록 원)에 서세요. 자리 앞을 지켜야 비었을 때 먼저 앉습니다.",
+  done:(t,g)=>hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)<16},
+ {k:"giveway",key:["A","D"],
+  wait:t=>!(t.seat.exiting===t.stu&&t.stu.state==="leaving"&&t.stu.step===-1),
+  waitTxt:t=>`${t.stop}에서 대학생이 일어날 때까지 자리 앞에서 기다리세요. (덜컹할 때는 우클릭)`,
+  txt:"대학생이 일어났습니다! A 또는 D로 몸을 90도 돌려 내리는 사람에게 길을 터 주세요.",
+  done:(t,g)=>!!(g.pl.turn&&g.pl.turn.s===t.seat)},
+ {k:"sit",key:["E"],
+  wait:t=>!G.pl.seat&&!!(t.seat.occ||t.seat.exiting),waitTxt:"대학생이 내릴 때까지 잠깐. 돌린 몸이 다른 사람이 끼어드는 것을 막아 줍니다.",
+  txt:"자리가 비었습니다. E를 눌러 앉으세요.",
+  done:(t,g)=>!!g.pl.seat,leave:t=>{t.mark=null;}},
+ {k:"yield",key:["E"],
+  wait:(t,g)=>!g.yields&&!(g.yieldEv&&g.yieldEv.active),waitTxt:"앉아 있으면 체력이 돌아오고 시간이 빨리 갑니다. 다음 역까지 가 봅시다.",
+  txt:"어르신이 앞에 섰습니다. E를 눌러 자리를 양보하세요 (+25P, 민폐 -30).",
+  done:(t,g)=>g.yields>0},
+ {k:"resit",key:["E"],
+  enter:(t,g)=>{const P=g.pl,c=g.seats.filter(s=>s.occ&&s.occ!=="player"&&!s.pink&&s.occ.state==="seated"&&!s.occ.elder&&s!==t.seat&&s.occ.arch!=="sleeper");
+    if(g.st+1>=g.N||!c.length){t.seat2=null;return;}
+    c.sort((a,b)=>(a.side!==t.seat.side)-(b.side!==t.seat.side)||Math.abs(a.fx-P.x)-Math.abs(b.fx-P.x));
+    const s=c[0];s.occ.dest=g.st+1;assignHints(s.occ);s.tut=true;t.seat2=s;t.mark={x:s.fx,y:s.fy};},
+  wait:t=>!G.pl.seat&&!!(t.seat2&&(t.seat2.occ||t.seat2.exiting)),
+  waitTxt:t=>`양보한 뒤에도 다시 앉을 수 있습니다. 초록 원 자리의 승객이 ${G.route[G.st+(G.phase==="run"?1:0)]}에서 내립니다. 그 앞에 서서 몸짓을 보며 기다리세요.`,
+  txt:"자리가 비었습니다. E를 눌러 다시 앉으세요.",
+  done:(t,g)=>!t.seat2||!!g.pl.seat,leave:t=>{t.mark=null;}},
+ {k:"finish",key:["Tab"],enter:t=>{t.tab0=t.tab;},
+  txt:"마지막으로 Tab을 눌러 오늘의 계획표를 접어 보세요. 조작과 요령은 언제든 Esc → 가이드에서 볼 수 있습니다.",
+  done:t=>t.tab>t.tab0},
+ {k:"end",key:[],hold:()=>false,enter:t=>{t.endT=0;},
+  txt:()=>`튜토리얼 끝. 이제 ${G.route[G.N]}까지 평소처럼 갑니다. 오늘은 탈락하지 않습니다. 계획대로!`,
+  done:(t,g,dt)=>(t.endT+=dt)>5},
+];
+const tutVal=(v,t,g)=>typeof v==="function"?v(t,g):v;
+function tutCard(S,t,st){   // 화면 가운데 아래의 조작 카드
+  const el=$("tutcard");if(!S){el.style.display="none";t&&(t.html="");return;}
+  const g=G,end=S.k==="end",n=t.i+2;
+  const keys=(st==="wait"?[]:S.key).map(k=>`<kbd>${k}</kbd>`).join("")+(st!=="wait"&&S.key2?`<span class="or">또는</span><kbd>${S.key2}</kbd>`:"");
+  const body=st==="ok"?`<b class="ok">계획대로! ✓</b>`:`${keys?`<div class="tk">${keys}</div>`:""}<div class="tx">${st==="wait"?tutVal(S.waitTxt,t,g):tutVal(S.txt,t,g)}</div>`;
+  const html=`<div class="tp">${end?"튜토리얼 완료":`튜토리얼 ${n}/${TUT_TOTAL}`}${t.hold&&st!=="ok"?` · <span class="hz">열차가 기다리는 중</span>`:""}</div>${body}`;
+  if(html!==t.html){t.html=html;el.innerHTML=html;el.className=st==="wait"?"wait":"";el.style.display="block";}
+}
+function tutTick(rdt){
+  rdt=rdt||0;const g=G,t=g.tut,pl=g.pl;
   if(g.stamina<20)g.stamina=20;if(g.nuis>90)g.nuis=90;   // 튜토리얼 통근은 탈락하지 않는다
-  if(pl.seat)t.step=4;
-  if(t.step===0&&hyp(pl.x-t.x0,pl.y-t.y0)>60)t.step=1;
-  if(t.step===1){if(focus&&focusT>=.4&&focus.state==="seated")t.seen.add(focus.id);if(t.seen.size>=3)t.step=2;}
-  if(t.step===2&&g.plans.length)t.step=3;
-  if(t.step<4&&!t.missed&&t.seat.occ&&t.seat.occ!=="player"&&t.seat.occ!==t.stu){t.missed=true;t.step=3;}   // 대학생 자리를 놓쳤다
-  const h=`<small>플래너 메모 · ${t.step+2}/6</small>`+TUT[t.step](t);
-  if(h!==t.h){t.h=h;const m=$("tutmemo");m.innerHTML=h;m.style.display="block";if(t.step)sfx("tick");}
+  if(t.skip||t.i>=TUTS.length){t.hold=false;t.mark=null;t.zones=false;t.hl=null;tutCard(null,t);return;}
+  const S=TUTS[t.i];
+  if(t.okT>0){t.okT-=rdt;if(t.okT<=0){S.leave&&S.leave(t,g);t.i++;t.entered=false;t.hold=false;}return;}
+  if(!t.entered){t.entered=true;S.enter&&S.enter(t,g);if(S.k!=="look")sfx("tick");}
+  const w=S.wait?S.wait(t,g):false;
+  t.hold=!w&&(S.hold?S.hold(t,g):true);
+  if(!w&&S.done(t,g,rdt)){if(S.k==="end"){t.i++;tutCard(null,t);return;}t.okT=.8;t.hold=S.k!=="brace";sfx("good");tutCard(S,t,"ok");return;}
+  tutCard(S,t,w?"wait":"do");
 }
 function addPts(n,why){G.pts+=n;if(why)G.fx.push({x:G.pl.x,y:G.pl.y-26,t:0,txt:"+"+n+" "+why});}
 function endLeg(fail){
   annStop();
   const g=G;mode="result";
-  if(g.tut){profile.seenHelp=true;saveProfile();$("tutmemo").style.display="none";}   // 튜토리얼 끝
+  if(g.tut){profile.seenHelp=true;saveProfile();$("tutmemo").style.display=$("tutcard").style.display="none";}   // 튜토리얼 끝
   const rows=[];let total=g.pts;
   if(!fail){
     rows.push(["도착","+10"]);total+=10;
@@ -1291,6 +1357,7 @@ function stepAside(q,s){
 // 내리는 사람이 빠져나간 뒤: 좌석 주변 사람들이 눈치를 보다가 한 명씩 움직인다
 function seatOpen(s){
   const g=G;if(s.pink||s.occ)return;s.openT=0;
+  if(g.tut&&s.tut&&!g.tut.skip)return;   // 18 튜토리얼: 연습할 자리에는 아무도 끼어들지 않는다
   if(s.narrow&&Math.random()<.7)return;   // 좁은 자리는 다른 승객도 대개 외면한다
   const quick=.3*sk("hip")+(sk("xfer")>=2&&g.phase==="dwell"&&xferAt(g.st)?.3:0)-Math.min(.25,g.L*.02),P=g.pl;   // 환승 고수 2단계: 환승역 정차 중 경쟁자가 늦다
   // 내가 좌석 앞 한쪽에 서 있으면 그쪽 사람은 내 몸에 막혀(스크린) 끼어들지 못한다
@@ -1414,8 +1481,8 @@ function bump(q,hard){
 /* ========== 갱신 ========== */
 function update(rdt){
   const g=G,pl=g.pl;
-  if(g.tut)tutTick();
-  const dt=rdt*((pl.seat&&!g.yieldEv)?3:1);
+  if(g.tut)tutTick(rdt);
+  const dt=g.tut&&g.tut.hold?0:rdt*((pl.seat&&!g.yieldEv)?3:1);   // 튜토리얼: 조작을 기다리는 동안 열차와 승객이 멈춘다
   g.t+=dt;g.bumpCd-=rdt;g.excuseCd=Math.max(0,g.excuseCd-rdt);g.shake=Math.max(0,g.shake-rdt);
   g.door+=((g.doorOpen?1:0)-g.door)*Math.min(1,rdt*6);
   if(g.phase==="run")g.scroll+=dt*clamp(Math.min(g.t,runT()-g.t)*1.2,0,1)*520;
@@ -1497,7 +1564,7 @@ function update(rdt){
       if(p.delay>0){p.delay-=dt;break;}
       if(p.step===0){p.y-=78*dt;if(p.y<=BY1){p.y=BY1;p.step=1;p.delay=null;
         let best=null,bd=p.elder?0:330;
-        for(const s of g.seats)if(!s.occ&&!s.pink&&!s.exiting&&!(s.narrow&&Math.random()<.7)){const d=hyp(p.x-s.fx,p.y-s.fy);if(d<bd){bd=d;best=s;}}
+        for(const s of g.seats)if(!s.occ&&!s.pink&&!s.exiting&&!(g.tut&&s.tut)&&!(s.narrow&&Math.random()<.7)){const d=hyp(p.x-s.fx,p.y-s.fy);if(d<bd){bd=d;best=s;}}
         if(p.arch==="mom"){for(const s of g.seats)if(!s.occ&&s.pink){best=s;break;}}
         if(best&&Math.random()<g.rivalP+.1){p.state="toSeat";p.target=best;}
         else{p.state="standing";const sp=p.elder?{x:p.x,y:p.y}:freeSpot(Math.random()<.6?p.door.i%3:null);p.hx=sp.x;p.hy=sp.y;}
@@ -1519,7 +1586,7 @@ function update(rdt){
       if(best)takeSlot(best,s);
     }
     for(const s of g.seats){
-      if(s.occ||s.pink||s.exiting||s===mine||(s.fresh&&g.st===0&&g.phase==="dwell")||(s.narrow&&Math.random()<.7))continue;
+      if(s.occ||s.pink||s.exiting||s===mine||(g.tut&&s.tut)||(s.fresh&&g.st===0&&g.phase==="dwell")||(s.narrow&&Math.random()<.7))continue;
       if(g.ps.some(q=>(q.state==="toSeat"&&q.target===s)||q.contend===s))continue;
       let best=null,bd=170;
       for(const q of g.ps)if(q.state==="standing"&&!q.elder&&q.delay==null){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
@@ -1532,7 +1599,7 @@ function update(rdt){
     if(!pl.seat||!g.ps.includes(e)){e.elder=false;g.yieldEv=null;if(ev.active)dpSet("yield",false,"양보하지 않음");}
     else{
       if(!ev.active&&e.state==="standing"&&hyp(e.x-e.hx,e.y-e.hy)<14){ev.active=true;say(e,"아이고, 다리야…");}
-      if(ev.active){ev.t+=rdt;g.nuis+=4.2*(1-.2*sk("face"))*rdt;
+      if(ev.active&&!(g.tut&&g.tut.hold)){ev.t+=rdt;g.nuis+=4.2*(1-.2*sk("face"))*rdt;
         if(ev.t>9){e.elder=false;const sp=freeSpot(null);e.hx=sp.x;e.hy=sp.y;g.yieldEv=null;toast("어르신이 다른 칸으로 가셨습니다.","bad");dpSet("yield",false,"양보하지 않음");}}
     }
   }
@@ -1788,7 +1855,8 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   // 손잡이
   ctx.strokeStyle="rgba(120,130,128,.55)";ctx.lineWidth=2;
   for(let b=0;b<3;b++)for(let k=0;k<BENCH;k++){const x=DOORS[b].x+DOOR_W+SEAT_W*(k+.5);for(const y of[AY0-6,AY1+6]){ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.stroke();}}
-  if(DEBUG){ctx.fillStyle="rgba(0,192,96,.22)";   // 개발용 (?debug=1): 손잡이를 잡을 수 있는 영역 (nearHandle과 같은 범위)
+  if(g.tut&&g.tut.mark){const m=g.tut.mark,r=13+Math.sin(time*5)*2;ctx.strokeStyle="#00c060";ctx.lineWidth=3;ctx.beginPath();ctx.arc(m.x,m.y,r,0,TAU);ctx.stroke();}   // 18 튜토리얼 목표 지점
+  if(DEBUG||(g.tut&&g.tut.zones)){ctx.fillStyle="rgba(0,192,96,.22)";   // 개발용 (?debug=1): 손잡이를 잡을 수 있는 영역 (nearHandle과 같은 범위)
     for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W-4;for(const ay of[AY0,AY1])ctx.fillRect(x0,ay-26,BW+8,52);}
     for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y)ctx.fillRect(px-22,py-30,44,60);}
   drawCone();
@@ -2139,7 +2207,7 @@ function hud(){
     else h+=`<div class="peek">어깨너머로 화면을 보는 중… ${Math.max(0,2-(p.pk||0)).toFixed(1)}초 (들키면 민폐 +20)</div>`;
   }
   if(o>=3&&p.state==="seated"&&p.dest>g.st&&p.dest-g.st<=2)h+=`<div class="hint">곧 내릴 것 같다</div>`;
-  if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act">클릭 또는 <kbd>F</kbd> ${g.plans.some(x=>x.seat===p.seat)?"찜 취소":"이 자리 찜하기"}</div>`;
+  if(p.state==="seated"&&!p.seat.pink&&!g.pl.seat)h+=`<div class="act"><kbd>F</kbd> ${g.plans.some(x=>x.seat===p.seat)?"찜 취소":"이 자리 찜하기"}</div>`;
   if(c.innerHTML!==h)c.innerHTML=h;c.style.display="block";
   const top=p.seat?p.seat.side==="top":p.y<(AY0+AY1)/2;
   // 시선을 가리지 않도록 플레이어 반대편 옆에 띄운다
@@ -2158,9 +2226,9 @@ function seatAt(x,y){const up=view==="q"?40:SEAT_D/2+6;for(const s of G.seats)if
 
 /* ========== 화면 ========== */
 function sheet(html){if(document.pointerLockElement)document.exitPointerLock();   // 팝업이 뜨면 바로 마우스로 누를 수 있게 (개선점)
-  $("intro").classList.remove("on");$("tutmemo").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
+  $("intro").classList.remove("on");$("tutmemo").style.display=$("tutcard").style.display="none";$("sheet").innerHTML=html;$("ov").classList.add("on");banner(null);prompt(null);$("card").style.display="none";}
 function showMenu(){   // 타이틀 화면 (01): 스크린도어 너머로 열차가 지나가고, 역명판이 메뉴. 전광판에 최장 개근 기록
-  mode="menu";G=null;IN=null;$("ov").classList.remove("on");banner(null);prompt(null);$("card").style.display="none";$("tutmemo").style.display="none";
+  mode="menu";G=null;IN=null;$("ov").classList.remove("on");banner(null);prompt(null);$("card").style.display="none";$("tutmemo").style.display=$("tutcard").style.display="none";
   const infos=[1,2,3].map(slotInfo),bw=Math.max(0,...infos.map(i=>i.best)),sv=infos.some(i=>i.used);
   const led=(bw?`최장 개근 ${bw}주 · `:"")+`다음 열차 곧 도착 · 승강장과 열차 사이가 넓으니 발밑을 조심하세요`;
   const el=$("intro");el.classList.add("on");
@@ -2236,7 +2304,7 @@ function introCut(id){
 }
 function introPlay(full){
   mode="intro";G=null;IN={cuts:full?["c1","c2","c3","c4"]:["c3"],i:-1,full,timers:[]};
-  $("ov").classList.remove("on");$("tutmemo").style.display="none";$("intro").classList.add("on");introNext();
+  $("ov").classList.remove("on");$("tutmemo").style.display=$("tutcard").style.display="none";$("intro").classList.add("on");introNext();
 }
 function introNext(){
   if(!IN)return;IN.timers.forEach(clearTimeout);IN.timers=[];annStop();
@@ -2371,7 +2439,7 @@ function showDoors(){
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 ${DAYS[run.day]} ${legName()} · ${from} → ${to}</span>
    <h2>목표: ${to}역(${goalName()})까지 ${rt.length-1}정거장</h2>
    <p class="sub">${to}역에 도착할 때까지 체력을 지키면 성공입니다. 서 있으면 체력이 줄고 앉으면 회복됩니다.<br>${run.mod.name}. 현재 체력 <b>${Math.round(run.stamina)}</b>. 어느 문 앞에 설까요?<br>${sk("regular")?"단골 칸이라 안내판의 혼잡도가 정확합니다."+(run.doorSeats?" ‘곧 빌 자리’는 그 문 앞 좌석 중 2정거장 안에 비는 자리 수입니다.":""):"승강장 안내판의 칸 혼잡도는 대체로 맞지만, 항상 정확하진 않습니다."}</p>
-   ${tutLeg()?`<div class="tutp"><small>플래너 메모 · 1/6</small>탈 문 고르기. 안내판의 혼잡도를 보고 덜 붐비는 문 앞에 서자. 첫 출근이라 오늘은 객차가 한산하다.</div>`:""}
+   ${tutLeg()?`<div class="tutp"><small>튜토리얼 1/12</small>탈 문 고르기. 안내판의 혼잡도를 보고 덜 붐비는 문 앞에 서자. 첫 출근이라 오늘은 객차가 한산하다.</div>`:""}
    <div class="doors">${dv.map((v,i)=>`<button class="door" data-i="${i}"><span class="n">${i+1}</span>번 문<br><span class="c ${lab(v)[1]}">${lab(v)[0]}</span>${run.doorSeats?`<br><span class="seats">곧 빌 자리 ${run.doorSeats[i]}</span>`:""}</button>`).join("")}</div>
    <div class="btns"><button class="btn ghost" id="bskip">열차 한 대 보내기 (여유 ${Math.max(0,slackN()-run.trains)}대 남음)</button></div>
    ${sk("alarm")>=2?`<p class="sub">다음 열차 안내판: ${lab(run.nextCrowd.reduce((a,c)=>a+c.w,0)/3)[0]}</p>`:""}
@@ -2461,8 +2529,8 @@ function showItemShop(after){   // 상점: 진열 4개 (런이 끝날 때마다 
 function setPause(v){
   if(mode!=="play")return;paused=v;annPause(v);
   if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · F 보고 있는 자리 찜 · E 앉기/일어서기/양보 · 우클릭/Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
-    <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="bg">가이드</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
-    $("b1").onclick=()=>setPause(false);$("bg").onclick=()=>showGuide(()=>setPause(true));$("b2").onclick=()=>{paused=false;finishRun("quit");};}
+    <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="bg">가이드</button>${G&&G.tut&&!G.tut.skip?`<button class="btn ghost" id="bt">튜토리얼 건너뛰기</button>`:""}<button class="btn ghost" id="b2">이번 주 포기</button></div>`);
+    $("b1").onclick=()=>setPause(false);if($("bt"))$("bt").onclick=()=>{G.tut.skip=true;G.tut.hold=false;setPause(false);};$("bg").onclick=()=>showGuide(()=>setPause(true));$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
 }
 
@@ -2565,7 +2633,7 @@ addEventListener("keydown",e=>{
     if(e.code==="Digit1"){addCollapse();toast("[시험] 붕괴 스택 +1");return;}
     if(e.code==="Digit2"){G.stamina=Math.max(1,G.stamina-20);toast("[시험] 체력 -20");return;}
     if(e.code==="Digit3"){G.nuis=Math.min(99,G.nuis+20);toast("[시험] 민폐 +20");return;}}
-  if(e.code==="Tab"){e.preventDefault();if(mode==="play"){profile.dpFold=!profile.dpFold;saveProfile();}return;}   // 계획표 접기
+  if(e.code==="Tab"){e.preventDefault();if(mode==="play"){profile.dpFold=!profile.dpFold;saveProfile();if(G&&G.tut)G.tut.tab++;}return;}   // 계획표 접기
   if(e.code==="Escape"||e.code==="KeyP"){if(mode==="play")setPause(!paused);return;}
   if(mode!=="play"||paused)return;
   if(e.code==="KeyE"){if(catchCarrier())return;trySit(null);}
