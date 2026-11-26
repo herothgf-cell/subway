@@ -56,7 +56,9 @@ function init(){
   {const zm=basic("#00c060",{transparent:true,opacity:.3,depthWrite:false});
     for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W-4,w=BW+8;for(const ay of[AY0,AY1]){const m=new THREE.Mesh(new THREE.BoxGeometry(w*S,.02,52*S),zm);m.position.set(X(x0+w/2),.03,Z(ay));zoneG.add(m);}}
     for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y){const m=new THREE.Mesh(new THREE.BoxGeometry(44*S,.02,60*S),zm);m.position.set(X(px),.03,Z(py));zoneG.add(m);}}
-  const tutM=new THREE.Mesh(new THREE.TorusGeometry(.22,.035,8,28),basic("#00c060"));tutM.rotation.x=Math.PI/2;tutM.visible=false;scene.add(tutM);   // 튜토리얼 목표 지점
+  const tutM=new THREE.Group();tutM.visible=false;scene.add(tutM);   // 튜토리얼 목표 지점: 큰 초록 원과 옅은 바닥
+  {const ring=new THREE.Mesh(new THREE.TorusGeometry(34*S,.045,8,36),basic("#00c060"));ring.rotation.x=Math.PI/2;tutM.add(ring);
+    const disc=new THREE.Mesh(new THREE.CircleGeometry(34*S,36),basic("#00c060",{transparent:true,opacity:.22,depthWrite:false}));disc.rotation.x=-Math.PI/2;tutM.add(disc);}   // 튜토리얼 목표 지점
   // 나
   const meP=makeMe();
   const meHold=new THREE.Group();meHold.add(meP.root);scene.add(meHold);
@@ -205,9 +207,9 @@ function overlay(g,time){
   const P=g.pl;
   if(typeof DEBUG!=="undefined"&&DEBUG&&!P.seat){const inH=nearHandle(P.x,P.y);ctx.font="800 14px "+FONT;ctx.textAlign="left";ctx.fillStyle=inH?"#00a84d":"#E5484D";
     ctx.fillText("[개발] 손잡이 영역 "+(inH?"안":"밖")+(P.brace?" · 손잡이 잡는 중":P.grip?" · 휴대용 손잡이 잡는 중":""),24,H-96);}
-  if(g.tut&&g.tut.hl&&g.tut.hl.seat){const s=g.tut.hl.seat,q=proj(X(s.x),1.85+Math.sin(time*5)*.03,Z(s.y));   // 튜토리얼: 찜할 승객
-    if(q){ctx.font="800 14px "+FONT;ctx.textAlign="center";const w=ctx.measureText("과잠 대학생 · F").width+18;ctx.fillStyle="#00a84d";ctx.beginPath();ctx.roundRect(q[0]-w/2,q[1]-34,w,24,12);ctx.fill();
-      ctx.beginPath();ctx.moveTo(q[0]-7,q[1]-11);ctx.lineTo(q[0]+7,q[1]-11);ctx.lineTo(q[0],q[1]-3);ctx.fill();ctx.fillStyle="#fff";ctx.fillText("과잠 대학생 · F",q[0],q[1]-21);}}
+  if(g.tut&&g.tut.hl&&g.tut.hl.seat){const s=g.tut.hl.seat,q=proj(X(s.x),1.85+Math.sin(time*5)*.03,Z(s.y)),lb=g.tut.hlF?"과잠 대학생 · F":"과잠 대학생";   // 튜토리얼: 대학생 자리 (앉을 때까지)
+    if(q){ctx.font="800 14px "+FONT;ctx.textAlign="center";const w=ctx.measureText(lb).width+18;ctx.fillStyle="#00a84d";ctx.beginPath();ctx.roundRect(q[0]-w/2,q[1]-34,w,24,12);ctx.fill();
+      ctx.beginPath();ctx.moveTo(q[0]-7,q[1]-11);ctx.lineTo(q[0]+7,q[1]-11);ctx.lineTo(q[0],q[1]-3);ctx.fill();ctx.fillStyle="#fff";ctx.fillText(lb,q[0],q[1]-21);}}
   // 찜 표시
   for(const pl of g.plans){const s=pl.seat,q=proj(X(s.x),1.72,Z(s.y));if(!q)continue;
     ctx.fillStyle="#ffe34d";ctx.strokeStyle="#1f2a44";ctx.lineWidth=3;ctx.beginPath();ctx.arc(q[0],q[1],17,0,TAU);ctx.fill();ctx.stroke();

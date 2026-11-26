@@ -215,7 +215,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
 .rec{width:100%;border-collapse:collapse;margin:10px 0;font-size:15px}.rec td,.rec th{border-bottom:1px solid #d8dcd8;padding:7px 10px;text-align:left}
 /* 튜토리얼 (01): 플래너 메모 */
 #tutmemo{position:absolute;left:24px;bottom:58px;width:340px;display:none;background:#fffdf3;border-radius:6px;padding:10px 16px 12px;font:26px/1.15 "Nanum Pen Script",var(--font);color:#1f2a44;transform:rotate(-1.5deg);box-shadow:0 6px 18px rgba(0,0,0,.45);border-left:6px solid #f0a0a0;pointer-events:none}
-#tutcard{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);display:none;min-width:420px;max-width:700px;background:#fffdf3;border:3px solid #1f2a44;border-radius:14px;padding:10px 20px 12px;text-align:center;color:#1f2a44;box-shadow:0 8px 22px rgba(0,0,0,.4);pointer-events:none;z-index:6}
+#tutcard{position:absolute;left:50%;top:128px;transform:translateX(-50%);display:none;min-width:420px;max-width:700px;background:#fffdf3;border:3px solid #1f2a44;border-radius:14px;padding:10px 20px 12px;text-align:center;color:#1f2a44;box-shadow:0 8px 22px rgba(0,0,0,.4);pointer-events:none;z-index:6}
 #tutcard.wait{border-style:dashed;opacity:.94}
 #tutcard .tp{font:800 12px var(--font);color:#7b8187;margin-bottom:4px}#tutcard .hz{color:#E5484D}
 #tutcard .tk{display:flex;gap:6px;justify-content:center;align-items:center;margin:2px 0 6px}#tutcard .tk kbd{font:900 17px var(--font);min-width:34px;padding:4px 10px;border-radius:8px;background:#1f2a44;color:#fff;border-bottom:3px solid #000}#tutcard .or{font:700 12px var(--font);color:#7b8187;margin:0 4px}
@@ -1050,7 +1050,7 @@ function startLeg(doorIdx){
     if(ts.occ){g.ps.splice(g.ps.indexOf(ts.occ),1);ts.occ=null;}
     const stu=makePerson("student",0);stu.dest=2;assignHints(stu);seatPerson(stu,ts);ts.tut=true;
     for(const p of g.ps)if(p!==stu&&p.state==="seated"&&p.dest<=2){p.dest=irand(3,g.N);assignHints(p);}
-    g.tut={i:0,seen:new Set(),stu,seat:ts,stop:route[2],hold:false,okT:0,entered:false,mark:null,zones:false,hl:null,tab:0};g.rivalP=.15;
+    g.tut={i:0,seen:new Set(),stu,seat:ts,stop:route[2],hold:false,okT:0,entered:false,mark:null,zones:false,hl:stu,tab:0};g.rivalP=.15;
   }
   // 초반 3개 역에서 최소 2명씩은 내리도록 보정 (운만으로 막히지 않게)
   for(let st=g.tut?3:1;st<=3;st++){
@@ -1126,7 +1126,7 @@ function depart(){
   else if(Math.random()<Math.min(.95,.55+.05*g.L))g.jolts.push({at:rand(4,9.5),dir:pick([-1,1]),warn:.95,msg:"덜컹! 손잡이를 잡으세요"});
   if(!river&&g.L>=3&&Math.random()<.5)g.jolts.push({at:rand(5,10),dir:pick([-1,1]),warn:.8,msg:"덜컹! 손잡이를 잡으세요"});
   g.jolts.push({at:g.tRun-1.3,dir:1,warn:1.1,msg:"곧 정차합니다. 손잡이!"});
-  if(g.tut&&g.st===0){const j={at:Math.min(4,g.tRun-3),dir:1,warn:1.2,msg:"덜컹! 손잡이를 잡으세요"};g.jolts=g.jolts.filter(o=>!o.warn||o.at>j.at+2);g.jolts.push(j);g.tut.jolt=j;}   // 18 튜토리얼 손잡이 단계
+  if(g.tut&&g.st===0){const j={at:Math.min(4,g.tRun-3),dir:1,warn:1.2,msg:"덜컹! 손잡이를 잡으세요"};g.jolts=g.jolts.filter(o=>o.warn&&o.at>j.at+2);g.jolts.push(j);g.tut.jolt=j;}   // 18 튜토리얼 손잡이 단계
   xferPrep(g.st+2);
   g.led="이번 역은 "+g.route[g.st+1]+", "+g.route[g.st+1]+"역입니다."+(xferAt(g.st+2)?"   ·   다음다음 역 "+g.route[g.st+2]+" 환승":"");
   sfx("close");
@@ -1171,22 +1171,22 @@ const TUTS=[
   done:(t,g,dt)=>{t.gzA+=angD(g.pl.gaze,t.gzL);t.gzL=g.pl.gaze;if(view!=="q")t.gzA+=dt*1.2;return t.gzA>2.4;}},
  {k:"move",key:["W","A","S","D"],txt:"바닥의 초록 원까지 걸어가세요. 초록 바닥은 손잡이를 잡을 수 있는 곳입니다. 사람과 부딪히면 민폐가 찹니다.",
   enter:t=>{const s=t.seat,mid=CAR.x+CAR.w/2;t.mark={x:s.fx+(s.fx<mid?90:-90),y:tutRow(s)};t.zones=true;},
-  done:(t,g)=>hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)<26},
+  done:(t,g)=>hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)<TUT_R},
  {k:"brace",key:["우클릭"],key2:"Shift",
   enter:t=>{t.mark=null;t.zones=true;},
   wait:(t,g)=>!t.jolt||g.phase!=="run"||g.t<t.jolt.at-t.jolt.warn,waitTxt:"열차가 곧 출발합니다. 달리다 보면 덜컹하니 그 자리에 있으세요.",
   hold:(t,g)=>!g.pl.brace,
-  txt:(t,g)=>g.pl.brace?"좋아요. 그대로 누르고 있으면 덜컹해도 밀리지 않습니다.":"덜컹! 마우스 오른쪽 버튼을 누른 채로 손잡이를 잡으세요(Shift도 됩니다). 초록 바닥 안에서만 잡힙니다.",
+  txt:(t,g)=>g.pl.brace?"좋아요. 그대로 누르고 있으면 덜컹해도 밀리지 않습니다.":nearHandle(g.pl.x,g.pl.y)?"덜컹! 마우스 오른쪽 버튼을 누른 채로 손잡이를 잡으세요(Shift도 됩니다).":"덜컹! 먼저 초록 바닥 안으로 들어가세요. 그다음 마우스 오른쪽 버튼을 누른 채로 손잡이를 잡습니다.",
   done:t=>t.jolt.done},
  {k:"look3",key:["마우스"],enter:t=>{t.zones=false;t.seen=new Set();},
   txt:t=>`앉은 승객을 한 명씩 잠깐 바라보세요 (${Math.min(3,t.seen.size)}/3). 차림새와 몸짓이 내릴 역의 단서입니다. 너무 오래 쳐다보면 눈이 마주칩니다.`,
   done:t=>{if(focus&&focusT>=.4&&focus.state==="seated")t.seen.add(focus.id);return t.seen.size>=3;}},
- {k:"plan",key:["F"],enter:t=>{t.hl=t.stu;},
+ {k:"plan",key:["F"],enter:t=>{t.hl=t.stu;t.hlF=true;},
   txt:t=>`과잠 대학생은 ${t.stop}에서 자주 내립니다. 그 사람을 바라보고 F를 눌러 자리를 찜하세요.`,
   done:(t,g)=>g.plans.some(p=>p.seat===t.seat)},
- {k:"front",key:["W","A","S","D"],enter:t=>{t.hl=null;t.mark={x:t.seat.fx,y:t.seat.fy};},
+ {k:"front",key:["W","A","S","D"],enter:t=>{t.hlF=false;t.mark={x:t.seat.fx,y:t.seat.fy};},
   txt:"찜한 자리 앞(초록 원)에 서세요. 자리 앞을 지켜야 비었을 때 먼저 앉습니다.",
-  done:(t,g)=>hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)<16},
+  done:(t,g)=>{if(hyp(g.pl.x-t.mark.x,g.pl.y-t.mark.y)>=TUT_R)return false;g.pl.x=t.mark.x;g.pl.y=t.mark.y;g.pl.vx=0;return true;}},   // 원 안에 들면 자리 정면에 맞춰 세운다 (A/D로 길 터 주기가 되도록)
  {k:"giveway",key:["A","D"],
   wait:t=>!(t.seat.exiting===t.stu&&t.stu.state==="leaving"&&t.stu.step===-1),
   waitTxt:t=>`${t.stop}에서 대학생이 일어날 때까지 자리 앞에서 기다리세요. (덜컹할 때는 우클릭)`,
@@ -1195,7 +1195,7 @@ const TUTS=[
  {k:"sit",key:["E"],
   wait:t=>!G.pl.seat&&!!(t.seat.occ||t.seat.exiting),waitTxt:"대학생이 내릴 때까지 잠깐. 돌린 몸이 다른 사람이 끼어드는 것을 막아 줍니다.",
   txt:"자리가 비었습니다. E를 눌러 앉으세요.",
-  done:(t,g)=>!!g.pl.seat,leave:t=>{t.mark=null;}},
+  done:(t,g)=>!!g.pl.seat,leave:t=>{t.mark=null;t.hl=null;}},
  {k:"yield",key:["E"],
   wait:(t,g)=>!g.yields&&!(g.yieldEv&&g.yieldEv.active),waitTxt:"앉아 있으면 체력이 돌아오고 시간이 빨리 갑니다. 다음 역까지 가 봅시다.",
   txt:"어르신이 앞에 섰습니다. E를 눌러 자리를 양보하세요 (+25P, 민폐 -30).",
@@ -1207,7 +1207,7 @@ const TUTS=[
     const s=c[0];s.occ.dest=g.st+1;assignHints(s.occ);s.tut=true;t.seat2=s;t.mark={x:s.fx,y:s.fy};},
   wait:t=>!G.pl.seat&&!!(t.seat2&&(t.seat2.occ||t.seat2.exiting)),
   waitTxt:t=>`양보한 뒤에도 다시 앉을 수 있습니다. 초록 원 자리의 승객이 ${G.route[G.st+(G.phase==="run"?1:0)]}에서 내립니다. 그 앞에 서서 몸짓을 보며 기다리세요.`,
-  txt:"자리가 비었습니다. E를 눌러 다시 앉으세요.",
+  txt:"자리가 비었습니다. 초록 원 안에서 E를 눌러 다시 앉으세요.",
   done:(t,g)=>!t.seat2||!!g.pl.seat,leave:t=>{t.mark=null;}},
  {k:"finish",key:["Tab"],enter:t=>{t.tab0=t.tab;},
   txt:"마지막으로 Tab을 눌러 오늘의 계획표를 접어 보세요. 조작과 요령은 언제든 Esc → 가이드에서 볼 수 있습니다.",
@@ -1217,6 +1217,14 @@ const TUTS=[
   done:(t,g,dt)=>(t.endT+=dt)>5},
 ];
 const tutVal=(v,t,g)=>typeof v==="function"?v(t,g):v;
+const TUT_R=34;   // 초록 원 반지름 (게임 좌표). 이 안에는 서 있는 승객이 들어오지 않는다
+function tutClear(x,y,r){   // 튜토리얼: 그 자리에 서 있는 승객을 멀리 옮긴다 (열차가 멈춰 있어도 바로 비도록 순간 이동)
+  for(const q of G.ps){
+    if(q.state!=="standing"||q.delay!=null||hyp(q.x-x,q.y-y)>=r)continue;
+    let sp=null;for(let n=0;n<12;n++){const c=freeSpot(null);if(hyp(c.x-x,c.y-y)>r+70){sp=c;break;}}
+    if(!sp)continue;dropSlot(q);q.contend=null;q.ct=null;q.x=q.hx=sp.x;q.y=q.hy=sp.y;q.wt=8;
+  }
+}
 function tutCard(S,t,st){   // 화면 가운데 아래의 조작 카드
   const el=$("tutcard");if(!S){el.style.display="none";t&&(t.html="");return;}
   const g=G,end=S.k==="end",n=t.i+2;
@@ -1230,6 +1238,7 @@ function tutTick(rdt){
   if(g.stamina<20)g.stamina=20;if(g.nuis>90)g.nuis=90;   // 튜토리얼 통근은 탈락하지 않는다
   if(t.skip||t.i>=TUTS.length){t.hold=false;t.mark=null;t.zones=false;t.hl=null;tutCard(null,t);return;}
   const S=TUTS[t.i];
+  if(!g.pl.seat){if(t.mark)tutClear(t.mark.x,t.mark.y,TUT_R+16);if(t.i<=7&&t.seat.occ===t.stu)tutClear(t.seat.fx,t.seat.fy,TUT_R+16);}   // 초록 원과 대학생 자리 앞은 늘 비워 둔다
   if(t.okT>0){t.okT-=rdt;if(t.okT<=0){S.leave&&S.leave(t,g);t.i++;t.entered=false;t.hold=false;}return;}
   if(!t.entered){t.entered=true;S.enter&&S.enter(t,g);if(S.k!=="look")sfx("tick");}
   const w=S.wait?S.wait(t,g):false;
@@ -1580,7 +1589,7 @@ function update(rdt){
   if(g.seek<=0){g.seek=rand(1.6,3.2);
     const mine=playerSlot();
     for(const s of g.seats){   // 빈 좌석 앞 자리는 근처 사람이 다시 채운다
-      if(s.holder||s===mine||s.resv>0||Math.random()>.45)continue;
+      if(s.holder||s===mine||s.resv>0||(g.tut&&s.tut&&!g.tut.skip)||Math.random()>.45)continue;
       let best=null,bd=150;
       for(const q of g.ps)if(q.state==="standing"&&!q.slot&&!q.elder&&q.delay==null&&!(q.cool>0)){const d=hyp(q.x-s.fx,q.y-s.fy);if(d<bd){bd=d;best=q;}}
       if(best)takeSlot(best,s);
@@ -1855,7 +1864,8 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
   // 손잡이
   ctx.strokeStyle="rgba(120,130,128,.55)";ctx.lineWidth=2;
   for(let b=0;b<3;b++)for(let k=0;k<BENCH;k++){const x=DOORS[b].x+DOOR_W+SEAT_W*(k+.5);for(const y of[AY0-6,AY1+6]){ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.stroke();}}
-  if(g.tut&&g.tut.mark){const m=g.tut.mark,r=13+Math.sin(time*5)*2;ctx.strokeStyle="#00c060";ctx.lineWidth=3;ctx.beginPath();ctx.arc(m.x,m.y,r,0,TAU);ctx.stroke();}   // 18 튜토리얼 목표 지점
+  if(g.tut&&g.tut.mark){const m=g.tut.mark,r=TUT_R+Math.sin(time*5)*3;ctx.fillStyle="rgba(0,192,96,.18)";ctx.strokeStyle="#00c060";ctx.lineWidth=4;ctx.beginPath();ctx.arc(m.x,m.y,r,0,TAU);ctx.fill();ctx.stroke();}   // 18 튜토리얼 목표 지점
+  if(g.tut&&g.tut.hl&&g.tut.hl.seat){const s=g.tut.hl.seat,ty=s.side==="top"?s.y-30:s.y+34;ctx.font="800 12px "+FONT;ctx.textAlign="center";const tx=g.tut.hlF?"과잠 대학생 · F":"과잠 대학생",w=ctx.measureText(tx).width+14;ctx.fillStyle="#00a84d";ctx.fillRect(s.x-w/2,ty-9,w,18);ctx.fillStyle="#fff";ctx.fillText(tx,s.x,ty+1);}
   if(DEBUG||(g.tut&&g.tut.zones)){ctx.fillStyle="rgba(0,192,96,.22)";   // 개발용 (?debug=1): 손잡이를 잡을 수 있는 영역 (nearHandle과 같은 범위)
     for(let b=0;b<3;b++){const x0=DOORS[b].x+DOOR_W-4;for(const ay of[AY0,AY1])ctx.fillRect(x0,ay-26,BW+8,52);}
     for(const d of DOORS)for(const px of[d.x,d.x+DOOR_W])for(const py of POLE_Y)ctx.fillRect(px-22,py-30,44,60);}
