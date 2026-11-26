@@ -42,7 +42,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><th>장</th><th>내용</th><th>상태</th><th>비고</th></tr>
 <tr><td>1</td><td>목적</td><td>-</td><td>설명</td></tr>
 <tr><td>2</td><td>시선 게이지</td><td><span class="st ok">구현됨</span></td><td>단계별 수치, 감소 속도, 화면 표시가 문서와 같다. 곁눈질의 "흐릿한 낌새"는 넣지 않았다(결정 기록)</td></tr>
-<tr><td>3</td><td>승객 성향</td><td><span class="st ok">구현됨</span></td><td>무던한 승객은 따로 표시하지 않는다(결정 기록). 비율은 잠든 승객을 뺀 나머지에서 33·50·17%로 뽑는다</td></tr>
+<tr><td>3</td><td>승객 성향</td><td><span class="st part">일부 구현</span></td><td>무던한 승객은 따로 표시하지 않는다(결정 기록). 비율은 잠든 승객을 뺀 나머지에서 33·50·17%로 뽑는다</td></tr>
 <tr><td>4</td><td>들키지 않고 보는 방법</td><td><span class="st part">일부 구현</span></td><td>곁눈질, 휴대폰 보는 척만 있다. 창문 반사, 노선도 보는 척은 보류</td></tr>
 <tr><td>5</td><td>어깨너머 화면</td><td><span class="st ok">구현됨</span></td><td>가까이(거리 120 안)에서만 볼 수 있다</td></tr>
 <tr><td>6</td><td>수치 균형</td><td><span class="st ok">구현됨</span></td><td>1주차 월요일(출근·퇴근)은 무던함 50%, 보통 40%, 예민함 10%</td></tr>
@@ -76,7 +76,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>화면 표시</b>: 3D에서는 화면 가운데의 옅은 점선 원이 정면 범위(대략)다. 정면으로 본 승객 머리 위에 눈 게이지가 차오르고(1.5초부터 노랑, 3초에 빨강), 원 밖에 둔 승객에는 "곁눈질"이라고 표시된다. 탑뷰에서는 시야 콘 가운데가 더 밝다.<span class="st ok">구현됨</span></li>
 </ul>
 
-<h2>3. 승객 성향<span class="st ok">구현됨</span></h2>
+<h2>3. 승객 성향<span class="st part">일부 구현</span></h2>
 <p class="status"><b>다르게 구현</b>: 잠듦은 "깊이 잠든 승객" 유형에만 붙고(승객 유형 11칸 가운데 1칸), 나머지 승객을 무던함 33%, 보통 50%, 예민함 17%로 뽑는다. 전체로 보면 표의 비율과 거의 같다. 무던한 승객을 알아보는 표시는 따로 없다(결정 기록).</p>
 <div class="tw"><table>
 <tr><th>성향</th><th>비율</th><th>게이지 속도</th><th>알아보는 법</th><th>상태</th></tr>

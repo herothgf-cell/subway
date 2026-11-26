@@ -44,7 +44,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <tr><td>2</td><td>균형과 버티기의 구분</td><td><span class="st ok">구현됨</span></td><td>연쇄 충돌이 줄어드는지는 확인 필요</td></tr>
 <tr><td>3</td><td>캐릭터 4명</td><td><span class="st ok">구현됨</span></td><td>오신입 체력 4, 유감각 체력 1로 조정. 유감각·정부장 특성은 결정대로 바꿔 구현</td></tr>
 <tr><td>3</td><td>캐릭터별 플레이 성격</td><td><span class="st part">일부 구현</span></td><td>구간과 능력치는 있다. 오신입 출근 인파 ×1.3. 도심 구간 승차 특성은 확인 필요</td></tr>
-<tr><td>4</td><td>해금</td><td><span class="st ok">구현됨</span></td><td>정부장은 "한 런에서 4주차 도달"만 쓴다</td></tr>
+<tr><td>4</td><td>해금</td><td><span class="st part">일부 구현</span></td><td>정부장은 "한 런에서 4주차 도달"만 쓴다</td></tr>
 <tr><td>5</td><td>선택 화면</td><td><span class="st ok">구현됨</span></td><td>앞·뒷면 없이 한 면에 모두 적는다</td></tr>
 <tr><td>7</td><td>캐릭터 직접 만들기 (미결)</td><td><span class="st wait">보류</span></td><td>1차에서 뺐다</td></tr>
 <tr><td>8</td><td>1차 구현 내용</td><td><span class="st ok">구현됨</span></td><td>선택 화면 진입 경로와 오신입 인파 배수를 지금 코드대로 고쳤다</td></tr>
@@ -56,7 +56,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li>능력치는 시작 값의 차이만 만든다. 성장은 패시브 스킬(<a href="09_passive_skill_v1.html">09</a>)과 아이템(<a href="10_item_v1.html">10</a>)이 담당한다.</li>
 </ul>
 
-<h2>2. 능력치 6종 <span class="st ok">구현됨</span></h2>
+<h2>2. 능력치 6종 <span class="st part">일부 구현</span></h2>
 <p class="status"><b>다르게 구현</b>: 멘탈의 "붕괴 피해 ∓1"은 멘붕에 필요한 스택(멘탈 2 이하 2, 3은 3, 4 이상 4)으로 바꿨다(2026-11-24 결정). 난이도 조정 뒤 능력치 합은 한계획 18, 오신입 18, 유감각 17, 정부장 19다.</p>
 <p>각 1~5. 3이 현재 게임의 기준값이다.</p>
 <div class="tw"><table>
@@ -87,7 +87,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li>남에게 밀려 제3자와 부딪히면 지금은 내 충돌로 계산된다. 버티기가 높으면 이런 <b>연쇄 충돌</b>이 줄어든다.</li>
 </ul>
 
-<h2>3. 캐릭터 <span class="st ok">구현됨</span></h2>
+<h2>3. 캐릭터 <span class="st part">일부 구현</span></h2>
 <p class="status"><b>다르게 구현</b>: 난이도 조정(2026-11-24)으로 오신입 체력 5 → 4, 유감각 체력 2 → 1. 유감각 "눈썰미"는 관찰력 1단계의 "자주 내리는 역 후보 2곳" 표시를 처음부터 갖는 것으로, 정부장 "연륜"은 관찰력 2단계 중 페이크 간파만 갖는 것으로 정했다. 오신입 "뛰어타기"는 승강장이 아니라 출발역 정차 중에 B를 눌러 쓴다.</p>
 <div class="tw"><table>
 <tr><th>캐릭터</th><th>집 → 회사</th><th>정거장</th><th>체력</th><th>눈치</th><th>민첩</th><th>균형</th><th>버티기</th><th>멘탈</th><th>고유 특성</th><th>난이도</th><th>상태</th></tr>
@@ -106,7 +106,7 @@ p.status{font-size:14px;color:var(--sub);margin:4px 0 10px}
 <li><b>정부장</b>: 가장 긴 구간, 가장 낮은 체력. 대신 누가 내릴지 가장 정확히 본다. 오랜 통근으로 급정거에는 익숙하지만(균형 4) 환승역 인파에는 약하다(버티기 2). 순수 예측 플레이.</li>
 </ul>
 
-<h2>4. 해금 <span class="st ok">구현됨</span></h2>
+<h2>4. 해금 <span class="st part">일부 구현</span></h2>
 <p class="status"><b>다르게 구현</b>: 정부장은 "한 런에서 4주차 도달"만 쓴다. "3단계 구간 도달"은 뺐다(2026-11-24 결정). 해금과 기록은 저장 슬롯마다 따로다.</p>
 <div class="tw"><table>
 <tr><th>캐릭터</th><th>조건</th><th>상태</th></tr>
