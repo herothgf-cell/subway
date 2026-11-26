@@ -50,9 +50,9 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <a href="11_seat_grade_v1.html"><span class="num">11</span><span><b>좌석 등급</b><span class="d">자리와 입석 위치의 등급</span></span><span class="tag ok">1차 구현</span></a>
 <a href="12_daily_plan_v1.html"><span class="num">12</span><span><b>오늘의 계획표</b><span class="d">통근별 목표 선택, 루틴 콤보, 멘붕</span></span><span class="tag ok">구현됨</span></a>
 <a href="14_diary_v1.html"><span class="num">14</span><span><b>출근 일기</b><span class="d">사건 기록, 문장 틀, 가상 시각, 이미지로 저장</span></span><span class="tag ok">구현됨</span></a>
-<a href="15_growth_loop_v1.html"><span class="num">15</span><span><b>성장 구조</b><span class="d">시작 → 실패 → 스킬 찍기의 반복, 스킬·상점을 여는 시점, 버틴 날 보너스</span></span><span class="tag">결정 · 미구현</span></a>
-<a href="16_difficulty_fatigue_v1.html"><span class="num">16</span><span><b>난이도와 누적 피로</b><span class="d">주차마다 얹히는 압박, 서서 간 만큼 쌓이는 피로</span></span><span class="tag">결정 · 미구현</span></a>
-<a href="17_card_choice_v1.html"><span class="num">17</span><span><b>회사·집 선택지</b><span class="d">체력 말고 다른 것을 주고받는 로그라이크식 카드 31종 초안</span></span><span class="tag">결정 · 미구현</span></a>
+<a href="15_growth_loop_v1.html"><span class="num">15</span><span><b>성장 구조</b><span class="d">시작 → 실패 → 스킬 찍기의 반복, 스킬·상점을 여는 시점, 버틴 날 보너스</span></span><span class="tag">구현됨</span></a>
+<a href="16_difficulty_fatigue_v1.html"><span class="num">16</span><span><b>난이도와 누적 피로</b><span class="d">주차마다 얹히는 압박, 서서 간 만큼 쌓이는 피로</span></span><span class="tag">구현됨 · 곡선 조정 전</span></a>
+<a href="17_card_choice_v1.html"><span class="num">17</span><span><b>회사·집 선택지</b><span class="d">체력 말고 다른 것을 주고받는 로그라이크식 카드 31종 초안</span></span><span class="tag">1차 구현</span></a>
 <a href="99_misc_ideas_v1.html"><span class="num">99</span><span><b>기타 아이디어</b><span class="d">V1에 넣지 않는 아이디어 모음: 동행과 매너, 단골 승객, 막차, 계절, 앉아서 할 거리</span></span><span class="tag">V1 제외</span></a></div>
 <p class="note">각 기획서 머리에 <b>구현 현황 표</b>가 있고, 장과 표의 행마다 <span class="st ok">구현됨</span> <span class="st part">일부 구현</span> <span class="st wait">보류</span> <span class="st cut">V1 제외</span> 표시가 붙어 있습니다 (2026-11-25 기준, 코드와 대조).</p>
 <h2>구현 현황</h2>
@@ -101,9 +101,9 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <p class="note"><b>2026-11-25에 다섯 주제 모두 방향을 정했습니다.</b> 지금은 논의를 기다리는 주제가 없습니다.</p>
 <div class="tw"><table>
 <tr><th>주제</th><th>결정 (2026-11-25)</th><th>정리한 문서</th><th>상태</th></tr>
-<tr><td>성장 구조: 스킬·상점을 언제 쓸 수 있나</td><td>시작 → 실패 → 스킬 찍기의 반복. 스킬은 탈락·퇴사 시점에만, 상점은 평일 퇴근 뒤에도. 이번 주에 번 포인트까지 상점에서 쓰고, 버틴 날 수에 비례한 보너스를 준다</td><td><a href="15_growth_loop_v1.html">15 성장 구조</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
-<tr><td>날이 갈수록 어려워지는 난이도</td><td>주차마다 새 압박을 하나씩 얹고 주간 일정에서 미리 알린다. 서서 간 만큼 쌓이는 누적 피로가 최대 체력을 깎고 주말 휴무로만 크게 풀린다</td><td><a href="16_difficulty_fatigue_v1.html">16 난이도와 누적 피로</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
-<tr><td>체력 채우기 말고 다른 회사·집 선택지</td><td>체력 회복을 기준값으로 통일하고, 카드는 정보·계획·포인트와 물건·통근 조건을 주고받는다. 로그라이크의 선택처럼 다양하게</td><td><a href="17_card_choice_v1.html">17 회사·집 선택지</a></td><td><span class="st wait">결정 · 미구현</span></td></tr>
+<tr><td>성장 구조: 스킬·상점을 언제 쓸 수 있나</td><td>시작 → 실패 → 스킬 찍기의 반복. 스킬은 탈락·퇴사 시점에만, 상점은 평일 퇴근 뒤에도. 이번 주에 번 포인트까지 상점에서 쓰고, 버틴 날 수에 비례한 보너스를 준다</td><td><a href="15_growth_loop_v1.html">15 성장 구조</a></td><td><span class="st ok">구현됨 (2026-11-26)</span></td></tr>
+<tr><td>날이 갈수록 어려워지는 난이도</td><td>주차마다 새 압박을 하나씩 얹고 주간 일정에서 미리 알린다. 서서 간 만큼 쌓이는 누적 피로가 최대 체력을 깎고 주말 휴무로만 크게 풀린다</td><td><a href="16_difficulty_fatigue_v1.html">16 난이도와 누적 피로</a></td><td><span class="st part">구현됨 · 곡선 조정 전</span></td></tr>
+<tr><td>체력 채우기 말고 다른 회사·집 선택지</td><td>체력 회복을 기준값으로 통일하고, 카드는 정보·계획·포인트와 물건·통근 조건을 주고받는다. 로그라이크의 선택처럼 다양하게</td><td><a href="17_card_choice_v1.html">17 회사·집 선택지</a></td><td><span class="st part">1차 구현 (2026-11-26)</span></td></tr>
 <tr><td>앉아서 할 거리</td><td>앉아서 할 일 고르기, 앉은 자리에 찾아오는 사건, 졸음 참기를 아이디어로 남기고 다음 개발 때 검토한다</td><td><a href="99_misc_ideas_v1.html">99 기타 아이디어</a> 7-1장</td><td><span class="st cut">V1 제외</span></td></tr>
 <tr><td>99 기타 아이디어의 범위</td><td>V1에서 제외한다. 다음 단계의 기획·구현 때 참고할 아이디어로 남긴다</td><td><a href="99_misc_ideas_v1.html">99 기타 아이디어</a></td><td><span class="st cut">V1 제외</span></td></tr>
 </table></div>
@@ -190,6 +190,7 @@ nav.foot{display:flex;justify-content:space-between;gap:12px;margin-top:48px;pad
 <tr><td>2026-11-26</td><td>구현 현황 표를 2~5단계 결과로 갱신(15·16·17 구현됨, 08 카드, 11 자리 등급 표시, 개선점)</td></tr>
 <tr><td>2026-11-26</td><td>다음 구현 순서 6단계: 06 캐리어·큰 소리 통화와 취객 몸짓 시안, 10 접이식 우산·휴대용 손잡이, 04 공휴일(실제 달력, 개발용 연도 변경)·행사일, 05 문턱에서 버티기. 03 돌아가기는 다시 보류</td></tr>
 <tr><td>2026-11-26</td><td>06 취객 구현(몸짓 A 비틀거림·C 앉아서 졸기·D 쏠리기), 개발용 달력을 타이틀 화면에서 고르기, 시험 키(<code>?debug=1</code>)가 켜지지 않던 버그 수정</td></tr>
+<tr><td>2026-11-26</td><td>문서 목록과 기획 논의 표의 15·16·17 상태를 구현 결과로 갱신(15 구현됨, 16 구현됨 · 곡선 조정 전, 17 1차 구현)</td></tr>
 </table></div>
 <h2>제안 도입 순서 (초안)</h2>
 <p class="note">처음 제안한 순서입니다. 실제 진행 순서는 위 "구현 현황" 표를 따릅니다.</p>
