@@ -204,6 +204,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
 #intro .sign{position:absolute;left:50%;top:26%;transform:translateX(-50%);background:#fff;border:4px solid #14181c;border-radius:10px;padding:18px 30px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:46%;z-index:2}
 #intro .sign .nm{font-size:44px;font-weight:900;color:#14181c;letter-spacing:-1px}
 #intro .sign .who{font-size:14px;color:#5d6862;font-weight:700}
+#intro .devcal{font-size:12px;color:#5b6472;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:center;border-top:1px dashed #c9cfd4;padding-top:8px;max-width:620px}#intro .sign .devcal select,#intro .sign .devcal input,#intro .sign .devcal button{font:inherit;font-size:12px;padding:1px 6px;margin:0;width:auto;min-width:0;height:auto;line-height:1.5;background:#fff;color:#1f2a44;border:1px solid #c9cfd4;border-radius:4px;box-shadow:none}#intro .devcal small{flex-basis:100%;text-align:center}
 #intro .sign .menu{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:620px;margin-top:4px}
 #intro .sign button{border:0;background:#3a4148;color:#fff;border-radius:999px;padding:10px 30px;font-weight:800;font-size:17px;min-width:150px}
 #intro .sign button.go{background:#00A84D}
@@ -297,7 +298,8 @@ const isRiver=(a,b)=>segGap(a,b)>1;   // 한강 구간: 길지만 덜컹거림�
 const DAYS=["월요일","화요일","수요일","목요일","금요일","토요일","일요일"];
 /* ========== 달력과 공휴일 (04, 2026-11-26 결정): 한 런은 실제 달력 위에서 흐른다. 기본 2026년. 개발용: 주소 뒤에 ?year=2027 (연도), &start=05-04 (시작 날짜) ========== */
 const CAL_Q=(()=>{try{return new URLSearchParams(location.search);}catch(e){return null;}})();
-const CAL_YEAR=(()=>{const y=CAL_Q&&+CAL_Q.get("year");return y>=1990&&y<=2100?y:2026;})();
+let CAL_YEAR=(()=>{const y=CAL_Q&&+CAL_Q.get("year");return y>=1990&&y<=2100?y:2026;})();
+let CAL_START=(()=>{const q=CAL_Q&&CAL_Q.get("start");return q&&/^\d{1,2}-\d{1,2}$/.test(q)?q:null;})();   // 개발용 시작 날짜 (MM-DD). 없으면 오늘
 const LUNAR={2025:["01-29","05-05","10-06"],2026:["02-17","05-24","09-25"],2027:["02-07","05-13","09-15"]};   // 설날·부처님오신날·추석 당일 (월력요항 기준). 표에 없는 해는 양력 공휴일만
 const EXTRA_HOL={"2025-01-27":"임시공휴일","2025-06-03":"대통령 선거일","2026-06-03":"지방선거일"};
 const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -322,8 +324,8 @@ function holidaysOf(Y){   // 그해 공휴일 {"YYYY-MM-DD": 이름}. 대체공�
   return HOL_CACHE[Y]=H;
 }
 function calStart(){   // 1주차 월요일: 설정 연도에서 오늘(또는 start=)과 같은 날짜가 든 주
-  const q=CAL_Q&&CAL_Q.get("start"),t=new Date();let m=t.getMonth()+1,dd=t.getDate();
-  if(q&&/^\d{1,2}-\d{1,2}$/.test(q)){m=+q.split("-")[0];dd=+q.split("-")[1];}
+  const q=CAL_START,t=new Date();let m=t.getMonth()+1,dd=t.getDate();
+  if(q){m=+q.split("-")[0];dd=+q.split("-")[1];}
   const d=new Date(CAL_YEAR,m-1,dd);return addDays(d,-((d.getDay()+6)%7));
 }
 const dayDate=(w,d)=>addDays(parseYmd(run.date0),(w-1)*7+d);
@@ -816,7 +818,10 @@ const SP_INFO={
  sprawl:{n:"넓게 앉기",card:"옆자리까지 넓게 앉아 있다. 옆은 좁은 자리.",mono:"넓게 앉았다. 옆자리는 반쪽짜리다."},
  carrier:{n:"캐리어",card:"큰 캐리어를 옆에 세워 두었다. 덜컹하면 굴러간다.",mono:"캐리어다. 덜컹하면 굴러온다."},
  call:{n:"큰 소리 통화",card:"앉은 채 큰 소리로 통화 중. 양옆 자리는 쉬기 어렵다.",mono:"통화 소리가 크다. 옆자리는 쉬기 힘들겠다."},
+ drunk:{n:"취객",card:"술에 취해 비틀거린다. 가까이 있으면 지치고, 앉으면 졸다 옆으로 기운다.",mono:"취객이다. 가까이 가지 말자."},
 };
+const DRUNK_R=58,DRUNK_LINES=["으으…","(딸꾹)","한 잔만 더…","어디야 여기…","(흥얼흥얼)"];   // 취객 반경 약 1m: 그 안에 서 있으면 체력 초당 -1
+const drunkNear=s=>G.ps.some(p=>p.sp==="drunk"&&p.state==="seated"&&p.seat&&p.seat.zone===s.zone&&p.seat.side===s.side&&Math.abs(p.seat.k-s.k)===1);
 const CALL_LINES=["여보세요? 어, 나 지금 지하철!","아니 그게 아니라, 내 말 좀 들어 봐","응응, 그래서 걔가 뭐래?","하하하! 진짜로?","잠깐만, 잘 안 들려!","아 그거? 내가 보내 줄게","몰라, 나중에 다시 얘기해"];   // 하차역은 말하지 않는다 (하차역을 직접 알려 주지 않는다)
 const callNear=s=>G.ps.some(p=>p.sp==="call"&&p.state==="seated"&&p.seat&&p.seat.zone===s.zone&&p.seat.side===s.side&&Math.abs(p.seat.k-s.k)===1);
 const dex=k=>{const d=profile.dex||(profile.dex={});return d[k]||(d[k]={met:0,ok:0});};
@@ -840,6 +845,17 @@ function spawnSpecials(){
   if(Math.random()<.35){   // 큰 소리 통화 (06 2차): 양옆 자리의 회복 -30%. 이어폰이면 들리지 않는다
     const c=g.ps.filter(p=>p.state==="seated"&&!p.sp&&!p.seat.pink&&p.arch!=="sleeper");
     if(c.length){const p=pick(near(c,360));p.sp="call";p.callT=rand(.5,3);}}
+  if((run&&(run.leg==="pm"||run.leg==="we"&&run.appt&&run.appt.dir!=="go"))&&Math.random()<.4){   // 취객 (06 2차): 퇴근길과 주말 밤 귀가길에만. 서 있으면 비틀거림·쏠림, 앉아 있으면 졸다 기울어짐
+    const sit=Math.random()<.5,c=sit?g.ps.filter(p=>p.state==="seated"&&!p.sp&&!p.seat.pink&&p.arch!=="sleeper"&&p.arch!=="elder"):g.ps.filter(p=>p.state==="standing"&&!p.sp&&!p.elder&&p.delay==null&&hyp(p.x-P.x,p.y-P.y)>90);
+    if(c.length){const p=pick(near(c,sit?360:320));p.sp="drunk";p.dzDir=Math.random()<.5?1:-1;p.drT=rand(1,3);p.mumT=rand(2,5);if(sit)p.dest=99;}}   // 앉은 취객은 졸다 종점까지 간다
+}
+function drunkLurch(p,dir){   // D. 덜컹할 때 한쪽으로 확 쏠린다. 그쪽에 서 있으면 밀린다
+  const g=G,P=g.pl;p.lurch=.45;p.ldir=dir;p.drWarn=false;say(p,pick(["어어어","으앗"]));p.bt=1.6;
+  const dx=P.x-p.x,dy=P.y-p.y,d=hyp(dx,dy)||1;
+  if(P.seat||P.into||d>46||dx*dir<0)return;
+  const k=gritK()*(1-.5*brK());P.vx+=dir*200*k;P.y+=dy/d*8*k;constrain(P);
+  g.stamina-=bumpDmg();g.bumps++;g.shake=Math.max(g.shake,.18);if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];
+  dpSet("nobump",false,"취객에게 밀림");say(P,pick(["으악","어이쿠"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"취객에게 밀림 · 체력 -"+bumpDmg()});sfx("bump");ev("drunkHit");
 }
 function carrierHit(){const g=G,P=g.pl;g.stamina-=bumpDmg();g.bumps++;g.shake=Math.max(g.shake,.18);if(!g.bump1)g.bump1=g.route[Math.min(g.N,g.st+(g.phase==="run"?1:0))];
   dpSet("nobump",false,"캐리어에 부딪힘");say(P,pick(["악, 발등…","어어어"]));g.fx.push({x:P.x,y:P.y-26,t:0,txt:"캐리어에 부딪힘 · 체력 -"+bumpDmg()});sfx("bump");ev("carrierHit");}
@@ -878,6 +894,17 @@ function updateSpecials(dt){
     if(p.sp==="backpack"&&p.state==="standing"&&!p.bpFront&&p.delay==null){
       p.bpT-=dt;if(p.bpT<=.6)p.bpWarn=true;   // 돌기 0.6초 전에 어깨를 들썩인다
       if(p.bpT<=0)backpackTurn(p);
+    }
+    if(p.sp==="drunk"){const P=g.pl;
+      if(p.state==="seated"&&p.dest!==99)p.dest=99;   // 앉으면 졸다 종점까지
+      p.mumT-=dt;if(p.mumT<=0){p.mumT=rand(5,9);if(!p.bubble)say(p,pick(DRUNK_LINES)),p.bt=2;}
+      if(p.state==="standing"&&p.delay==null){
+        p.sway=Math.sin(performance.now()/1000*2.6+p.ph)*9;   // A. 제자리에서 좌우로 크게 비틀거린다
+        if(p.lurch>0){p.lurch-=dt;p.x+=p.ldir*90*dt;const h={x:p.x,y:p.y};constrain(h);p.x=h.x;p.y=h.y;p.hx=p.x;p.hy=p.y;}
+        else if(!p.contend&&!p.slot){p.drT-=dt;if(p.drT<=0){p.drT=rand(2.5,4.5);p.dzDir=-p.dzDir;const h={x:p.x+p.dzDir*rand(24,46),y:(p.y<(AY0+AY1)/2?AY1:AY0)+rand(-8,8)};constrain(h);p.hx=h.x;p.hy=h.y;p.wt=9;}}   // 통로를 지그재그로 오간다
+        const nj=g.phase==="run"&&g.jolts.find(j=>!j.done&&g.t>=j.at-.7&&g.t<j.at);p.drWarn=!!nj;   // 쏠리기 0.7초 전에 어깨가 들썩인다
+      }
+      if(!P.seat&&hyp(P.x-p.x,P.y-p.y)<DRUNK_R){g.stamina-=dt;if(!g.drSaid){g.drSaid=1;g.fx.push({x:P.x,y:P.y-26,t:0,txt:"취객 곁 · 체력 초당 -1"});}}   // 민폐 게이지가 아니라 체력
     }
     if(p.sp==="call"&&p.state==="seated"){p.callT-=dt;if(p.callT<=0){p.callT=rand(3.5,6.5);if(!eq("earphone")){say(p,pick(CALL_LINES));p.bt=2.6;}}}
   }
@@ -1403,7 +1430,7 @@ function update(rdt){
       if(j.msg&&g.t>=j.at-j.warn)ban=j.msg;
       if(g.t>=j.at){j.done=true;g.shake=.3;sfx("jolt");
         if(!pl.seat&&brK()<1){pl.vx+=j.dir*250*(1-brK())*(1-[0,.25,.45,.6][balLv()])*(1-.12*(stat("bal")-3))*(isRain()?(eq("boots")?1:eq("dress")?1.4:1.2):1);if(j.warn)dpSet("firm",false,"급정거에 밀림");}
-        for(const q of g.ps)if(q.state==="standing"){q.sway=j.dir*rand(3,7);}
+        for(const q of g.ps)if(q.state==="standing"){q.sway=j.dir*rand(3,7);if(q.sp==="drunk"&&q.delay==null)drunkLurch(q,j.dir);}
         if(j.warn&&g.carrier&&g.carrier.roll<=0&&g.carrier.owner.state==="standing"){const c=g.carrier;c.roll=1.6;c.vx=j.dir*170;c.hit=false;if(!c.said){c.said=1;say(c.owner,"어, 내 캐리어!");}}   // 급정거에 캐리어가 굴러간다
       }
     }
@@ -1578,7 +1605,7 @@ function update(rdt){
     g.stamina-=(g.lean?LEAN_K:1)*(.33+.022*Math.min(6,near))*(1-.12*sk("sta"))*(1-.06*(stat("sta")-3))*(eq("suit")?1.05:1)*(eq("earphone")?.95:1)*rdt;
     if(touching&&(ix||iy||Math.abs(pl.vx)>20)){g.touch+=rdt;if(g.touch>1.2)g.nuis+=3.5*(1-.2*sk("face"))*rdt;}else g.touch=0;
   }else{
-    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:isEndSeat(pl.seat)?END_REC:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*(!eq("earphone")&&callNear(pl.seat)?.7:1)*dt);   // 큰 소리 통화 옆자리: 회복 -30% (이어폰이면 무시)   // 좁은 자리는 회복이 절반
+    g.stamina=Math.min(maxSta(),g.stamina+SEAT_REC*(pl.seat.pink?.6:pl.seat.narrow&&!eq("brief")?.5:isEndSeat(pl.seat)?END_REC:1)*(eq("padding")?1.15:1)*(eq("pillow")?1.2:1)*(!eq("earphone")&&callNear(pl.seat)?.7:1)*(drunkNear(pl.seat)?.7:1)*dt);   // 앉은 취객 옆자리: 회복 -30%   // 큰 소리 통화 옆자리: 회복 -30% (이어폰이면 무시)   // 좁은 자리는 회복이 절반
     if(pl.seat.pink)g.nuis+=3.2*(1-.2*sk("face"))*dt;
   }
   if(pl.turn){const s=pl.turn.s;if(pl.seat||s.occ||Math.abs(pl.x-s.fx)>30||Math.abs(pl.y-s.fy)>30){pl.turn=null;}}
@@ -1775,6 +1802,7 @@ function draw(time){const on3=view==="q"&&G&&typeof draw3D==="function";$("gl").
     drawPerson(p.x+ox,p.y+oy,p.face,p,p.state==="seated",false,time);
     if(p.sp==="backpack"&&p.state!=="seated"){const sg=p.bpFront?1:-1,wob=p.bpWarn?Math.sin(time*26)*2:0,bx=p.x+Math.cos(p.face)*11*sg+wob,by=p.y+Math.sin(p.face)*11*sg;   // 큰 가방
       ctx.fillStyle="#e8843c";ctx.strokeStyle="#14181c";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,8,0,TAU);ctx.fill();ctx.stroke();}
+    if(p.sp==="drunk"){ctx.fillStyle="#E5484D";ctx.globalAlpha*=.75;ctx.beginPath();ctx.arc(p.x+ox-5,p.y+oy-3,2.6,0,TAU);ctx.arc(p.x+ox+5,p.y+oy-3,2.6,0,TAU);ctx.fill();ctx.globalAlpha=1;}   // 취객: 붉은 볼
     if(ts){ // 움직임 선
       ctx.strokeStyle="rgba(20,24,28,.55)";ctx.lineWidth=1.6;const yy=p.seat.side==="top"?p.y+22:p.y-22,k=Math.sin(time*13+p.ph)>0?1:-1;
       ctx.beginPath();ctx.moveTo(p.x-15,yy-3*k);ctx.lineTo(p.x-19,yy);ctx.moveTo(p.x+15,yy+3*k);ctx.lineTo(p.x+19,yy);ctx.stroke();
@@ -2137,9 +2165,24 @@ function showMenu(){   // 타이틀 화면 (01): 스크린도어 너머로 열�
   const el=$("intro");el.classList.add("on");
   el.innerHTML=`<div class="cut t0"><div class="led"><span>${led}</span></div><div class="psd"><i></i><i></i><i></i><i></i><i></i></div><div class="train"></div>
    <div class="sign"><div class="nm">계획대로<span>,</span> 지하철</div><div class="who">파워 J 직장인의 출퇴근 자리 사수기</div>
-   <div class="menu"><button class="go" id="m1">출근하기</button><button id="m2"${sv?"":" disabled"}>불러오기</button></div></div>
+   <div class="menu"><button class="go" id="m1">출근하기</button><button id="m2"${sv?"":" disabled"}>불러오기</button></div>${DEBUG?devCalHtml():""}</div>
    <div class="queue">${inPeople(12,true)}</div></div>`;
   $("m1").onclick=()=>showSlots("new");if(sv)$("m2").onclick=()=>showSlots("load");
+  if(DEBUG)devCalBind();
+}
+function devCalHtml(){   // 개발용 (?debug=1): 타이틀에서 달력 연도와 1주차 날짜를 고른다. 새 런부터 적용
+  const ys=[];for(let y=2025;y<=2030;y++)ys.push(y);if(!ys.includes(CAL_YEAR))ys.push(CAL_YEAR);
+  const first=ymd(calStart()).slice(5);
+  return `<div class="devcal"><b>개발용 달력</b> <label>연도 <select id="dvY">${ys.map(y=>`<option${y===CAL_YEAR?" selected":""}>${y}</option>`).join("")}</select></label>
+   <label>시작 <input id="dvS" value="${CAL_START||""}" placeholder="오늘" maxlength="5" size="5"></label><button id="dvT">오늘로</button>
+   <small id="dvN">1주차 ${first} (월)부터${LUNAR[CAL_YEAR]?"":" · 음력 공휴일 표 없음"} · 새 런부터 적용</small></div>`;
+}
+function devCalBind(){
+  const sync=()=>{try{const u=new URL(location.href);u.searchParams.set("year",CAL_YEAR);if(CAL_START)u.searchParams.set("start",CAL_START);else u.searchParams.delete("start");history.replaceState(null,"",u);}catch(e){}
+    $("dvN").textContent=`1주차 ${ymd(calStart()).slice(5)} (월)부터${LUNAR[CAL_YEAR]?"":" · 음력 공휴일 표 없음"} · 새 런부터 적용`;};
+  $("dvY").onchange=()=>{CAL_YEAR=+$("dvY").value;sync();};
+  $("dvS").onchange=()=>{const v=$("dvS").value.trim();if(!v)CAL_START=null;else if(/^\d{1,2}-\d{1,2}$/.test(v))CAL_START=v;else{$("dvS").value=CAL_START||"";toast("시작 날짜는 05-04처럼 월-일로 적습니다.");return;}sync();};
+  $("dvT").onclick=()=>{CAL_START=null;$("dvS").value="";sync();};
 }
 /* 런 저장 (불러오기): 통근 직전(승강장)과 주말 화면에서 저장하고, 런이 끝나면 지운다 */
 const rkey=()=>KEY+"-run";
@@ -2300,7 +2343,7 @@ const GUIDE=[
  ["자리마다 다르다","끝자리(칸막이 옆 양 끝)는 앉아 있을 때 회복이 가장 좋지만, 비면 모두가 노려서 경쟁이 가장 세다. 넓게 앉은 승객 옆의 좁은 자리는 회복이 절반이다. 임산부 배려석에 앉으면 시선이 따갑고 민폐가 오른다. 나머지는 보통 자리."],
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
  ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 문 옆 기둥을 잡고 있으면 문턱에서 버틸 수 있지만, 내리는 사람을 막고 있어 체력이 빠지고 민폐가 오른다. 대신 환승역은 자리가 가장 많이 나는 역이기도 하다."],
- ["특수 승객","백팩은 돌 때 등 뒤를 친다. 넓게 앉은 승객 옆은 좁은 자리. 캐리어는 통로를 막고, 덜컹하면 굴러온다. 굴러오는 캐리어를 E로 잡아 주면 고마워한다. 큰 소리로 통화하는 승객의 양옆 자리는 쉬기 어렵다(이어폰이면 괜찮다)."],
+ ["특수 승객","백팩은 돌 때 등 뒤를 친다. 넓게 앉은 승객 옆은 좁은 자리. 캐리어는 통로를 막고, 덜컹하면 굴러온다. 굴러오는 캐리어를 E로 잡아 주면 고마워한다. 큰 소리로 통화하는 승객의 양옆 자리는 쉬기 어렵다(이어폰이면 괜찮다). 퇴근길과 주말 밤에는 취객이 탄다. 가까이 서 있으면 지치고(체력 -1/초), 어깨가 들썩이면 곧 그쪽으로 쏠린다. 앉은 취객의 양옆 자리는 쉬기 어렵고, 취객은 종점까지 내리지 않는다."],
  ["공휴일과 행사일","달력의 공휴일에는 출근하지 않고 주말처럼 약속에 나가거나 쉰다. ★ 행사일에는 퇴근길의 행사 역(야구장, 공연장, 축제)에서 내리는 사람도 타는 사람도 두 배다. 주간 일정에서 미리 볼 수 있다. 비 오는 날 부딪히면 젖은 우산 때문에 민폐가 조금 더 오른다."],
  ["누적 피로와 주차","서서 지난 정거장만큼 피로가 쌓여 최대 체력이 줄어든다(체력 막대 오른쪽의 회색). 주말에 쉬는 날이나 일찍 자기·계단으로 퇴근 카드로 푼다. 주차가 오를수록 새 압박이 얹히고, 주간 일정에서 미리 알려 준다."],
  ["체력·민폐·멘붕","체력이 바닥나면 그 통근은 실패. 앉아 있으면 회복된다. 부딪히거나 빤히 보거나 배려석에 앉으면 민폐가 오르고, 가득 차도 실패. 계획이 틀어지면 붕괴 스택이 쌓이고, 다 차면 멘붕(시야가 좁아짐): 가만히 서서 심호흡하거나 앉으면 풀린다."],
@@ -2347,7 +2390,7 @@ function showWeek(next,done){   // 주간 일정: 7칸에 날짜 유형, 예보,
   const evl=run.sched.filter(o=>o.event&&!o.hol).map(o=>`★ ${DAYS[o.d]} 저녁 ${o.event.st} ${o.event.n}`),hl=run.sched.filter(o=>o.hol).map(o=>`${DAYS[o.d]} ${o.hol}`);
   sheet(`<div class="wallet">보유 ${profile.points} P</div><span class="tag">${run.week}주차 · ${mdTxt(dayDate(run.week,0))}~${mdTxt(dayDate(run.week,6))} · 주간 일정</span><h2>${done?"이번 주 돌아보기":"이번 주는 이렇습니다"}</h2>
    <p class="sub"><b>${pressLine()}</b>${run.week>=2?"<br><small>"+pressList().join(" · ")+"</small>":""}<br>${fatTxt()}.</p><p class="sub">예보는 70%쯤 맞습니다. 한산한 날은 승객이 적고, 만원인 날은 훨씬 붐빕니다. 4주차 금요일은 월급날이라 퇴근길이 가장 붐빕니다. 주말과 공휴일에는 약속에 나가거나 쉴 수 있습니다. ★ 행사일에는 퇴근길의 행사 역에서 많이 내리고 탑니다.</p>
-   <div class="week">${run.sched.map(cell).join("")}</div>${hl.length||evl.length?`<p class="sub">${hl.length?"공휴일: "+hl.join(", "):""}${hl.length&&evl.length?"<br>":""}${evl.join("<br>")}</p>`:""}${DEBUG?`<p class="sub"><small>개발용: ${CAL_YEAR}년 달력${LUNAR[CAL_YEAR]?"":" (음력 공휴일 표 없음)"} · 주소 뒤에 ?debug=1&amp;year=2027&amp;start=05-04 로 연도·시작 날짜를 바꿉니다 (새 런부터)</small></p>`:""}
+   <div class="week">${run.sched.map(cell).join("")}</div>${hl.length||evl.length?`<p class="sub">${hl.length?"공휴일: "+hl.join(", "):""}${hl.length&&evl.length?"<br>":""}${evl.join("<br>")}</p>`:""}${DEBUG?`<p class="sub"><small>개발용: ${CAL_YEAR}년 달력${LUNAR[CAL_YEAR]?"":" (음력 공휴일 표 없음)"} · 타이틀 화면에서 연도·시작 날짜를 바꿉니다 (새 런부터)</small></p>`:""}
    <div class="btns"><button class="btn go" id="b1">${done?"주말로":"월요일 출근 준비"}</button></div>`);
   $("b1").onclick=next;
 }
@@ -2512,7 +2555,7 @@ function sfx(k){
 }
 
 /* ========== 입력 ========== */
-const DEBUG=(()=>{try{return /[?&]debug=1/.test(location.search);}catch(e){return false;}})();   // 개선점: 멘붕 재현용 시험 키
+const DEBUG=(()=>{try{return /[?&]debug=1(&|$)/.test(location.search);}catch(e){return false;}})();   // 개선점: 멘붕 재현용 시험 키
 addEventListener("keydown",e=>{
   if(["Tab","Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();
   if(e.repeat)return;keys[e.code]=true;

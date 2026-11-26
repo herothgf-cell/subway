@@ -118,6 +118,9 @@ function syncPerson(p,dt,time,camX,camZ,fx,fz){
     bg.position.set(0,.22,-.27);p3.torso.add(bg);u.bigpack=bg;bg.traverse(o=>{if(!o.isMesh)return;if(o.material===C.OM||o.material===C.OM2)u.outl.push(o);else if(!u.mats.includes(o.material))u.mats.push(o.material);});}
   if(u.bigpack){u.bigpack.visible=p.sp==="backpack";
     if(u.bigpack.visible){u.bigpack.position.z=p.bpFront?.27:-.27;if(p.bpWarn)p3.root.rotation.y+=Math.sin(time*26)*.14;}}   // 돌기 직전에 어깨를 들썩인다
+  if(p.sp==="drunk"){const th=u.hold.rotation.y,tilt=(dir,k)=>{p3.root.rotation.z+=-dir*k*Math.cos(th);p3.root.rotation.x+=dir*k*Math.sin(th);};   // 취객 (06): 월드 x 방향으로 몸을 기울인다
+    if(p.state==="seated"){const c=((time+p.ph*3)%4.5)/4.5,k=c<.3?0:c<.6?(c-.3)/.3:c<.85?1:1-(c-.85)/.15;tilt(p.dzDir||1,.36*k);p3.neck.rotation.x+=.35*k;p3.eyes(k>.4?"closed":p3.o.eyes||"open");}   // C. 꾸벅꾸벅 졸다 옆자리로 기운다
+    else if(p.state==="standing"){tilt(1,Math.sin(time*2.6+p.ph)*.13);if(p.lurch>0)tilt(p.ldir,.32*Math.min(1,p.lurch/.2));if(p.drWarn)p3.root.rotation.y+=Math.sin(time*26)*.14;}}   // A. 비틀거림, D. 쏠리기 직전 들썩임과 쏠림
   if(p.sp==="sprawl"&&p.state==="seated"){const ns=G.seats.find(o=>o.narrow===p);
     if(ns){if(!R.spBag){R.spBag=C.box(.26,.24,.34,"#8a5a2c");R.scene.add(R.spBag);}
       R.spBag.position.set(X(p.seat.x+(ns.x-p.seat.x)*.66),.57,Z(p.seat.y)+(p.seat.side==="top"?.02:-.02));R.spBagT=time;}}
