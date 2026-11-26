@@ -237,7 +237,7 @@ body.v3d #card{left:auto!important;right:28px!important;top:auto!important;botto
     </div>
     <div id="lockhint">화면을 클릭하면 마우스로 둘러볼 수 있습니다</div><div id="dplan"></div><div id="banner"></div><div id="toasts"></div><div id="prompt"></div><div id="card"></div><div id="tutmemo"></div>
     <div id="bottom">
-      <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>클릭</kbd>보고 있는 자리 찜</span>
+      <span><kbd>WASD</kbd>이동</span><span><kbd>마우스</kbd>둘러보기</span><span><kbd>F</kbd>보고 있는 자리 찜</span>
       <span><kbd>E</kbd>앉기 · 일어서기</span><span><kbd>우클릭</kbd>/<kbd>Shift</kbd>손잡이 잡기</span><span><kbd>R</kbd>휴대폰 보는 척</span><span id="qhelp"><kbd>Q</kbd>잠시만요</span><span><kbd>Tab</kbd>계획표 접기</span><span><kbd>V</kbd>3D / 탑뷰</span><span><kbd>Esc</kbd>일시정지 · 가이드</span>
       <span id="planslots"></span>
     </div>
@@ -965,11 +965,11 @@ const SEAT_REC=.65,NUIS_DECAY=.8;   // 앉아 있을 때 체력 회복(게임 �
 const runT=()=>G&&G.tRun||T_RUN;   // 이번 구간의 주행 시간 (한강 구간은 길다)
 
 function level(){return (run.week-1)*4+Math.min(4,run.day)+(run.leg!=="am"?.5:0);}
-function startRun(tut){
+function startRun(){
   run={week:1,day:0,leg:"am",stamina:100,points:0,legs:0,seats:0,plans:0,yields:0,combo:0,cand:[],picks:[],collapseNext:0,planPts:0,weekPts:0,
     arrSta:100,date0:ymd(calStart()),fx:{},dayFx:{},hist:{work:[],home:[]},cardLog:[],workouts:0,sick:false,hangover:0,homeLess:0,halfUsed:false,halfFri:false,needCard:false,cardOpts:null,cardEv:null,wallet:1,daysDone:0,fullWeeks:0,fatigue:0,extraPress:[]};
   run.stamina=run.arrSta=maxSta();   // 체력 능력치에 따라 최대 체력이 다르다
-  run.tut=tut===true||!profile.seenHelp;   // 튜토리얼 (01): 1주차 월요일 출근. 처음 하는 사람은 항상, 해 본 사람은 시작 전에 고른다
+  run.tut=!profile.seenHelp;   // 튜토리얼 (01): 슬롯의 첫 출근(1주차 월요일)은 튜토리얼
   profile.runs++;saveProfile();showPlatform();
 }
 function destW(arch,legKey,name){   // 이 유형이 이 역에서 내릴 가중치. 기존 구간은 원래 값, 그 밖은 예외 역 → 구간 → 환승 등급
@@ -1157,7 +1157,7 @@ const tutLeg=()=>!!(run&&run.tut&&run.week===1&&run.day===0&&run.leg==="am");
 const TUT=[
   t=>"WASD로 움직여 객차 안쪽으로 몇 걸음. 사람과 부딪히면 민폐 게이지가 찬다.",
   t=>`마우스로 시선을 돌려 앉은 승객을 살펴보자. 차림새와 몸짓이 내릴 역의 단서다. (${Math.min(3,t.seen.size)}/3)`,
-  t=>`과잠 대학생(객차 가운데 자리)은 ${t.stop}에서 자주 내린다. 그 사람을 보고 클릭(또는 F)해서 자리를 찜.`,
+  t=>`과잠 대학생(객차 가운데 자리)은 ${t.stop}에서 자주 내린다. 그 사람을 보고 F로 자리를 찜.`,
   t=>t.missed?"…괜찮아. 플랜 B가 있어. 다른 승객의 몸짓을 보고, 자리가 비면 E로 앉자.":`찜한 자리 앞에 서서 기다리자. ${t.stop}에서 일어나면 A/D로 몸을 돌려 길을 터 주고, E로 앉기.`,
   t=>"계획대로. 앉아 있으면 체력이 돌아온다. 서 있을 땐 ‘덜컹!’에 우클릭(Shift)으로 손잡이, 어르신이 오면 E로 양보. 이제 "+G.route[G.N]+"까지."];
 function tutTick(){
@@ -2201,7 +2201,7 @@ function useSlot(n,fresh){   // 슬롯 바꾸기. fresh면 그 슬롯을 비우�
   SLOT=n;KEY=slotKey(n);try{localStorage.setItem(SLOT_META,String(n));if(fresh){localStorage.removeItem(KEY);localStorage.removeItem(rkey());}}catch(e){}
   profile=loadProfile();fixProfile();
   for(const k of["voice","view","seenIntro"])if(keep[k]!=null)profile[k]=keep[k];
-  if(fresh&&keep.seenHelp)profile.seenHelp=true;   // 튜토리얼은 한 번 했으면 새 슬롯에서도 건너뛴다
+   // 튜토리얼은 슬롯마다: 새 슬롯의 첫 출근은 튜토리얼 (2026-11-26 결정)
   saveProfile();
 }
 function showSlots(kind){   // 출근하기(new): 새로 시작할 슬롯. 불러오기(load): 이어 할 슬롯
@@ -2273,13 +2273,7 @@ function showChars(){   // 사원증 카드: 앞면 이름·직함, 뒷면 능�
      :`<div class="lk">잠김 · ${c.lock.d}</div>`}</button>`;}).join("")}</div>
   <div class="btns"><button class="btn go" id="b1">이 사람으로 출근하기</button><button class="btn ghost" id="b2">처음으로</button></div>`);
   document.querySelectorAll(".idc").forEach(b=>b.onclick=()=>{profile.char=b.dataset.k;saveProfile();sfx("tick");showChars();});
-  $("b1").onclick=askTutorial;$("b2").onclick=showMenu;
-}
-function askTutorial(){   // 튜토리얼을 이미 한 사람: 첫 통근을 튜토리얼로 할지 고른다 (처음 하는 사람은 묻지 않고 튜토리얼)
-  if(!profile.seenHelp){startRun(false);return;}
-  sheet(`<h2>첫 출근을 튜토리얼로 할까요?</h2><p class="sub">튜토리얼은 1주차 월요일 출근을 플래너 메모를 따라 한 번 해 보는 통근입니다. 승객이 적고 탈락하지 않습니다.<br>조작과 요령은 언제든 일시정지(Esc) → 가이드에서 다시 볼 수 있습니다.</p>
-   <div class="btns"><button class="btn go" id="b1">바로 출근하기</button><button class="btn" id="b3">튜토리얼로 출근하기</button><button class="btn ghost" id="b2">뒤로</button></div>`);
-  $("b1").onclick=()=>startRun(false);$("b3").onclick=()=>startRun(true);$("b2").onclick=showChars;
+  $("b1").onclick=startRun;$("b2").onclick=showMenu;
 }
 const MODS=[{name:"평소와 같은 날",crowd:1},{name:"평소와 같은 날",crowd:1},{name:"비 오는 날 · 우산 때문에 더 비좁음",crowd:1,radius:3},{name:"열차 지연 · 혼잡도 상승",crowd:1.3},{name:"한산한 날",crowd:.75},{name:"만원 열차 · 발 디딜 틈이 없음",crowd:1.4,packed:true}];
 function showPlatform(){
@@ -2345,10 +2339,10 @@ function showPlanner(){   // 통근 전: 후보 5개 중 0~3개를 오늘의 계
 }
 /* ========== 가이드 (개선점: 가이드 버튼). 화면에 표시하지 않는 규칙(자리 등급 등)은 여기에서만 알려 준다 ========== */
 const GUIDE=[
- ["조작","WASD 이동, 마우스로 둘러보기(화면 클릭). 보고 있는 승객을 클릭하거나 F로 그 자리를 찜하고, E로 앉기·일어서기·양보. 마우스 오른쪽 버튼(누르고 있는 동안)이나 Shift·Space로 손잡이를 잡고, Tab으로 계획표를 접고 편다. V는 3D와 탑뷰 전환, M은 안내방송 끄기, Esc는 일시정지."],
+ ["조작","WASD 이동, 마우스로 둘러보기(화면 클릭). 보고 있는 승객을 F로 찜하고, E로 앉기·일어서기·양보. 마우스 오른쪽 버튼(누르고 있는 동안)이나 Shift·Space로 손잡이를 잡고, Tab으로 계획표를 접고 편다. V는 3D와 탑뷰 전환, M은 안내방송 끄기, Esc는 일시정지."],
  ["곧 내릴 사람 읽기","앉은 승객은 내리기 전에 몸짓(낌새)을 보인다. 짐을 챙기거나 휴대폰을 넣는 식이다. 낌새가 보이기 전에 찜해 두고 그 자리에 앉으면 '계획대로', 끝자리를 계획대로 앉으면 '완벽한 계획대로'. 페이크 동작에 속지 말 것. 오래 빤히 보면 눈이 마주쳐 민폐가 오른다."],
  ["자리마다 다르다","끝자리(칸막이 옆 양 끝)는 앉아 있을 때 회복이 가장 좋지만, 비면 모두가 노려서 경쟁이 가장 세다. 넓게 앉은 승객 옆의 좁은 자리는 회복이 절반이다. 임산부 배려석에 앉으면 시선이 따갑고 민폐가 오른다. 나머지는 보통 자리."],
- ["자리 잡는 법","마우스로 시선을 돌려 앉은 승객의 몸짓을 본다. 휴대폰을 넣거나 가방을 끌어안으면 곧 내린다. 보고 있는 승객을 클릭(또는 F)하면 그 자리를 찜한다. 앞자리 사람이 일어나면 A/D로 몸을 90도 돌려 길을 터 준다. 돌린 쪽은 내 몸이 막고, 반대편 사람과 눈치 싸움이다. 빈자리가 나면 E로 앉는다."],
+ ["자리 잡는 법","마우스로 시선을 돌려 앉은 승객의 몸짓을 본다. 휴대폰을 넣거나 가방을 끌어안으면 곧 내린다. 보고 있는 승객에게 F를 누르면 그 자리를 찜한다. 앞자리 사람이 일어나면 A/D로 몸을 90도 돌려 길을 터 준다. 돌린 쪽은 내 몸이 막고, 반대편 사람과 눈치 싸움이다. 빈자리가 나면 E로 앉는다."],
  ["서 있을 때","출입문 옆 칸막이에 기대 서면 덜 지친다. 다만 그 자리는 내리는 사람이 지나는 곳이라 환승역에서 쓸려 내리기 쉽다. 손잡이는 좌석 앞 손잡이 줄과 출입문 양옆 기둥에서만 잡을 수 있다. 급정거 경고가 뜨면 손잡이를 잡을 것."],
  ["환승역","사당·교대 같은 환승역에서는 많은 사람이 한꺼번에 내리고 탄다. 문 앞에 서 있으면 하차 인파에 밀려 내릴 수 있다. 문 옆 기둥을 잡고 있으면 문턱에서 버틸 수 있지만, 내리는 사람을 막고 있어 체력이 빠지고 민폐가 오른다. 대신 환승역은 자리가 가장 많이 나는 역이기도 하다."],
  ["특수 승객","백팩은 돌 때 등 뒤를 친다. 넓게 앉은 승객 옆은 좁은 자리. 캐리어는 통로를 막고, 덜컹하면 굴러온다. 굴러오는 캐리어를 E로 잡아 주면 고마워한다. 큰 소리로 통화하는 승객의 양옆 자리는 쉬기 어렵다(이어폰이면 괜찮다). 퇴근길과 주말 밤에는 취객이 탄다. 가까이 서 있으면 지치고(체력 -1/초), 어깨가 들썩이면 곧 그쪽으로 쏠린다. 앉은 취객의 양옆 자리는 쉬기 어렵고, 취객은 종점까지 내리지 않는다."],
@@ -2466,7 +2460,7 @@ function showItemShop(after){   // 상점: 진열 4개 (런이 끝날 때마다 
 }
 function setPause(v){
   if(mode!=="play")return;paused=v;annPause(v);
-  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · 클릭(F) 보고 있는 자리 찜 · E 앉기/일어서기/양보 · 우클릭/Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
+  if(v){sheet(`<h2>일시정지</h2><p class="sub">WASD 이동 · 마우스 시선 · F 보고 있는 자리 찜 · E 앉기/일어서기/양보 · 우클릭/Shift 손잡이${sk("excuse")?" · Q 잠시만요":""}${eq("pack")?" · T 가방 앞으로":""}${eq("coffee")?" · C 커피":""}</p>
     <div class="btns"><button class="btn go" id="b1">계속하기</button><button class="btn ghost" id="bg">가이드</button><button class="btn ghost" id="b2">이번 주 포기</button></div>`);
     $("b1").onclick=()=>setPause(false);$("bg").onclick=()=>showGuide(()=>setPause(true));$("b2").onclick=()=>{paused=false;finishRun("quit");};}
   else $("ov").classList.remove("on");
@@ -2609,12 +2603,11 @@ frame.addEventListener("mousedown",e=>{   // 3D에서 마우스가 잠기면 클
     e.preventDefault();if(view==="q"&&!locked()&&frame.requestPointerLock)frame.requestPointerLock();
     keys.Mouse2=true;return;}
   if(e.button!==0)return;
-  if(view==="q"){   // 3D: 첫 클릭은 마우스 잠금, 그다음부터는 보고 있는 승객 찜 또는 빈자리 앉기
+  if(view==="q"){   // 3D: 좌클릭은 마우스 잠금만 한다. 찜은 F (2026-11-26 결정: 좌클릭 찜 없앰)
     if(!locked()){frame.requestPointerLock&&frame.requestPointerLock();return;}
-    if(focus&&focus.state==="seated")togglePlan(focus.seat);else if(!G.pl.seat)trySit(null);
     return;}
   const p=toWorld(e),s=seatAt(p.x,p.y);if(!s)return;
-  if(!s.occ)trySit(s);else if(s.occ!=="player"&&(s.occ.vis||0)>.5)togglePlan(s);
+  if(!s.occ)trySit(s);   // 탑뷰: 빈자리를 누르면 앉으러 간다 (찜은 F)
 });
 document.addEventListener("pointerlockchange",()=>{if(!locked()&&view==="q"&&mode==="play"&&!paused)setPause(true);});   // Esc로 잠금이 풀리면 일시정지
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H);frame.style.transform="scale("+s+")";}
