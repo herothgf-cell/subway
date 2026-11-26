@@ -181,7 +181,7 @@ function syncMe(g,dt,time){
     if(!o.userData.edge){const e=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,40),EDGE_MAT);e.visible=false;e.renderOrder=3;o.add(e);o.userData.edge=e;}
     me.edges.push(o.userData.edge);});}
   {const pz=Z(P.y),fz=Math.sin(P.gaze),front=Math.abs(pz)>HW-1.3&&fz*pz>0&&Math.abs(fz)>.45;
-    if(me.front!==front){me.front=front;for(const m of me.mats){m.colorWrite=!front;m.depthWrite=!front;}for(const o of me.outl)o.visible=!front;for(const e of me.edges)e.visible=front;}}
+    if(me.front!==front){me.front=front;for(const m of me.mats){m.colorWrite=true;m.transparent=front;m.opacity=front?.45:1;m.depthWrite=!front;m.needsUpdate=true;}for(const o of me.outl)o.visible=!front;for(const e of me.edges)e.visible=front;}}   // 좌석 쪽을 볼 때는 몸 전체를 반투명하게 채우고 윤곽선을 그린다 (2026-11-26: 선만 그리고 팔만 채우던 것이 어색함)
   const want=Math.PI/2-(P.turn?P.face:P.gaze);let d=want-me.hold.rotation.y;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;me.hold.rotation.y+=d*Math.min(1,dt*12);
   C.setSit(p3,false);p3.root.position.set(0,.86*(p3.o.h||1),0);
   C.reach(p3.arms[1],V(.245,-.04,.04));C.reach(p3.arms[-1],V(-.245,-.04,.04));p3.neck.rotation.set(.05,0,0);
@@ -191,7 +191,7 @@ function syncMe(g,dt,time){
     const gv=R.gripV,on=(P.brace||P.grip)&&!P.seat&&!R.me.hide;gv.gp.visible=on;
     if(on){p3.root.updateMatrixWorld(true);const arm=p3.arms[1],T=V(.2,.84,.08),dl=T.clone().sub(arm.S),L=Math.min(dl.length(),arm.a+arm.b);
       const h=p3.torso.localToWorld(arm.S.clone().addScaledVector(dl.normalize(),L)),sw=p3.torso.localToWorld(arm.S.clone());
-      gv.sl.visible=gv.hd.visible=!!me.front;   // 좌석 앞(몸이 선으로만 보일 때)에는 팔과 손을 채워 그린다
+      gv.sl.visible=gv.hd.visible=false;   // 팔·손은 몸과 함께 그린다. 잡은 고리만 따로 표시
       gv.hd.position.copy(h);gv.sl.position.copy(h).add(sw).multiplyScalar(.5);gv.sl.scale.set(1,h.distanceTo(sw),1);gv.sl.quaternion.setFromUnitVectors(V(0,1,0),h.clone().sub(sw).normalize());
       gv.sl.material.color.set(p3.o.sleeve||p3.o.shirt||"#3b3f46");
       gv.rg.position.set(h.x,h.y+.03,h.z);gv.rg.rotation.set(0,me.hold.rotation.y,0);gv.rg.material.color.set(P.grip?"#f08a24":"#ffd23f");}}   // 잡은 고리: 손잡이는 노랑, 휴대용 손잡이는 주황
