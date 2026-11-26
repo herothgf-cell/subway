@@ -1149,6 +1149,7 @@ function arrive(){
   let n=clamp(Math.round(out*.8+hub+(g.target-cur)*.6+rand(-1,2)),1,18);if(cur>g.target+6)n=Math.min(n,2);
   if(xg)n=Math.round(out*xg.board);   // 환승역: 내린 만큼 다시 탄다 (승차 러시는 정차 뒤쪽)
   if(g.evSt===g.route[g.st]){n=Math.min(30,n*2);g.led=g.route[g.st]+"역입니다. 행사를 마친 승객이 많이 탑니다.";}   // 행사일: 타는 사람도 2배
+  if(g.tut)n=Math.min(n,2,Math.max(0,14-cur));   // 18 튜토리얼 통근은 끝까지 한산하게: 역마다 2명까지, 서 있는 승객 14명까지
   for(let i=0;i<n;i++)spawnBoarder(xg?xg.dwell-7.5+rand(0,3.4):1.7+rand(0,2.4),null);
   // 양보 이벤트
   if(g.pl.seat&&!g.pl.seat.pink&&!g.yieldDone&&g.st<g.N-1&&(dpGet("yield")||(g.tut&&TUTS[g.tut.i]&&TUTS[g.tut.i].k==="yield")||(!g.tut&&g.L>=.5&&Math.random()<.42))){   // "양보 한 번"을 적은 날은 반드시 생긴다
@@ -1193,7 +1194,7 @@ const TUTS=[
   txt:"대학생이 일어났습니다! A 또는 D로 몸을 90도 돌려 내리는 사람에게 길을 터 주세요.",
   done:(t,g)=>!!(g.pl.turn&&g.pl.turn.s===t.seat)},
  {k:"sit",key:["E"],
-  wait:t=>!G.pl.seat&&!!(t.seat.occ||t.seat.exiting),waitTxt:"대학생이 내릴 때까지 잠깐. 돌린 몸이 다른 사람이 끼어드는 것을 막아 줍니다.",
+  wait:t=>!G.pl.seat&&(!!(t.seat.occ||t.seat.exiting)||!tutCanSit()),waitTxt:t=>t.seat.occ||t.seat.exiting?"대학생이 내릴 때까지 잠깐. 돌린 몸이 다른 사람이 끼어드는 것을 막아 줍니다.":G.seats.some(x=>x.exiting&&hyp(G.pl.x-x.fx,G.pl.y-x.fy)<sitRange())?"옆자리 사람이 내리는 중입니다. 지나가면 E로 앉을 수 있습니다.":"자리가 비었습니다. 초록 원 안, 자리 바로 앞으로 가서 E.",
   txt:"자리가 비었습니다. E를 눌러 앉으세요.",
   done:(t,g)=>!!g.pl.seat,leave:t=>{t.mark=null;t.hl=null;}},
  {k:"yield",key:["E"],
@@ -1205,8 +1206,8 @@ const TUTS=[
     if(g.st+1>=g.N||!c.length){t.seat2=null;return;}
     c.sort((a,b)=>(a.side!==t.seat.side)-(b.side!==t.seat.side)||Math.abs(a.fx-P.x)-Math.abs(b.fx-P.x));
     const s=c[0];s.occ.dest=g.st+1;assignHints(s.occ);s.tut=true;t.seat2=s;t.mark={x:s.fx,y:s.fy};},
-  wait:t=>!G.pl.seat&&!!(t.seat2&&(t.seat2.occ||t.seat2.exiting)),
-  waitTxt:t=>`양보한 뒤에도 다시 앉을 수 있습니다. 초록 원 자리의 승객이 ${G.route[G.st+(G.phase==="run"?1:0)]}에서 내립니다. 그 앞에 서서 몸짓을 보며 기다리세요.`,
+  wait:t=>!G.pl.seat&&(!!(t.seat2&&(t.seat2.occ||t.seat2.exiting))||!!t.seat2&&!tutCanSit()),
+  waitTxt:t=>t.seat2&&!t.seat2.occ&&!t.seat2.exiting?(G.seats.some(x=>x.exiting&&hyp(G.pl.x-x.fx,G.pl.y-x.fy)<sitRange())?"옆자리 사람이 내리는 중입니다. 지나가면 E로 앉을 수 있습니다.":"자리가 비었습니다. 초록 원 안, 자리 바로 앞으로 가서 E."):`양보한 뒤에도 다시 앉을 수 있습니다. 초록 원 자리의 승객이 ${G.route[G.st+(G.phase==="run"?1:0)]}에서 내립니다. 그 앞에 서서 몸짓을 보며 기다리세요.`,
   txt:"자리가 비었습니다. 초록 원 안에서 E를 눌러 다시 앉으세요.",
   done:(t,g)=>!t.seat2||!!g.pl.seat,leave:t=>{t.mark=null;}},
  {k:"finish",key:["Tab"],enter:t=>{t.tab0=t.tab;},
@@ -1217,6 +1218,7 @@ const TUTS=[
   done:(t,g,dt)=>(t.endT+=dt)>5},
 ];
 const tutVal=(v,t,g)=>typeof v==="function"?v(t,g):v;
+const tutCanSit=()=>{const P=G.pl;return !G.seats.some(x=>x.exiting&&hyp(P.x-x.fx,P.y-x.fy)<sitRange())&&!!nearestFreeSeat();};   // E가 실제로 먹히는 때 (옆에서 내리는 사람이 없고, 닿는 빈자리가 있음)
 const TUT_R=34;   // 초록 원 반지름 (게임 좌표). 이 안에는 서 있는 승객이 들어오지 않는다
 function tutClear(x,y,r){   // 튜토리얼: 그 자리에 서 있는 승객을 멀리 옮긴다 (열차가 멈춰 있어도 바로 비도록 순간 이동)
   for(const q of G.ps){
@@ -1231,7 +1233,8 @@ function tutCard(S,t,st){   // 화면 가운데 아래의 조작 카드
   const keys=(st==="wait"?[]:S.key).map(k=>`<kbd>${k}</kbd>`).join("")+(st!=="wait"&&S.key2?`<span class="or">또는</span><kbd>${S.key2}</kbd>`:"");
   const body=st==="ok"?`<b class="ok">계획대로! ✓</b>`:`${keys?`<div class="tk">${keys}</div>`:""}<div class="tx">${st==="wait"?tutVal(S.waitTxt,t,g):tutVal(S.txt,t,g)}</div>`;
   const html=`<div class="tp">${end?"튜토리얼 완료":`튜토리얼 ${n}/${TUT_TOTAL}`}${t.hold&&st!=="ok"?` · <span class="hz">열차가 기다리는 중</span>`:""}</div>${body}`;
-  if(html!==t.html){t.html=html;el.innerHTML=html;el.className=st==="wait"?"wait":"";el.style.display="block";}
+  if(html!==t.html){t.html=html;el.innerHTML=html;el.className=st==="wait"?"wait":"";}
+  if(el.style.display!=="block")el.style.display="block";   // 일시정지 화면이 숨긴 뒤에도 다시 보이게
 }
 function tutTick(rdt){
   rdt=rdt||0;const g=G,t=g.tut,pl=g.pl;
@@ -1670,7 +1673,7 @@ function update(rdt){
           pl.y+=push*rdt;pl.x+=Math.sign(dr.cx-pl.x)*push*.3*rdt;constrain(pl);
           if(hold){g.stamina-=4*rdt;g.nuis+=3*(1-.2*sk("face"))*rdt;g.holdT=(g.holdT||0)+rdt;
             if(!g.holdSaid){g.holdSaid=true;say(pl,"(기둥을 꽉 잡는다)");toast("문턱에서 기둥을 잡고 버팁니다. 내리는 사람을 막고 있어 체력과 민폐가 오릅니다.");ev("hold");}}}
-        if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)&&sk("xfer")<2&&!hold){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
+        if(n>=3&&pl.y>=BY1-1.5&&!(g.sweepSafe>0)&&sk("xfer")<2&&!hold&&!g.tut){g.sweepT+=rdt;if(g.sweepT>.4)g.sweptNow=true;}else g.sweepT=0;   // 문턱까지 밀리면 내려진다
       }
     }
     let near=0;for(const q of movers)if(hyp(q.x-pl.x,q.y-pl.y)<56)near++;
